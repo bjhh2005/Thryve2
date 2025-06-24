@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
-import { useClientContext, useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
+import { useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Tooltip, IconButton, Divider } from '@douyinfe/semi-ui';
 import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
 
@@ -17,12 +17,11 @@ import { Interactive } from './interactive';
 import { FitView } from './fit-view';
 import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
-import { UploadMap } from '../upload-map';
-import { DownloadMap } from '../download-map';
+import { Upload } from './upload';
+import { Download } from './download';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();
-  const document = useService(WorkflowDocument);
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [minimapVisible, setMinimapVisible] = useState(true);
@@ -39,19 +38,6 @@ export const DemoTools = () => {
     const disposable = playground.config.onReadonlyOrDisabledChange(() => refresh());
     return () => disposable.dispose();
   }, [playground]);
-
-  const handleUpload = (data: any) => {
-    if (playground.config.readonly) {
-      return;
-    }
-    try {
-      document.renderJSON(data);
-      document.fitView(false);
-    } catch (error) {
-      console.error('Error importing flow:', error);
-      alert('导入流程图失败，请检查JSON格式是否正确');
-    }
-  };
 
   return (
     <ToolContainer className="demo-free-layout-tools">
@@ -88,17 +74,9 @@ export const DemoTools = () => {
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <TestRunButton disabled={playground.config.readonly} />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <Tooltip content="Upload Flow">
-          <div style={{ display: 'inline-block' }}>
-            <UploadMap onUpload={handleUpload} />
-          </div>
-        </Tooltip>
-        <Tooltip content="Download Flow">
-          <div style={{ display: 'inline-block' }}>
-            <DownloadMap data={document.toJSON()} />
-          </div>
-        </Tooltip>
+        <Upload />
+        <Download />
       </ToolSection>
     </ToolContainer>
   );
-};
+}; 
