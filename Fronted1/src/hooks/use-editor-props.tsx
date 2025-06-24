@@ -23,11 +23,6 @@ import { WorkflowNodeType } from '../nodes';
 import { SelectorBoxPopover } from '../components/selector-box-popover';
 import { BaseNode, CommentRender, GroupNodeRender, LineAddButton, NodePanel } from '../components';
 
-const nodeRenderMap = {
-  [WorkflowNodeType.Group]: GroupNodeRender,
-  [WorkflowNodeType.Comment]: CommentRender,
-  // ... existing code ...
-};
 
 export function useEditorProps(
   // 参数类型和返回值类型
@@ -141,7 +136,6 @@ export function useEditorProps(
         renderDefaultNode: BaseNode,
         renderNodes: {
           [WorkflowNodeType.Comment]: CommentRender,
-          [WorkflowNodeType.Group]: GroupNodeRender,
         },
       },
       /**
