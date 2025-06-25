@@ -7,11 +7,14 @@ import { WorkflowNodeType } from './constants';
 import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
 import { PrintNodeRegistry } from './print';
+import { FileInputNodeRegistry } from './file-input';
+
 export { WorkflowNodeType } from './constants';
 
 export const nodeRegistries: FlowNodeRegistry[] = [
   ConditionNodeRegistry,
   StartNodeRegistry,
+  FileInputNodeRegistry,
   EndNodeRegistry,
   LLMNodeRegistry,
   LoopNodeRegistry,
@@ -19,6 +22,10 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   PrintNodeRegistry,
 ];
 
+/**
+ * The list of nodes that are visible in the component panel for users to drag and drop.
+ * 这里定义了哪些节点会显示在侧边栏的工具箱中。
+ */
 export const visibleNodeRegistries = nodeRegistries.filter(
   (r) => r.type !== WorkflowNodeType.Comment
 );
