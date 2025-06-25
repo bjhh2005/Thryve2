@@ -42,8 +42,8 @@ class WorkflowEngine :
      
 
 
-     def askMessage(self, nodeId, nodePort):
-          return self.instance[nodeId].getMessage(nodePort)
+     def askMessage(self, nodeId, paramName):
+          return self.instance[nodeId].getMessage(paramName)
 
      def putStack(self, nodeID):
           self.backStack.append(nodeID)
