@@ -4,9 +4,12 @@ class Start(MessageNode):
 
     def __init__(self,id, type, nextNodes, eventBus, data):
         super(MessageNode, self).__init__(id, type, nextNodes, eventBus)
+
+        print(data)
+
         property = data["outputs"]["properties"]
         self.MessageList = {}
-        for propName,propInfo in property.item():
+        for propName,propInfo in property.items():
             prop_type = propInfo.get("type", '')
             if prop_type == 'object':
                 self.MessageList[propName] = {}
@@ -14,9 +17,11 @@ class Start(MessageNode):
                 self.MessageList[propName] = []
             else:
                 self.MessageList[propName] = propInfo.get('default', None)
+        print(self.MessageList)
+
     def run(self):
+        print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
-        self._next = None
-        # self._nextNodes[]
+        self._next = self._nextNodes[0][1]
