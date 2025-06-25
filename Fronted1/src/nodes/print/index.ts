@@ -39,7 +39,6 @@ export const PrintNodeRegistry: FlowNodeRegistry = {
       type: 'print',
       data: {
         title: `Print_${++index}`,
-        content: 'Hello from Print Node!',
         inputs: {
           type: 'object',
           properties: {
