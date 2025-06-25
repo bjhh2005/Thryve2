@@ -2,6 +2,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import logging
+from workflows.Engine import WorkflowEngine
+
 
 app = Flask(__name__)
 CORS(app)
@@ -14,16 +16,13 @@ logger = logging.getLogger(__name__)
 def execute_workflow():
     logger.info("Received workflow execution request")
     workflow_data = request.json
-    logger.info(f"Workflow data: {workflow_data}")
 
-    # 处理工作流数据
-    cleaned_workflow = clean_workflow(workflow_data)
-
-    logger.info(f"Cleaned workflow data: {cleaned_workflow}")
+    enginner = WorkflowEngine(workflow_data)
+    enginner.run()
 
     return jsonify({
         "status": "success",
-        "data": cleaned_workflow,
+        "data": "返回代码0",
         "message": "Workflow processed successfully"
     })
 

@@ -5,12 +5,9 @@ logger = logging.getLogger(__name__)
 class NodeFactory:
     def __init__(self, nodes):
         # 将节点列表转换为以id为键的字典
-        self.nodes = {node['id']: node for node in nodes}
+        self.nodes = nodes
     
     def create_node_instance(self, nodeId):
-        if nodeId not in self.nodes:
-            logger.error(f"找不到ID为{nodeId}的节点")
-            return None
         return self.__create_node(self.nodes[nodeId]["type"], nodeId)
 
     def __create_node(self, type, nodeId):
