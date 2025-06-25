@@ -32,19 +32,19 @@ class WorkflowEngine :
                     for edge in edges:
                          if edge['sourceNodeID'] == node['id']:
                               target_node = cleaned_nodes.get(edge['targetNodeID'])
-                              node['next'].append({edge['sourcePortID']: target_node['id']})
+                              node['next'].append((edge['sourcePortID'], target_node['id']))
                else:
                     # 普通节点处理
                     # 查找所有以该节点为源节点的边
                     for edge in edges:
                          if edge['sourceNodeID'] == node['id']:
                               target_node = cleaned_nodes.get(edge['targetNodeID'])
-                              node['next'].append({"next_id": target_node['id']})
+                              node['next'].append(("next_id", target_node['id']))
 
           # 从workflowData中获取处理后的节点数据
           self.nodes = cleaned_nodes
           self.bus = EventBus()
-          self.factory = NodeFactory(cleaned_nodes)
+          self.factory = NodeFactory(cleaned_nodes, self.bus)
           self.backStack = []
           self.instance = {}
 
@@ -55,11 +55,13 @@ class WorkflowEngine :
     
      def run(self):
           curNodeID = self._findStartNode()
+          logging.info(self.nodes)
           while curNodeID is not None:
                print(curNodeID)
                if curNodeID not in self.instance:
                     self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
                workNode = self.instance[curNodeID]
+               print(workNode)
                workNode.run()
                curNodeID = workNode.getNext()
                if curNodeID is None:
@@ -81,6 +83,7 @@ class WorkflowEngine :
           else:
                return self.backStack.pop()
           
+     
      def _findStartNode(self):
           """
           在节点列表中查找类型为'start'的节点,并返回其ID

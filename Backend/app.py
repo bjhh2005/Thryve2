@@ -19,6 +19,13 @@ def execute_workflow():
 
     enginner = WorkflowEngine(workflow_data)
     enginner.run()
+    
+    return jsonify({
+        "status": "success",
+        "data": enginner.nodes,
+        "message": "Workflow processed successfully"
+    })
+    
 
     return jsonify({
         "status": "success",

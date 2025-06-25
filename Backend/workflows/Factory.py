@@ -1,16 +1,18 @@
 import logging
+from .nodes import Start
 
 logger = logging.getLogger(__name__)
 
 class NodeFactory:
-    def __init__(self, nodes):
+    def __init__(self, nodes, bus):
         # 将节点列表转换为以id为键的字典
         self.nodes = nodes
+        self.bus = bus
     
     def create_node_instance(self, nodeId):
-        return self.__create_node(self.nodes[nodeId]["type"], nodeId)
+        return self.__create_node( nodeId, self.nodes[nodeId]["type"], self.nodes[nodeId]["next"], self.bus)
 
-    def __create_node(self, type, nodeId):
+    def __create_node(self,nodeId,type,nextNodes, bus):
         """
         根据节点类型创建节点。
 
@@ -21,8 +23,8 @@ class NodeFactory:
         创建节点的过程根据传入的 `type` 参数来判断。
         """
         match type:
-            # case "start":
-            #     return StartNode(node_id, node_next_data, data)
+            case "start":
+                return Start(nodeId, nodeId, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
                 return None
             
