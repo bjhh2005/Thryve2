@@ -20,6 +20,7 @@ import { AutoLayout } from './auto-layout';
 import { Upload } from './upload';
 import { Download } from './download';
 import { DraggableTools } from './draggable-tools';
+import { Handle } from './handle';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();
@@ -43,6 +44,8 @@ export const DemoTools = () => {
   return (
     <DraggableTools>
       <ToolSection>
+        <Handle />
+        <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <Interactive />
         <AutoLayout />
         <SwitchLine />
