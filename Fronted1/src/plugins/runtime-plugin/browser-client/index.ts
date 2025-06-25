@@ -9,11 +9,15 @@ import { injectable } from '@flowgram.ai/free-layout-editor';
 export class WorkflowRuntimeClient implements IRuntimeClient {
   constructor() { }
 
+  // 启动新任务，接收流程图数据和输入参数，返回任务 ID
   public [FlowGramAPIName.TaskRun]: IRuntimeClient[FlowGramAPIName.TaskRun] = TaskRunAPI;
 
+  // 报告任务进度，接收任务 ID 和进度信息，返回任务状态
   public [FlowGramAPIName.TaskReport]: IRuntimeClient[FlowGramAPIName.TaskReport] = TaskReportAPI;
 
+  // 获取任务结果，接收任务 ID，返回任务结果
   public [FlowGramAPIName.TaskResult]: IRuntimeClient[FlowGramAPIName.TaskResult] = TaskResultAPI;
 
+  // 取消任务，接收任务 ID，返回任务状态
   public [FlowGramAPIName.TaskCancel]: IRuntimeClient[FlowGramAPIName.TaskCancel] = TaskCancelAPI;
 }

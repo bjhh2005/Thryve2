@@ -280,6 +280,7 @@ export function useEditorProps(
          * ContextMenu plugin
          */
         createContextMenuPlugin({}),
+        // 这里用来指定执行模式
         createRuntimePlugin({
           mode: 'browser',
           // mode: 'server',
