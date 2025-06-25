@@ -9,7 +9,7 @@ import { TestRunButton } from '../testrun/testrun-button';
 import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
 import { SwitchLine } from './switch-line';
-import { ToolContainer, ToolSection } from './styles';
+import { ToolSection } from './styles';
 import { Readonly } from './readonly';
 import { MinimapSwitch } from './minimap-switch';
 import { Minimap } from './minimap';
@@ -19,6 +19,7 @@ import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 import { Upload } from './upload';
 import { Download } from './download';
+import { DraggableTools } from './draggable-tools';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();
@@ -40,7 +41,7 @@ export const DemoTools = () => {
   }, [playground]);
 
   return (
-    <ToolContainer className="demo-free-layout-tools">
+    <DraggableTools>
       <ToolSection>
         <Interactive />
         <AutoLayout />
@@ -77,6 +78,6 @@ export const DemoTools = () => {
         <Upload />
         <Download />
       </ToolSection>
-    </ToolContainer>
+    </DraggableTools>
   );
 }; 
