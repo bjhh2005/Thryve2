@@ -1,0 +1,174 @@
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {
+        "position": {
+          "x": 180,
+          "y": 0
+        }
+      },
+      "data": {
+        "title": "Start",
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "key": 13,
+              "name": "query",
+              "isPropertyRequired": false,
+              "type": "string",
+              "default": "Hello Flow."
+            },
+            "enable": {
+              "key": 14,
+              "name": "enable",
+              "isPropertyRequired": false,
+              "type": "boolean",
+              "default": true
+            },
+            "array_obj": {
+              "key": 15,
+              "name": "array_obj",
+              "isPropertyRequired": false,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "number"
+                  },
+                  "str": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "hhy": {
+              "key": 20,
+              "name": "hhy",
+              "type": "object",
+              "extra": {
+                "index": 4
+              }
+            }
+          },
+          "required": []
+        }
+      }
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {
+        "position": {
+          "x": 1100,
+          "y": 0
+        }
+      },
+      "data": {
+        "title": "End",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "159623",
+      "type": "comment",
+      "meta": {
+        "position": {
+          "x": 180,
+          "y": 183
+        }
+      },
+      "data": {
+        "size": {
+          "width": 240,
+          "height": 150
+        },
+        "note": "hi ~\n\nthis is a comment node\n\n- flowgram.ai"
+      }
+    },
+    {
+      "id": "condition_48irc",
+      "type": "condition",
+      "meta": {
+        "position": {
+          "x": 654.1802721088434,
+          "y": -27
+        }
+      },
+      "data": {
+        "title": "Condition",
+        "conditions": [
+          {
+            "value": {
+              "left": {
+                "type": "ref",
+                "content": [
+                  "start_0",
+                  "query"
+                ]
+              }
+            },
+            "key": "if_9Oazq"
+          },
+          {
+            "value": {
+              "left": {
+                "type": "ref",
+                "content": [
+                  "start_0",
+                  "enable"
+                ]
+              }
+            },
+            "key": "if_HYHTk"
+          },
+          {
+            "value": {
+              "type": "expression",
+              "content": "",
+              "left": {
+                "type": "ref",
+                "content": [
+                  "start_0",
+                  "hhy"
+                ]
+              }
+            },
+            "key": "if_iF1wyy"
+          }
+        ]
+      }
+    }
+  ],
+  "edges": [
+    {
+      "sourceNodeID": "start_0",
+      "targetNodeID": "condition_48irc"
+    },
+    {
+      "sourceNodeID": "condition_48irc",
+      "targetNodeID": "end_0",
+      "sourcePortID": "if_9Oazq"
+    },
+    {
+      "sourceNodeID": "condition_48irc",
+      "targetNodeID": "end_0",
+      "sourcePortID": "if_HYHTk"
+    },
+    {
+      "sourceNodeID": "condition_48irc",
+      "targetNodeID": "end_0",
+      "sourcePortID": "if_iF1wyy"
+    }
+  ]
+}
