@@ -31,5 +31,5 @@ def clean_workflow(pre_workflow_data):
     """
     处理工作流数据的入口函数
     """
-    workflow_data = WorkflowExecutor(preworkflow_data)
+    workflow_data = CleanExecutor(pre_workflow_data)
     return workflow_data.get_cleaned_workflow()
