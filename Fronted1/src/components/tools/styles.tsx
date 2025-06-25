@@ -3,15 +3,18 @@ import styled from 'styled-components';
 import { IconMinimap } from '../../assets/icon-minimap';
 
 export const ToolContainer = styled.div`
-  position: absolute;
-  bottom: 16px;
+  position: fixed;
   display: flex;
   justify-content: left;
   min-width: 360px;
-  pointer-events: none;
   gap: 8px;
-
   z-index: 99;
+  cursor: move;
+  user-select: none;
+  
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
 `;
 
 export const ToolSection = styled.div`
@@ -25,6 +28,10 @@ export const ToolSection = styled.div`
   height: 40px;
   padding: 0 4px;
   pointer-events: auto;
+  
+  &:hover {
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+  }
 `;
 
 export const SelectZoom = styled.span`
