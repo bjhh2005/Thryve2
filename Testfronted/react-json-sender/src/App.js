@@ -18,7 +18,7 @@ function App() {
       setRequestData(jsonData); // 显示发送的数据
 
       // 2. 发送给后端
-      const response = await fetch('http://localhost:5000/api/workflow/execute', {
+      const response = await fetch('http://localhost:4000/api/task/run', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
