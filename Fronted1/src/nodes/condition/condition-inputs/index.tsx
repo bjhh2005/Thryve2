@@ -14,68 +14,55 @@ interface ConditionValue {
   value?: ConditionRowValueType;
 }
 
-const createDefaultCondition = () => ({
-  key: `if_${nanoid(6)}`,
-  value: { type: 'expression', content: '' },
-});
-
 export function ConditionInputs() {
   const { readonly } = useNodeRenderContext();
   return (
     <FieldArray name="conditions">
-      {({ field }) => {
-        // 确保 field.value 是数组
-        const conditions = Array.isArray(field.value) ? field.value : [];
-        
-        // 如果没有条件分支，自动添加一个默认分支
-        if (conditions.length === 0) {
-          field.append(createDefaultCondition());
-        }
+      {({ field }) => (
+        <>
+          {field.map((child, index) => (
+            <Field<ConditionValue> key={child.name} name={child.name}>
+              {({ field: childField, fieldState: childState }) => (
+                <FormItem name="if" type="boolean" required={true} labelWidth={40}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <ConditionRow
+                      readonly={readonly}
+                      style={{ flexGrow: 1 }}
+                      value={childField.value.value}
+                      onChange={(v) => childField.onChange({ value: v, key: childField.value.key })}
+                    />
 
-        return (
-          <>
-            {field.map((child, index) => (
-              <Field<ConditionValue> key={child.name} name={child.name}>
-                {({ field: childField, fieldState: childState }) => (
-                  <FormItem name="if" type="boolean" required={true} labelWidth={40}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <ConditionRow
-                        readonly={readonly}
-                        style={{ flexGrow: 1 }}
-                        value={childField.value.value}
-                        onChange={(v) => childField.onChange({ value: v, key: childField.value.key })}
-                      />
+                    <Button
+                      theme="borderless"
+                      icon={<IconCrossCircleStroked />}
+                      onClick={() => field.delete(index)}
+                    />
+                  </div>
 
-                      {/* 只有当有多个分支时才显示删除按钮 */}
-                      {conditions.length > 1 && (
-                        <Button
-                          theme="borderless"
-                          icon={<IconCrossCircleStroked />}
-                          onClick={() => field.delete(index)}
-                        />
-                      )}
-                    </div>
-
-                    <Feedback errors={childState?.errors} invalid={childState?.invalid} />
-                    <ConditionPort data-port-id={childField.value.key} data-port-type="output" />
-                  </FormItem>
-                )}
-              </Field>
-            ))}
-            {!readonly && (
-              <div>
-                <Button
-                  theme="borderless"
-                  icon={<IconPlus />}
-                  onClick={() => field.append(createDefaultCondition())}
-                >
-                  Add
-                </Button>
-              </div>
-            )}
-          </>
-        );
-      }}
+                  <Feedback errors={childState?.errors} invalid={childState?.invalid} />
+                  <ConditionPort data-port-id={childField.value.key} data-port-type="output" />
+                </FormItem>
+              )}
+            </Field>
+          ))}
+          {!readonly && (
+            <div>
+              <Button
+                theme="borderless"
+                icon={<IconPlus />}
+                onClick={() =>
+                  field.append({
+                    key: `if_${nanoid(6)}`,
+                    value: { type: 'expression', content: '' },
+                  })
+                }
+              >
+                Add
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </FieldArray>
   );
 }
