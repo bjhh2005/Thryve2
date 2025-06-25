@@ -17,16 +17,19 @@ export class ContextMenuLayer extends Layer {
 
   @inject(WorkflowHoverService) hoverService: WorkflowHoverService;
 
+  // 监听右键菜单事件
   onReady() {
     this.listenPlaygroundEvent('contextmenu', (e) => {
       this.openNodePanel(e);
-      e.preventDefault();
-      e.stopPropagation();
+      e.preventDefault(); // 阻止默认的右键菜单行为
+      e.stopPropagation(); // 阻止事件冒泡
     });
   }
 
+  // 打开节点面板
   openNodePanel(e: MouseEvent) {
     const pos = this.getPosFromMouseEvent(e);
+    // 调用节点面板服务
     this.nodePanelService.callNodePanel({
       position: pos,
       panelProps: {},
