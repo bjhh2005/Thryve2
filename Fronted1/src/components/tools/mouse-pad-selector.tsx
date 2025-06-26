@@ -6,13 +6,8 @@ import { IconPad, IconPadTool } from '../../assets/icon-pad';
 import { IconMouse, IconMouseTool } from '../../assets/icon-mouse';
 
 import './mouse-pad-selector.less';
-
+import { InteractiveType } from './interactive';
 const { Title, Paragraph } = Typography;
-
-export enum InteractiveType {
-  Mouse = 'MOUSE',
-  Pad = 'PAD',
-}
 
 export interface MousePadSelectorProps {
   value: InteractiveType;
@@ -46,9 +41,8 @@ const InteractiveItem: React.FC<{
     </Title>
     <Paragraph
       type="tertiary"
-      className={`mouse-pad-option-subTitle ${
-        selected ? 'mouse-pad-option-subTitle-selected' : ''
-      }`}
+      className={`mouse-pad-option-subTitle ${selected ? 'mouse-pad-option-subTitle-selected' : ''
+        }`}
     >
       {subTitle}
     </Paragraph>
