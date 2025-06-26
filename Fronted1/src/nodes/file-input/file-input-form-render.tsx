@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Field, FieldArray, FormRenderProps, FlowNodeJSON, FlowNodeVariableData, ASTFactory } from '@flowgram.ai/free-layout-editor';
 import { Button, Spin, Typography, Notification } from '@douyinfe/semi-ui';
 import { IconUpload, IconFile, IconClear, IconPlus, IconDelete } from '@douyinfe/semi-icons';
@@ -239,6 +239,8 @@ const FileInput: React.FC<{
 export const FileInputFormRender = ({ form }: FormRenderProps<FileInputNodeJSON>) => {
     const isSidebar = useIsSidebar();
     const { readonly } = useNodeRenderContext();
+    const [isDeleting, setIsDeleting] = useState<number | null>(null);
+    const [isAdding, setIsAdding] = useState(false);
 
     const handleFileSelect = (file: FileReference, index: number) => {
         const currentFiles = form.values?.files || [];
@@ -256,6 +258,91 @@ export const FileInputFormRender = ({ form }: FormRenderProps<FileInputNodeJSON>
             }
         }
     };
+
+    const handleRemove = useCallback(async (field: any, index: number) => {
+        // 防止重复点击
+        if (isDeleting === index) return;
+        
+        try {
+            setIsDeleting(index);
+            
+            // 类型和边界检查
+            if (!Array.isArray(field.value)) {
+                throw new Error('Field value is not an array');
+            }
+            
+            if (index < 0 || index >= field.value.length) {
+                throw new Error('Invalid index');
+            }
+
+            // 检查是否是最后一个分支
+            if (field.value.length <= 1) {
+                throw new Error('Cannot delete the last file input');
+            }
+
+            // 获取要删除的文件的变量名
+            const fileToRemove = (field.value || [])[index];
+            
+            // 删除 outputs 中对应的变量
+            const currentOutputs = form.values?.outputs || {
+                type: 'object',
+                properties: {}
+            };
+            
+            const newProperties = { ...currentOutputs.properties };
+            delete newProperties[fileToRemove.variableName];
+            
+            form.setValueIn('outputs', {
+                ...currentOutputs,
+                properties: newProperties
+            });
+
+            // 删除文件分支
+            await field.remove(index);
+            
+        } catch (error: any) {
+            console.error('Failed to remove file input:', error);
+            Notification.error({
+                title: 'Error',
+                content: error.message || 'Failed to remove file input'
+            });
+        } finally {
+            setIsDeleting(null);
+        }
+    }, [isDeleting, form]);
+
+    const handleAdd = useCallback(async (field: any) => {
+        // 防止重复点击
+        if (isAdding) return;
+        
+        try {
+            setIsAdding(true);
+            
+            // 初始化数组（如果不存在）
+            if (!field.value) {
+                await field.onChange([]);
+            }
+            
+            const newFileId = nanoid(6);
+            const currentFiles = field.value || [];
+            
+            // 添加新文件
+            await field.append({
+                id: `file_${newFileId}`,
+                file: null,
+                variableName: `file_${currentFiles.length + 1}`
+            });
+            
+        } catch (error: any) {
+            console.error('Failed to add file input:', error);
+            Notification.error({
+                title: 'Error',
+                content: error.message || 'Failed to add file input'
+            });
+        } finally {
+            setIsAdding(false);
+        }
+    }, [isAdding]);
 
     if (isSidebar) {
         return (
@@ -300,27 +387,7 @@ export const FileInputFormRender = ({ form }: FormRenderProps<FileInputNodeJSON>
                                             index={index}
                                             onRemove={
                                                 !readonly && (field.value || []).length > 1
-                                                    ? () => {
-                                                        // 获取要删除的文件的变量名
-                                                        const fileToRemove = (field.value || [])[index];
-                                                        
-                                                        // 删除 outputs 中对应的变量
-                                                        const currentOutputs = form.values?.outputs || {
-                                                            type: 'object',
-                                                            properties: {}
-                                                        };
-                                                        
-                                                        const newProperties = { ...currentOutputs.properties };
-                                                        delete newProperties[fileToRemove.variableName];
-                                                        
-                                                        form.setValueIn('outputs', {
-                                                            ...currentOutputs,
-                                                            properties: newProperties
-                                                        });
-
-                                                        // 删除文件分支
-                                                        field.remove(index);
-                                                    }
+                                                    ? () => handleRemove(field, index)
                                                     : undefined
                                             }
                                             readonly={readonly}
@@ -333,18 +400,12 @@ export const FileInputFormRender = ({ form }: FormRenderProps<FileInputNodeJSON>
                             {!readonly && (
                                 <Button
                                     icon={<IconPlus />}
-                                    onClick={() => {
-                                        const newFileId = nanoid(6);
-                                        const currentFiles = field.value || [];
-                                        
-                                        // 添加新文件
-                                        field.append({
-                                            id: `file_${newFileId}`,
-                                            file: null,
-                                            variableName: `file_${currentFiles.length + 1}`
-                                        });
+                                    onClick={() => handleAdd(field)}
+                                    disabled={isDeleting !== null || isAdding}
+                                    style={{ 
+                                        marginTop: '8px',
+                                        opacity: isAdding ? 0.5 : 1
                                     }}
-                                    style={{ marginTop: '8px' }}
                                 >
                                     Add File Input
                                 </Button>
