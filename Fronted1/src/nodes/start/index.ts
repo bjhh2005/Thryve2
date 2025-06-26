@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import iconStart from '../../assets/icon-start.jpg';
 import { formMeta } from './form-meta';
@@ -31,7 +32,29 @@ export const StartNodeRegistry: FlowNodeRegistry = {
   /**
    * Start Node cannot be added
    */
+  onAdd() {
+    return {
+      id: `start_${nanoid(5)}`,
+      type: 'start',
+      data: {
+        title: 'Start',
+        outputs: {
+          type: 'object',
+          properties: {
+            query: {
+              type: 'string',
+              default: 'Hello Flow.',
+            },
+            enable: {
+              type: 'boolean',
+              default: true,
+            }
+          },
+        },
+      },
+    };
+  },
   canAdd() {
-    return false;
+    return true;
   },
 };

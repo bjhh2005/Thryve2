@@ -6,6 +6,9 @@ export interface FileReference {
     fileName: string;
     mimeType: string;
     size: number; // in bytes
+    created?: Date;
+    modified?: Date;
+    accessed?: Date;
     metadata?: Record<string, any>;
 }
 
