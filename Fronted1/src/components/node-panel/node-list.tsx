@@ -16,6 +16,7 @@ const NodeWrap = styled.div`
   cursor: pointer;
   font-size: 19px;
   padding: 0 15px;
+  color: #000;
   &:hover {
     background-color: hsl(252deg 62% 55% / 9%);
     color: hsl(252 62% 54.9%);

@@ -37,6 +37,7 @@ export const ToolSection = styled.div`
 export const SelectZoom = styled.span`
   padding: 4px;
   border-radius: 8px;
+  color: #474a4d;
   border: 1px solid rgba(68, 83, 130, 0.25);
   font-size: 12px;
   width: 50px;
@@ -49,6 +50,6 @@ export const MinimapContainer = styled.div`
   width: 198px;
 `;
 
-export const UIIconMinimap = styled(IconMinimap)<{ visible: boolean }>`
+export const UIIconMinimap = styled(IconMinimap) <{ visible: boolean }>`
   color: ${(props) => (props.visible ? undefined : '#060709cc')};
 `;
