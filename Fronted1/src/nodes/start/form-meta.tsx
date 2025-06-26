@@ -6,7 +6,7 @@ import {
   ValidateTrigger,
 } from '@flowgram.ai/free-layout-editor';
 import { JsonSchemaEditor } from '@flowgram.ai/form-materials';
-
+import { Button} from '@douyinfe/semi-ui';
 import { FlowNodeJSON, JsonSchema } from '../../typings';
 import { useIsSidebar } from '../../hooks';
 import { FormHeader, FormContent, FormOutputs } from '../../form-components';
@@ -26,6 +26,9 @@ export const renderForm = ({ form }: FormRenderProps<FlowNodeJSON>) => {
                   value={value}
                   onChange={(value) => onChange(value as JsonSchema)}
                 />
+                <div style={{ marginTop: '24px', textAlign: 'center' }}>
+                                    <Button type="primary">OK</Button>
+                </div>
               </>
             )}
           />

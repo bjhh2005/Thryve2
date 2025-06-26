@@ -16,6 +16,6 @@ export const MoreButton: FC<IMoreButton> = ({ node, focused, deleteNode }) => (
       focused ? 'workflow-comment-more-button-focused' : ''
     }`}
   >
-    <NodeMenu node={node} deleteNode={deleteNode} />
+    <NodeMenu node={node} deleteNode={deleteNode} updateTitleEdit={() => {}} />
   </div>
 );
