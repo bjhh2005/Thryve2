@@ -1,5 +1,6 @@
 import logging
 from .nodes import Start
+from .nodes.ConditionNode import ConditionNode
 
 logger = logging.getLogger(__name__)
 
@@ -10,9 +11,9 @@ class NodeFactory:
         self.bus = bus
     
     def create_node_instance(self, nodeId):
-        return self.__create_node( nodeId, self.nodes[nodeId]["type"], self.nodes[nodeId]["next"], self.bus)
+        return self.__create_node(nodeId, self.nodes[nodeId]["type"], self.nodes[nodeId]["next"], self.bus)
 
-    def __create_node(self,nodeId,type,nextNodes, bus):
+    def __create_node(self, nodeId, type, nextNodes, bus):
         """
         根据节点类型创建节点。
 
@@ -25,6 +26,8 @@ class NodeFactory:
         match type:
             case "start":
                 return Start(nodeId, nodeId, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "condition":
+                return ConditionNode(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
                 return None
             
