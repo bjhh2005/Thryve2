@@ -2,6 +2,7 @@ import logging
 from .nodes import Start
 from .nodes.ConditionNode import ConditionNode
 from .nodes.Print import Print
+from .nodes.Loop import Loop
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,8 @@ class NodeFactory:
                 return ConditionNode(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "print":
                 return Print(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "loop":
+                return Loop(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
                 return None
             

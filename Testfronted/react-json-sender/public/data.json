@@ -6,7 +6,7 @@
       "meta": {
         "position": {
           "x": 180,
-          "y": 91.80000000000001
+          "y": 381.75
         }
       },
       "data": {
@@ -15,78 +15,50 @@
           "type": "object",
           "properties": {
             "query": {
+              "key": 13,
+              "name": "query",
+              "isPropertyRequired": false,
               "type": "string",
               "default": "Hello Flow."
             },
             "enable": {
+              "key": 14,
+              "name": "enable",
+              "isPropertyRequired": false,
               "type": "boolean",
               "default": true
             },
             "array_obj": {
+              "key": 15,
+              "name": "array_obj",
+              "isPropertyRequired": false,
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "int": {
-                    "type": "number"
+                  "111": {
+                    "key": 21,
+                    "name": "111",
+                    "type": "string",
+                    "extra": {
+                      "index": 1
+                    }
                   },
-                  "str": {
-                    "type": "string"
+                  "222": {
+                    "key": 22,
+                    "name": "222",
+                    "type": "string",
+                    "extra": {
+                      "index": 2
+                    }
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    {
-      "id": "condition_0",
-      "type": "condition",
-      "meta": {
-        "position": {
-          "x": 640,
-          "y": 28.150000000000006
-        }
-      },
-      "data": {
-        "title": "Condition",
-        "conditions": [
-          {
-            "key": "if_0",
-            "value": {
-              "left": {
-                "type": "ref",
-                "content": [
-                  "start_0",
-                  "query"
-                ]
-              },
-              "operator": "contains",
-              "right": {
-                "type": "constant",
-                "content": "Hello Flowa."
+                },
+                "required": []
               }
             }
           },
-          {
-            "value": {
-              "left": {
-                "type": "ref",
-                "content": [
-                  "start_0",
-                  "enable"
-                ]
-              },
-              "operator": "eq",
-              "right": {
-                "type": "constant",
-                "content": true
-              }
-            },
-            "key": "if_f0rOAt"
-          }
-        ]
+          "required": []
+        }
       }
     },
     {
@@ -94,8 +66,8 @@
       "type": "end",
       "meta": {
         "position": {
-          "x": 1560,
-          "y": 91.80000000000001
+          "x": 2272.5171635138363,
+          "y": 376.6630410871634
         }
       },
       "data": {
@@ -111,68 +83,73 @@
       }
     },
     {
-      "id": "159623",
-      "type": "comment",
+      "id": "loop_sGybT",
+      "type": "loop",
       "meta": {
         "position": {
-          "x": 180,
-          "y": 273.8
+          "x": 1179.7229100219606,
+          "y": 311.8888108752814
         }
       },
       "data": {
-        "size": {
-          "width": 240,
-          "height": 150
-        },
-        "note": "hi ~\n\nthis is a comment node\n\n- flowgram.ai"
-      }
-    },
-    {
-      "id": "print_Gs-wZ",
-      "type": "print",
-      "meta": {
-        "position": {
-          "x": 1100,
-          "y": 7.105427357601002e-15
+        "title": "Loop_1",
+        "batchFor": {
+          "type": "ref",
+          "content": [
+            "start_0",
+            "array_obj"
+          ]
         }
       },
-      "data": {
-        "title": "Print_1",
-        "inputs": {
-          "type": "object",
-          "properties": {
-            "input": {
-              "type": "string",
-              "title": "Input Text",
-              "description": "Text from previous node"
+      "blocks": [
+        {
+          "id": "print_l4HPf",
+          "type": "print",
+          "meta": {
+            "position": {
+              "x": 0,
+              "y": 120
             }
-          }
-        },
-        "outputs": {
-          "type": "object",
-          "properties": {
-            "result": {
-              "type": "string",
-              "title": "Printed Text",
-              "description": "The text that was printed"
+          },
+          "data": {
+            "title": "Print_1",
+            "inputs": {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "type": "string",
+                  "title": "Input Text",
+                  "description": "Text from previous node"
+                }
+              }
+            },
+            "outputs": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "string",
+                  "title": "Printed Text",
+                  "description": "The text that was printed"
+                }
+              }
+            },
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "   Looping   "
+              }
             }
-          }
-        },
-        "inputsValues": {
-          "input": {
-            "type": "constant",
-            "content": "3312"
           }
         }
-      }
+      ]
     },
     {
-      "id": "print_5kD3G",
+      "id": "print_r8Wiy",
       "type": "print",
       "meta": {
         "position": {
-          "x": 1100,
-          "y": 183.3
+          "x": 614.5924258233372,
+          "y": 353.7727394317239
         }
       },
       "data": {
@@ -199,11 +176,47 @@
         },
         "inputsValues": {
           "input": {
-            "type": "ref",
-            "content": [
-              "start_0",
-              "query"
-            ]
+            "type": "constant",
+            "content": "Before_Loop"
+          }
+        }
+      }
+    },
+    {
+      "id": "print_de0UY",
+      "type": "print",
+      "meta": {
+        "position": {
+          "x": 1704.8972861413195,
+          "y": 353.7727394317239
+        }
+      },
+      "data": {
+        "title": "Print_3",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "string",
+              "title": "Input Text",
+              "description": "Text from previous node"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string",
+              "title": "Printed Text",
+              "description": "The text that was printed"
+            }
+          }
+        },
+        "inputsValues": {
+          "input": {
+            "type": "constant",
+            "content": "After_Loop"
           }
         }
       }
@@ -212,25 +225,19 @@
   "edges": [
     {
       "sourceNodeID": "start_0",
-      "targetNodeID": "condition_0"
+      "targetNodeID": "print_r8Wiy"
     },
     {
-      "sourceNodeID": "condition_0",
-      "targetNodeID": "print_Gs-wZ",
-      "sourcePortID": "if_0"
-    },
-    {
-      "sourceNodeID": "condition_0",
-      "targetNodeID": "print_5kD3G",
-      "sourcePortID": "if_f0rOAt"
-    },
-    {
-      "sourceNodeID": "print_Gs-wZ",
+      "sourceNodeID": "print_de0UY",
       "targetNodeID": "end_0"
     },
     {
-      "sourceNodeID": "print_5kD3G",
-      "targetNodeID": "end_0"
+      "sourceNodeID": "print_r8Wiy",
+      "targetNodeID": "loop_sGybT"
+    },
+    {
+      "sourceNodeID": "loop_sGybT",
+      "targetNodeID": "print_de0UY"
     }
   ]
 }
