@@ -6,7 +6,7 @@
       "meta": {
         "position": {
           "x": 180,
-          "y": 36
+          "y": 91.80000000000001
         }
       },
       "data": {
@@ -41,12 +41,61 @@
       }
     },
     {
+      "id": "condition_0",
+      "type": "condition",
+      "meta": {
+        "position": {
+          "x": 640,
+          "y": 28.150000000000006
+        }
+      },
+      "data": {
+        "title": "Condition",
+        "conditions": [
+          {
+            "key": "if_0",
+            "value": {
+              "left": {
+                "type": "ref",
+                "content": [
+                  "start_0",
+                  "query"
+                ]
+              },
+              "operator": "contains",
+              "right": {
+                "type": "constant",
+                "content": "Hello Flowa."
+              }
+            }
+          },
+          {
+            "value": {
+              "left": {
+                "type": "ref",
+                "content": [
+                  "start_0",
+                  "enable"
+                ]
+              },
+              "operator": "eq",
+              "right": {
+                "type": "constant",
+                "content": true
+              }
+            },
+            "key": "if_f0rOAt"
+          }
+        ]
+      }
+    },
+    {
       "id": "end_0",
       "type": "end",
       "meta": {
         "position": {
-          "x": 1100,
-          "y": 36
+          "x": 1560,
+          "y": 91.80000000000001
         }
       },
       "data": {
@@ -67,7 +116,7 @@
       "meta": {
         "position": {
           "x": 180,
-          "y": 218
+          "y": 273.8
         }
       },
       "data": {
@@ -79,45 +128,23 @@
       }
     },
     {
-      "id": "print_OZEjE",
+      "id": "print_Gs-wZ",
       "type": "print",
       "meta": {
         "position": {
-          "x": 640,
-          "y": 0
+          "x": 1100,
+          "y": 7.105427357601002e-15
         }
       },
       "data": {
         "title": "Print_1",
-        "inputsValues": {
-          "text": {
-            "type": "constant",
-            "content": "111"
-          },
-          "mode": {
-            "type": "constant",
-            "content": "display"
-          }
-        },
         "inputs": {
           "type": "object",
-          "required": [
-            "text"
-          ],
           "properties": {
-            "text": {
+            "input": {
               "type": "string",
-              "title": "Text",
-              "description": "The text content to be printed"
-            },
-            "mode": {
-              "type": "string",
-              "title": "Mode",
-              "enum": [
-                "console",
-                "display"
-              ],
-              "default": "display"
+              "title": "Input Text",
+              "description": "Text from previous node"
             }
           }
         },
@@ -130,6 +157,54 @@
               "description": "The text that was printed"
             }
           }
+        },
+        "inputsValues": {
+          "input": {
+            "type": "constant",
+            "content": "3312"
+          }
+        }
+      }
+    },
+    {
+      "id": "print_5kD3G",
+      "type": "print",
+      "meta": {
+        "position": {
+          "x": 1100,
+          "y": 183.3
+        }
+      },
+      "data": {
+        "title": "Print_2",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "string",
+              "title": "Input Text",
+              "description": "Text from previous node"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string",
+              "title": "Printed Text",
+              "description": "The text that was printed"
+            }
+          }
+        },
+        "inputsValues": {
+          "input": {
+            "type": "ref",
+            "content": [
+              "start_0",
+              "query"
+            ]
+          }
         }
       }
     }
@@ -137,10 +212,24 @@
   "edges": [
     {
       "sourceNodeID": "start_0",
-      "targetNodeID": "print_OZEjE"
+      "targetNodeID": "condition_0"
     },
     {
-      "sourceNodeID": "print_OZEjE",
+      "sourceNodeID": "condition_0",
+      "targetNodeID": "print_Gs-wZ",
+      "sourcePortID": "if_0"
+    },
+    {
+      "sourceNodeID": "condition_0",
+      "targetNodeID": "print_5kD3G",
+      "sourcePortID": "if_f0rOAt"
+    },
+    {
+      "sourceNodeID": "print_Gs-wZ",
+      "targetNodeID": "end_0"
+    },
+    {
+      "sourceNodeID": "print_5kD3G",
       "targetNodeID": "end_0"
     }
   ]
