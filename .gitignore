@@ -195,6 +195,6 @@ cython_debug/
 
 
 # 我的测试文件
-.Testfronted/node_modules
 .vscode
 Testfronted/node_modules
+tmp/
