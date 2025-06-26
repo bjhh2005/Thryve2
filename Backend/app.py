@@ -27,11 +27,7 @@ def execute_workflow():
     })
     
 
-    return jsonify({
-        "status": "success",
-        "data": "返回代码0",
-        "message": "Workflow processed successfully"
-    })
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=4000)
