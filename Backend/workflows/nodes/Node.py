@@ -46,5 +46,3 @@ class Node(ABC):
         :return 返回节点的下一个执行的节点 如果没有下一个 那么设为None
         '''
         return self._next
-    
-  
