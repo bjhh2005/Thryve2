@@ -53,11 +53,18 @@ class ConditionNode(Node):
             return False
 
         # 获取操作数和操作符
-        left_value = self._get_value(condition.get("left"))
+        left = condition.get("left", {})
         operator = condition.get("operator")
-        right_value = self._get_value(condition.get("right"))
-        expr_type = condition.get("type")
-        content = condition.get("content")
+        right = condition.get("right", {})
+
+        # 获取左操作数的值
+        left_value = self._get_value(left)
+
+        # 如果没有操作符，只判断左值的真假
+        if not operator:
+            return bool(left_value)
+
+        right_value = self._get_value(right)
 
         # 根据操作符类型进行判断
         match operator:
@@ -107,9 +114,11 @@ class ConditionNode(Node):
             
         # 如果是引用类型，从eventBus获取值
         if value_ref.get("type") == "ref":
-            node_id = value_ref.get("nodeId")
-            param_name = value_ref.get("paramName")
-            return self._eventBus.emit("askMessage", node_id, param_name)
+            content = value_ref.get("content", [])
+            if len(content) >= 2:
+                node_id = content[0]
+                param_name = content[1]
+                return self._eventBus.emit("askMessage", node_id, param_name)
         
         # 如果是常量类型，直接返回内容
         return value_ref.get("content")
@@ -119,11 +128,13 @@ class ConditionNode(Node):
         执行条件节点
         根据条件判断结果选择执行分支
         """
+        print(f"执行条件节点: {self._id}")
         # 遍历所有条件分支
         for branch_key, condition in self.conditions.items():
             # 如果条件满足，选择该分支
             if self._evaluate_condition(condition):
                 self.current_branch = branch_key
+                print(f"条件分支 {branch_key} 满足条件")
                 break
         
         # 更新下一个节点
@@ -141,8 +152,9 @@ class ConditionNode(Node):
             
         # 在nextNodes中查找对应分支的下一个节点
         for node in self._nextNodes:
-            if node.get("key") == self.current_branch:
-                self._next = node.get("nodeId")
+            if node[0] == self.current_branch:
+                self._next = node[1]
+                print(f"下一个节点: {self._next}")
                 return
         
         self._next = None
