@@ -1,5 +1,4 @@
 from .MessageNode import MessageNode
-from ..Factory import NodeFactory
 
 class Loop(MessageNode):
     def __init__(self, id, type, nextNodes, eventBus, data):
@@ -7,8 +6,10 @@ class Loop(MessageNode):
         
         # 获取循环变量配置
         self.batchFor = data.get("batchFor", {})
-        self.blocks = data.get("blocks", [])
-        self.edges = data.get("edges", [])
+        # blocks 和 edges 在节点顶层，通过事件总线获取
+        node_info = self._eventBus.emit("getNodeInfo", id)
+        self.blocks = node_info.get("blocks", [])
+        self.edges = node_info.get("edges", [])
         
         # 存储循环体内节点实例
         self.block_nodes = {}
@@ -68,27 +69,30 @@ class Loop(MessageNode):
         # 通过事件总线的 askMessage 方法获取源节点的输出
         array_data = self._eventBus.emit("askMessage", ref_node_id, ref_node_property)
         if not array_data:
-            return None
+            array_data = []  # 如果数组为空，也要继续执行
             
-        # 初始化循环体节点
-        factory = NodeFactory({}, self._eventBus)  # 创建一个新的工厂实例
+        # 构建循环体节点信息字典
+        block_nodes = {}
         for block in self.blocks:
             node_id = block["id"]
-            node_type = block["type"]
-            node_data = block.get("data", {})
+            block_nodes[node_id] = {
+                "id": node_id,
+                "type": block["type"],
+                "data": block.get("data", {}),
+                "next": []  # 循环体内节点的连接在内部处理
+            }
             
-            # 使用工厂创建节点实例
-            self.block_nodes[node_id] = factory.__create_node(
-                node_id,
-                node_type,
-                [],  # 循环体内节点的连接在内部处理
-                self._eventBus,
-                node_data
-            )
+        # 初始化循环体节点
+        for block in self.blocks:
+            node_id = block["id"]
+            # 通过事件总线创建节点实例
+            self._eventBus.emit("putStack", node_id)
+            self.block_nodes[node_id] = self._eventBus.emit("createNode", block_nodes[node_id])
         
         # 获取起始节点
         start_nodes = self.find_start_nodes()
         
+        #array_data = [1,2,3]测试用
         # 执行循环
         for item in array_data:
             # 从每个起始节点开始执行
@@ -97,6 +101,7 @@ class Loop(MessageNode):
         
         # 更新下一个要执行的节点
         self.updateNext()
+        return self.getNext()
 
     def updateNext(self):
         """更新下一个要执行的节点"""

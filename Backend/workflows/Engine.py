@@ -50,6 +50,8 @@ class WorkflowEngine :
 
           self.bus.on("askMessage", self.askMessage)
           self.bus.on("putStack", self.putStack)
+          self.bus.on("createNode", self.createNode)
+          self.bus.on("getNodeInfo", self.getNodeInfo)
 
 
     
@@ -93,5 +95,17 @@ class WorkflowEngine :
                if nodeData.get('type') == 'start':
                     return nodeId
           return None
+
+     def createNode(self, nodeData):
+          """创建节点实例"""
+          nodeId = nodeData["id"]
+          if nodeId not in self.instance:
+               self.nodes[nodeId] = nodeData
+               self.instance[nodeId] = self.factory.create_node_instance(nodeId)
+          return self.instance[nodeId]
+
+     def getNodeInfo(self, nodeId):
+          """获取节点信息"""
+          return self.nodes.get(nodeId, {})
 
                
