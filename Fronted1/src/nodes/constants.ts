@@ -7,4 +7,5 @@ export enum WorkflowNodeType {
   Comment = 'comment',
   Print = 'print',
   FileInput = 'fileinput',
+  TextProcessor = 'text_processor'
 }

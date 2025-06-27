@@ -8,6 +8,7 @@ import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
 import { PrintNodeRegistry } from './print';
 import { FileInputNodeRegistry } from './file-input';
+import { TextProcessorNodeRegistry } from './text-processor';
 
 export { WorkflowNodeType } from './constants';
 
@@ -20,6 +21,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   LoopNodeRegistry,
   CommentNodeRegistry,
   PrintNodeRegistry,
+  TextProcessorNodeRegistry,
 ];
 
 /**
