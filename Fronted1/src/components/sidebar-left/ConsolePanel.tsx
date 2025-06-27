@@ -32,14 +32,14 @@ export const ConsolePanel = () => {
                 {logs.length === 0 ? (
                     <div className="console-placeholder">
                         <IconTriangleDown />
-                        <span>等待工作流执行...</span>
+                        <span>Waiting for workflow execution...</span>
                     </div>
                 ) : (
                     logs.map((log) => <LogEntryView key={log.id} log={log} />)
                 )}
             </div>
             <div className="left-sidebar-panel-footer">
-                <button className="sidebar-button" onClick={clearLogs}>清空日志</button>
+                <button className="sidebar-button" onClick={clearLogs}>Clear Logs</button>
             </div>
         </div>
     );
