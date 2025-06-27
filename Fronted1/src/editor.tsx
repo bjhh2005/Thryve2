@@ -6,10 +6,11 @@ import '@flowgram.ai/free-layout-editor/index.css';
 import './styles/index.css';
 import { nodeRegistries } from './nodes';
 import { initialData } from './initial-data';
-import { useEditorProps } from './hooks';   
+import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
 // 一些附加操作按钮、调试工具等
-import { SidebarProvider, SidebarRenderer } from './components/sidebar';
+import { SidebarProvider as RightSidebarProvider, SidebarRenderer as RightSidebarRenderer } from './components/sidebar';
+import { SidebarProvider as LeftSidebarProvider, SidebarRenderer as LeftSidebarRenderer } from './components/sidebar-left';
 // 上下文管理器，用于处理侧边栏状态；侧边栏内容的渲染器
 
 export const Editor = () => {
@@ -17,13 +18,23 @@ export const Editor = () => {
     return (
         <div className="doc-free-feature-overview">
             <FreeLayoutEditorProvider {...editorProps}>
-                <SidebarProvider>
+                {/* <RightSidebarProvider>
                     <div className="demo-container">
                         <EditorRenderer className="demo-editor" />
                     </div>
                     <DemoTools />
-                    <SidebarRenderer />
-                </SidebarProvider>
+                    <RightSidebarRenderer />
+                </RightSidebarProvider> */}
+                <RightSidebarProvider>
+                    <LeftSidebarProvider>
+                        <div className="demo-container">
+                            <EditorRenderer className="demo-editor" />
+                        </div>
+                        <DemoTools />
+                        <LeftSidebarRenderer />
+                        <RightSidebarRenderer />
+                    </LeftSidebarProvider>
+                </RightSidebarProvider>
             </FreeLayoutEditorProvider>
         </div>
     );
