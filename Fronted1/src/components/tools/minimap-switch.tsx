@@ -1,6 +1,6 @@
-import { Tooltip, IconButton } from '@douyinfe/semi-ui';
-
+import { IconButton } from '@douyinfe/semi-ui';
 import { UIIconMinimap } from './styles';
+import { AdaptiveTooltip } from './adaptive-tooltip';
 
 export const MinimapSwitch = (props: {
   minimapVisible: boolean;
@@ -9,13 +9,13 @@ export const MinimapSwitch = (props: {
   const { minimapVisible, setMinimapVisible } = props;
 
   return (
-    <Tooltip content="Minimap">
+    <AdaptiveTooltip content="Minimap">
       <IconButton
         type="tertiary"
         theme="borderless"
         icon={<UIIconMinimap visible={minimapVisible} />}
         onClick={() => setMinimapVisible(!minimapVisible)}
       />
-    </Tooltip>
+    </AdaptiveTooltip>
   );
 };

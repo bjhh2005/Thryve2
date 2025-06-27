@@ -12,7 +12,8 @@ interface DraggableToolsProps {
 
 export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [position, setPosition] = useState<Position | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
   const initialMousePos = useRef<Position>({ x: 0, y: 0 });
   const initialElementPos = useRef<Position>({ x: 0, y: 0 });
@@ -21,16 +22,28 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
   useEffect(() => {
     const savedPosition = localStorage.getItem('toolbarPosition');
     if (savedPosition) {
-      setPosition(JSON.parse(savedPosition));
+      try {
+        const parsed = JSON.parse(savedPosition);
+        // 验证保存的位置是否有效
+        if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          setPosition(parsed);
+        }
+      } catch (e) {
+        localStorage.removeItem('toolbarPosition');
+      }
     }
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('toolbarPosition', JSON.stringify(position));
-  }, [position]);
+    if (position && isInitialized) {
+      localStorage.setItem('toolbarPosition', JSON.stringify(position));
+    }
+  }, [position, isInitialized]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!dragRef.current) return;
+    e.preventDefault(); // 防止拖动时选中文本
 
     setIsDragging(true);
     const rect = dragRef.current.getBoundingClientRect();
@@ -81,16 +94,20 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
+  if (!isInitialized) {
+    return null; // 在初始化完成前不渲染，避免闪烁
+  }
+
   return (
     <ToolContainer
       ref={dragRef}
       onMouseDown={handleMouseDown}
-      style={{
+      style={position ? {
         transform: 'none',
         left: `${position.x}px`,
         top: `${position.y}px`,
         bottom: 'auto'
-      }}
+      } : undefined}
     >
       {children}
     </ToolContainer>
