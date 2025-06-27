@@ -16,12 +16,19 @@ interface GroupHeaderProps {
 export const GroupHeader: FC<GroupHeaderProps> = ({ onDrag, onFocus, onBlur, children, style }) => {
   const colorName = useWatch<string>(GroupField.Color) ?? defaultColor;
   const color = groupColors[colorName];
+
+  const handleDrag = (e: MouseEvent | TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDrag(e);
+  };
+
   return (
     <div
       className="workflow-group-header"
       data-flow-editor-selectable="false"
-      onMouseDown={onDrag}
-      onTouchStart={onDrag}
+      onMouseDown={handleDrag}
+      onTouchStart={handleDrag}
       onFocus={onFocus}
       onBlur={onBlur}
       style={{
