@@ -5,15 +5,14 @@ import { IconMinimap } from '../../assets/icon-minimap';
 export const ToolContainer = styled.div`
   position: fixed;
   display: flex;
-  justify-content: center;
+  justify-content: left;
   min-width: 360px;
   gap: 8px;
   z-index: 99;
   cursor: move;
   user-select: none;
   
-  /* 默认位置在底部中间 */
-  bottom: 24px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
 `;
@@ -45,12 +44,12 @@ export const SelectZoom = styled.span`
   cursor: pointer;
 `;
 
-export const UIIconMinimap = styled(IconMinimap)<{ visible: boolean }>`
-  opacity: ${(props) => (props.visible ? 1 : 0.5)};
-`;
-
 export const MinimapContainer = styled.div`
   position: absolute;
   bottom: 60px;
   width: 198px;
+`;
+
+export const UIIconMinimap = styled(IconMinimap) <{ visible: boolean }>`
+  color: ${(props) => (props.visible ? undefined : '#060709cc')};
 `;

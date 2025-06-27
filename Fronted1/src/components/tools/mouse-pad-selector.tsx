@@ -1,4 +1,4 @@
-import React, { type CSSProperties, useState, useRef } from 'react';
+import React, { type CSSProperties, useState } from 'react';
 
 import { Popover, Typography } from '@douyinfe/semi-ui';
 
@@ -7,7 +7,6 @@ import { IconMouse, IconMouseTool } from '../../assets/icon-mouse';
 
 import './mouse-pad-selector.less';
 import { InteractiveType } from './interactive';
-import { calculatePopoverPosition } from '../../utils';
 const { Title, Paragraph } = Typography;
 
 export interface MousePadSelectorProps {
@@ -19,23 +18,14 @@ export interface MousePadSelectorProps {
   arrowStyle?: CSSProperties;
 }
 
-interface InteractiveItemProps {
+const InteractiveItem: React.FC<{
   title: string;
   subTitle: string;
+  icon: React.ReactNode;
   value: InteractiveType;
   selected: boolean;
-  icon: React.ReactNode;
   onChange: (value: InteractiveType) => void;
-}
-
-const InteractiveItem: React.FC<InteractiveItemProps> = ({
-  title,
-  subTitle,
-  value,
-  selected,
-  icon,
-  onChange,
-}) => (
+}> = ({ title, subTitle, icon, onChange, value, selected }) => (
   <div
     className={`mouse-pad-option ${selected ? 'mouse-pad-option-selected' : ''}`}
     onClick={() => onChange(value)}
@@ -50,7 +40,9 @@ const InteractiveItem: React.FC<InteractiveItemProps> = ({
       {title}
     </Title>
     <Paragraph
-      className={`mouse-pad-option-subTitle ${selected ? 'mouse-pad-option-subTitle-selected' : ''}`}
+      type="tertiary"
+      className={`mouse-pad-option-subTitle ${selected ? 'mouse-pad-option-subTitle-selected' : ''
+        }`}
     >
       {subTitle}
     </Paragraph>
@@ -62,12 +54,11 @@ export const MousePadSelector: React.FC<
 > = ({ value, onChange, onPopupVisibleChange, containerStyle, iconStyle, arrowStyle }) => {
   const isMouse = value === InteractiveType.Mouse;
   const [visible, setVisible] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   return (
     <Popover
       trigger="custom"
-      position={containerRef.current ? calculatePopoverPosition(containerRef.current) : 'top'}
+      position="topLeft"
       closeOnEsc
       visible={visible}
       onVisibleChange={(v) => {
@@ -105,7 +96,6 @@ export const MousePadSelector: React.FC<
       }
     >
       <div
-        ref={containerRef}
         className={`ui-mouse-pad-selector ${visible ? 'ui-mouse-pad-selector-active' : ''}`}
         onClick={() => {
           setVisible(!visible);

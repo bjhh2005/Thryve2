@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { IconButton, Divider } from '@douyinfe/semi-ui';
+import { Tooltip, IconButton, Divider } from '@douyinfe/semi-ui';
 import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
 
 import { TestRunButton } from '../testrun/testrun-button';
@@ -21,7 +21,6 @@ import { Upload } from './upload';
 import { Download } from './download';
 import { DraggableTools } from './draggable-tools';
 import { Handle } from './handle';
-import { AdaptiveTooltip } from './adaptive-tooltip';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();
@@ -56,7 +55,7 @@ export const DemoTools = () => {
         <Minimap visible={minimapVisible} />
         <Readonly />
         <Comment />
-        <AdaptiveTooltip content="Undo">
+        <Tooltip content="Undo">
           <IconButton
             type="tertiary"
             theme="borderless"
@@ -64,8 +63,8 @@ export const DemoTools = () => {
             disabled={!canUndo || playground.config.readonly}
             onClick={() => history.undo()}
           />
-        </AdaptiveTooltip>
-        <AdaptiveTooltip content="Redo">
+        </Tooltip>
+        <Tooltip content="Redo">
           <IconButton
             type="tertiary"
             theme="borderless"
@@ -73,7 +72,7 @@ export const DemoTools = () => {
             disabled={!canRedo || playground.config.readonly}
             onClick={() => history.redo()}
           />
-        </AdaptiveTooltip>
+        </Tooltip>
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <AddNode disabled={playground.config.readonly} />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />

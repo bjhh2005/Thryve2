@@ -1,4 +1,4 @@
-import { MouseEvent, TouchEvent, useEffect } from 'react';
+import { MouseEvent, useEffect } from 'react';
 
 import {
   FlowNodeFormData,
@@ -30,11 +30,6 @@ export const GroupNodeRender = () => {
     element.style.pointerEvents = 'none';
   }, [node]);
 
-  const handleDrag = (e: MouseEvent | TouchEvent) => {
-    e.stopPropagation();
-    startDrag(e as MouseEvent);
-  };
-
   return (
     <div
       className={`workflow-group-render ${selected ? 'selected' : ''}`}
@@ -53,12 +48,13 @@ export const GroupNodeRender = () => {
       <Form control={formControl}>
         <>
           <GroupHeader
-            onDrag={handleDrag}
+            onDrag={(e) => {
+              startDrag(e as MouseEvent);
+            }}
             onFocus={onFocus}
             onBlur={onBlur}
             style={{
               height: HEADER_HEIGHT,
-              cursor: 'move', // 添加移动光标提示
             }}
           >
             <GroupTools />
