@@ -19,6 +19,7 @@
     "electron:preview": "electron ."
   },
   "dependencies": {
+    "@douyinfe/semi-ui": "^2.81.0",
     "@flowgram.ai/form-materials": "^0.2.14",
     "@flowgram.ai/free-container-plugin": "^0.2.14",
     "@flowgram.ai/free-group-plugin": "^0.2.14",
