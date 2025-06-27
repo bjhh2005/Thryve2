@@ -53,7 +53,7 @@ const MODE_INPUTS = {
       description: 'Ignore case when counting words'
     },
     minLength: {
-      type: 'number',
+      type: 'integer',
       title: 'Minimum Word Length',
       description: 'Minimum length of words to count',
       default: 1
@@ -113,28 +113,29 @@ const MODE_OUTPUTS = {
 
 export const TextProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMode }>) => {
   const { form } = props;
-  const currentMode = form.values?.mode || 'append';
   const [key, setKey] = React.useState(0);
 
+  // 更新表单配置
   React.useEffect(() => {
+    setKey(prev => prev + 1);
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['inputFile', ...Object.keys(MODE_INPUTS[currentMode])],
+      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode])],
       properties: {
         inputFile: {
           type: 'string',
           title: 'Input File',
           description: 'Select the text file to process'
         },
-        ...MODE_INPUTS[currentMode]
+        ...MODE_INPUTS[form.values.mode]
       }
     });
 
     form.setValueIn('outputs', {
       type: 'object',
-      properties: MODE_OUTPUTS[currentMode]
+      properties: MODE_OUTPUTS[form.values.mode]
     });
-  }, [currentMode, form]);
+  }, [form.values.mode, form]);
 
   const handleModeChange = (mode: ProcessMode) => {
     form.setValueIn('mode', mode);
@@ -148,7 +149,7 @@ export const TextProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMo
         <Field name="mode">
           {({ field }) => (
             <Select
-              value={currentMode}
+              value={field.value as string}
               onChange={(value) => handleModeChange(value as ProcessMode)}
               style={{ width: '100%', marginBottom: 16 }}
               optionList={PROCESS_MODES as any}
