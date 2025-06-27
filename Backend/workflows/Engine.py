@@ -56,24 +56,48 @@ class WorkflowEngine :
 
     
      def run(self):
+          """
+          Run the workflow and return a tuple (success, message)
+          """
+          # Check start node
           curNodeID = self._findStartNode()
+          if curNodeID is None:
+               return False, "Missing Start node"
+          
+          # Check end node
+          has_end_node = False
+          for node in self.nodes.values():
+               if node.get('type') == 'end':
+                    has_end_node = True
+                    break
+          
+          if not has_end_node:
+               return False, "Missing End node"
+          
           logging.info(self.nodes)
+          last_node_type = None  # Track the last executed node type
+          
           while curNodeID != None:
-
                self.bus.emit("workflow", curNodeID)
                               
                if curNodeID not in self.instance:
                     self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
                     if self.instance[curNodeID] is None:
-                         raise Exception("无法实例化节点类型" + self.nodes[curNodeID]['type'], 1)
+                         raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
                     
                workNode = self.instance[curNodeID]
-               print(workNode)
-               print(type(curNodeID))
+               last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
+               
                workNode.run()
                curNodeID = workNode.getNext()
                if curNodeID is None:
                     curNodeID = self.popStack()
+          
+          # Check if workflow ended properly (last node is end node)
+          if last_node_type != 'end':
+               return False, "Workflow did not end with End node"
+          
+          return True, "Workflow executed successfully"
 
 
      def askMessage(self, nodeId, nodePort):
@@ -93,7 +117,7 @@ class WorkflowEngine :
      
      def _findStartNode(self):
           """
-          在节点列表中查找类型为'start'的节点,并返回其ID
+          Find the node with type 'start' in the node list and return its ID
           """
           print(self.nodes)
           for nodeId, nodeData in self.nodes.items():
@@ -102,7 +126,7 @@ class WorkflowEngine :
           return None
 
      def createNode(self, nodeData):
-          """创建节点实例"""
+          """Create a node instance"""
           nodeId = nodeData["id"]
           if nodeId not in self.instance:
                self.nodes[nodeId] = nodeData
@@ -110,7 +134,7 @@ class WorkflowEngine :
           return self.instance[nodeId]
 
      def getNodeInfo(self, nodeId):
-          """获取节点信息"""
+          """Get node information"""
           return self.nodes.get(nodeId, {})
 
                
