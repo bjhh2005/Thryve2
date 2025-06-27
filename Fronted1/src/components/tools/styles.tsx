@@ -5,16 +5,23 @@ import { IconMinimap } from '../../assets/icon-minimap';
 export const ToolContainer = styled.div`
   position: fixed;
   display: flex;
-  justify-content: left;
+  justify-content: center;
   min-width: 360px;
   gap: 8px;
   z-index: 99;
   cursor: move;
   user-select: none;
   
-  bottom: 16px;
+  /* 默认位置在底部中间 */
+  bottom: 24px;
   left: 50%;
   transform: translateX(-50%);
+
+  /* 当被拖动时的样式会通过 style 属性覆盖这些默认值 */
+  &[style*="left"] {
+    bottom: auto;
+    transform: none;
+  }
 `;
 
 export const ToolSection = styled.div`
