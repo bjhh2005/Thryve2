@@ -21,10 +21,16 @@ class Start(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
+<<<<<<< Updated upstream
         self._eventBus.emit("message","info",self._id+":executing")
+=======
+>>>>>>> Stashed changes
         print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
+<<<<<<< Updated upstream
         self._eventBus.emit("message","info",self._id+": executed")
+=======
+>>>>>>> Stashed changes
         self._next = self._nextNodes[0][1]

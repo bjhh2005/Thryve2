@@ -25,6 +25,7 @@ class Print(Node):
         打印指定的消息，并更新节点状态
         """
         self._eventBus.emit("workflow", self._id)
+<<<<<<< Updated upstream
         self._eventBus.emit("message","info",self._id+":executing")
         try:
             # 如果是引用类型，需要从之前的节点获取值
@@ -53,7 +54,27 @@ class Print(Node):
                 "status": "error",
                 "message": str(e)
             }
+=======
+        # 如果是引用类型，需要从之前的节点获取值
+        if "inputsValues" in self.data and "input" in self.data["inputsValues"]:
+            input_config = self.data["inputsValues"]["input"]
+            if input_config["type"] == "ref":
+                # 从引用的节点获取值
+                ref_node_id = input_config["content"][0]
+                ref_property = input_config["content"][1]
+                
+                self.input_value = self._eventBus.emit("askMessage", ref_node_id, ref_property)
+>>>>>>> Stashed changes
 
+        self._eventBus.emit("nodes_output",self._id, str(self.input_value))
+        
+        # 更新下一个节点
+        self.updateNext()
+        
     def updateNext(self):
+<<<<<<< Updated upstream
         self._eventBus.emit("message","info",self._id+": executed")
+=======
+        print(self._nextNodes)
+>>>>>>> Stashed changes
         self._next = self._nextNodes[0][1]
