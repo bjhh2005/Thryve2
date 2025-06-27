@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 
 import { useService, WorkflowLinesManager } from '@flowgram.ai/free-layout-editor';
-import { IconButton, Tooltip } from '@douyinfe/semi-ui';
+import { IconButton } from '@douyinfe/semi-ui';
 
 import { IconSwitchLine } from '../../assets/icon-switch-line';
+import { AdaptiveTooltip } from './adaptive-tooltip';
 
 export const SwitchLine = () => {
   const linesManager = useService(WorkflowLinesManager);
@@ -12,8 +13,8 @@ export const SwitchLine = () => {
   }, [linesManager]);
 
   return (
-    <Tooltip content={'Switch Line'}>
+    <AdaptiveTooltip content={'Switch Line'}>
       <IconButton type="tertiary" theme="borderless" onClick={switchLine} icon={IconSwitchLine} />
-    </Tooltip>
+    </AdaptiveTooltip>
   );
 };

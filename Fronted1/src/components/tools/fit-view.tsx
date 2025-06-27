@@ -1,17 +1,18 @@
 import { usePlaygroundTools } from '@flowgram.ai/free-layout-editor';
-import { IconButton, Tooltip } from '@douyinfe/semi-ui';
+import { IconButton } from '@douyinfe/semi-ui';
 import { IconExpand } from '@douyinfe/semi-icons';
+import { AdaptiveTooltip } from './adaptive-tooltip';
 
 export const FitView = () => {
   const tools = usePlaygroundTools();
   return (
-    <Tooltip content="FitView">
+    <AdaptiveTooltip content="FitView">
       <IconButton
         icon={<IconExpand />}
         type="tertiary"
         theme="borderless"
         onClick={() => tools.fitView()}
       />
-    </Tooltip>
+    </AdaptiveTooltip>
   );
 };
