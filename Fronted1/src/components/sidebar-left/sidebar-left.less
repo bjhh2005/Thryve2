@@ -1,14 +1,12 @@
 // --- 变量定义 ---
-@left-sidebar-width: 500px;
+@left-sidebar-width: 500px; // 优化宽度
 @left-sidebar-collapsed-width: 56px;
-@action-bar-bg-color: #f7f7f7;
 @border-color: #e8eaed;
-@border-color-light: #e8eaed;
-@border-color-dark: rgba(255, 255, 255, 0.1);
-@bg-color-light: #ffffff;
-@bg-color-dark: #2f2f2f;
+@action-bar-bg-color: #f7f7f9;
+@panel-bg-color: #ffffff;
+@input-bg-light: #f1f3f4;
 @transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
-@transition-speed: 0.3s;
+@transition-speed: 0.25s;
 
 .left-sidebar-container {
     position: fixed;
@@ -19,8 +17,9 @@
     z-index: 10;
     display: flex;
     flex-direction: row;
-    border-right: 1px solid #e8eaed;
-    background-color: #fff;
+    background-color: @panel-bg-color;
+    border-right: 1px solid @border-color;
+    box-shadow: 4px 0px 16px rgba(0, 0, 0, 0.05);
     transition: width @transition-speed @transition-curve;
 
     &.collapsed {
@@ -66,26 +65,21 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    width: calc(@left-sidebar-width - @left-sidebar-collapsed-width);
+    min-width: 0; // 防止 flex 子元素内容溢出
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-// --- 头部、内容区、底部布局 ---
 .left-sidebar-header {
     flex-shrink: 0;
     padding: 8px 12px;
-    background-color: #fff;
     text-align: right;
     border-bottom: 1px solid @border-color;
-    // border-right: 1px solid #e8eaed;
 }
 
 .left-sidebar-content-wrapper {
     flex-grow: 1;
     position: relative;
     overflow: hidden;
-    transition: opacity @transition-speed ease;
-    background-color: #fff;
 
     .tab-pane {
         position: absolute;
@@ -106,26 +100,26 @@
     }
 }
 
-.left-sidebar-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: @left-sidebar-collapsed-width;
-    padding: 8px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 // --- AI 助手面板专属样式 ---
 .ai-assistant-panel {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: #ffffff;
+    background-color: @panel-bg-color;
     color: #1f1f1f;
-    // border-right: 1px solid #e0e0e0;
-    // box-shadow: 4px 0px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ai-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 8px 8px 20px;
+    border-bottom: 1px solid @border-color;
+    flex-shrink: 0;
+
+    .semi-typography {
+        font-weight: 500;
+    }
 }
 
 .messages-list {
@@ -295,6 +289,139 @@
     }
 }
 
+.ai-input-wrapper {
+    flex-shrink: 0;
+    padding: 16px 20px 20px;
+    border-top: 1px solid @border-color;
+    background-color: @panel-bg-color;
+}
+
+.ai-input-container {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 8px 8px 8px 20px;
+    border-radius: 24px;
+    background-color: #fff;
+    border: 0.9px solid;
+    border-color: #d1d1d1;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    textarea {
+        flex-grow: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        resize: none;
+        font-size: 15px;
+        line-height: 1.6;
+        color: #1f1f1f;
+        padding-right: 78px;
+
+        &::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 6px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+
+            &:hover {
+                background-color: #a7abb0;
+            }
+        }
+    }
+
+    .send-button,
+    .fullscreen-button {
+        position: absolute;
+        bottom: 8px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        color: #5f6368;
+        transition: background-color 0.2s, color 0.2s;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    }
+
+    .send-button {
+        right: 8px;
+
+        &:not(:disabled) {
+            background-color: #dbe1ff;
+            color: #3b4ee5;
+
+            &:hover {
+                background-color: #c9d5ff;
+            }
+        }
+    }
+
+    .fullscreen-button {
+        right: 50px;
+    }
+}
+
+.input-footer-text {
+    text-align: center;
+    font-size: 12px;
+    color: #9e9e9e;
+    margin-top: 12px;
+    margin-bottom: 0;
+    user-select: none;
+}
+
+.settings-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-bottom: 1px solid @border-color;
+    flex-shrink: 0;
+}
+
+.settings-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.settings-form-item {
+    margin-bottom: 20px;
+
+    .semi-typography {
+        display: block;
+        margin-bottom: 8px;
+    }
+}
+
+.settings-footer {
+    padding: 16px 20px;
+    border-top: 1px solid @border-color;
+    flex-shrink: 0;
+}
 
 /* --- Console Panel Styles --- */
 .console-panel {
@@ -368,10 +495,55 @@
 }
 
 .log-level-output .log-level-badge {
-    background-color: #586e75; // 一种中性的深灰色/蓝色
+    background-color: #586e75;
 }
 
 .log-level-output .log-message {
-    color: #fdf6e3; // 使用一种柔和的、类似终端的亮色，使其在深色背景中突出
+    color: #fdf6e3;
     font-weight: 500;
+}
+
+.sidebar-edge-button {
+    position: absolute;
+    top: 50%;
+    right: -16px;
+    transform: translateY(-50%);
+    z-index: 12;
+
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #e8eaed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s @transition-curve, box-shadow 0.2s @transition-curve;
+
+    &:hover {
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        transform: translateY(-50%) scale(1.05);
+    }
+}
+
+.sidebar-edge-button .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4a5568;
+    transition: transform 0.8s @transition-curve;
+}
+
+.left-sidebar-container:not(.collapsed) {
+    .sidebar-edge-button .icon-wrapper {
+        transform: rotate(180deg);
+    }
 }
