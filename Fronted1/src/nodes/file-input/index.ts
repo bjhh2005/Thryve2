@@ -6,16 +6,6 @@ import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 import iconUpload from '../../assets/icon-file-upload.svg';
 
-export interface FileInputData {
-    key: string;
-    file: {
-        filePath: string;
-        fileName: string;
-        mimeType: string;
-        size: number;
-    } | null;
-}
-
 export const FileInputNodeRegistry: FlowNodeRegistry = {
     type: WorkflowNodeType.FileInput,
     info: {
@@ -27,7 +17,7 @@ export const FileInputNodeRegistry: FlowNodeRegistry = {
             { type: 'input' },
             { type: 'output' }
         ],
-        useDynamicPort: true,
+        useDynamicPort: false,
         expandable: true,
         size: {
             width: 360,
@@ -40,7 +30,7 @@ export const FileInputNodeRegistry: FlowNodeRegistry = {
             id: `file_input_${nanoid(5)}`,
             type: WorkflowNodeType.FileInput,
             data: {
-                title: ''
+                title: 'File Input'
             },
             files: [],
             outputs: {
