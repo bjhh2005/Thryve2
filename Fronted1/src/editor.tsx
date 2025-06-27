@@ -12,28 +12,26 @@ import { DemoTools } from './components/tools';
 import { SidebarProvider as RightSidebarProvider, SidebarRenderer as RightSidebarRenderer } from './components/sidebar';
 import { SidebarProvider as LeftSidebarProvider, SidebarRenderer as LeftSidebarRenderer } from './components/sidebar-left';
 // 上下文管理器，用于处理侧边栏状态；侧边栏内容的渲染器
+import { ConsoleProvider } from './context/ConsoleProvider';
 
 export const Editor = () => {
     const editorProps = useEditorProps(initialData, nodeRegistries);
     return (
         <div className="doc-free-feature-overview">
             <FreeLayoutEditorProvider {...editorProps}>
-                {/* <RightSidebarProvider>
-                    <div className="demo-container">
-                        <EditorRenderer className="demo-editor" />
-                    </div>
-                    <DemoTools />
-                    <RightSidebarRenderer />
-                </RightSidebarProvider> */}
                 <RightSidebarProvider>
-                    <LeftSidebarProvider>
-                        <div className="demo-container">
-                            <EditorRenderer className="demo-editor" />
-                        </div>
-                        <DemoTools />
-                        <LeftSidebarRenderer />
-                        <RightSidebarRenderer />
-                    </LeftSidebarProvider>
+                    <ConsoleProvider>
+                        <LeftSidebarProvider>
+
+                            <div className="demo-container">
+                                <EditorRenderer className="demo-editor" />
+                            </div>
+                            <DemoTools />
+
+                            <LeftSidebarRenderer />
+                            <RightSidebarRenderer />
+                        </LeftSidebarProvider>
+                    </ConsoleProvider>
                 </RightSidebarProvider>
             </FreeLayoutEditorProvider>
         </div>
