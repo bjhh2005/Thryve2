@@ -18,6 +18,8 @@ class Node(ABC):
         self._nextNodes = nextNodes
         self._eventBus = eventBus
         self._next = None
+        # 标记是否为循环内部节点
+        self._is_loop_internal = False
 
     @abstractmethod
     def run(self):
