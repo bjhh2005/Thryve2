@@ -1,4 +1,5 @@
 import logging
+
 from .nodes import Start, FileInput, ConditionNode, Print, Loop
 
 
@@ -27,7 +28,7 @@ class NodeFactory:
             case "start":
                 return Start(nodeId, nodeId, nextNodes, bus, self.nodes[nodeId]["data"])
             case "condition":
-                return ConditionNode(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+                 return ConditionNode(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "print":
                 return Print(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "loop":

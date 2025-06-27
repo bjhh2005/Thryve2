@@ -26,7 +26,7 @@ export function TestRunButton(props: { disabled: boolean }) {
 
     // 按钮变红色，开始运行
     setIsRunning(true);
-    const socket = io('http://localhost:5000',{
+    const socket = io('http://localhost:4000/workflow',{
           reconnection: true, // 允许重连
           reconnectionAttempts: 3, // 最多重连3次
           reconnectionDelay: 1000, // 重连延迟1秒
@@ -67,13 +67,26 @@ export function TestRunButton(props: { disabled: boolean }) {
       socket.close();
     });
 
+    socket.on('workflow', (data) =>{
+      console.log(`当前执行的节点为${data}`);
+      
+    })
+
     // 监听连接错误
     socket.on('connect_error', (error) => {
       console.log('❌ WebSocket连接失败:', error);
       setIsRunning(false);
     });
 
+    socket.on('disconnect', (data) =>{
+      setIsRunning(false);
+
+    } )
+
+
   }, [clientContext]);
+
+  
 
 
   const button =
