@@ -1,6 +1,6 @@
 from .MessageNode import MessageNode
 
-class Start(MessageNode):
+class FileInput(MessageNode):
 
     def __init__(self,id, type, nextNodes, eventBus, data):
         super(MessageNode, self).__init__(id, type, nextNodes, eventBus)
