@@ -57,7 +57,7 @@ class Loop(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
-        self._eventBus.emit("Message","info", self._id+":Executing")
+        self._eventBus.emit("message","info", self._id+":Executing")
         # 获取循环数组
 
         if self.batchFor["type"] != "ref":
@@ -104,7 +104,7 @@ class Loop(MessageNode):
         
         # 更新下一个要执行的节点
         self.updateNext()
-        self._eventBus.emit("Message","info", self._id+":Executed")
+        self._eventBus.emit("message","info", self._id+":Executed")
         return self.getNext()
 
     def updateNext(self):

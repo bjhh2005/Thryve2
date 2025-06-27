@@ -130,7 +130,7 @@ class ConditionNode(Node):
         """
         # print(f"执行条件节点: {self._id}")
         self._eventBus.emit("workflow", self._id)
-        self._eventBus.emit("Message","info", self._id+":Executing")
+        self._eventBus.emit("message","info", self._id+":Executing")
         # 遍历所有条件分支
         for branch_key, condition in self.conditions.items():
             # 如果条件满足，选择该分支
@@ -141,7 +141,7 @@ class ConditionNode(Node):
         
         # 更新下一个节点
         self.updateNext()
-        self._eventBus.emit("Message","info", self._id+":Executed")
+        self._eventBus.emit("message","info", self._id+":Executed")
         return True
 
     def updateNext(self):

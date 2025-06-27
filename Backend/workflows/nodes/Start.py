@@ -21,10 +21,10 @@ class Start(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
-        self._eventBus.emit("Message","info",self.id+":executing")
+        self._eventBus.emit("message","info",self._id+":executing")
         print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
-        self._eventBus.emit("Message","info",self.id+": executed")
+        self._eventBus.emit("message","info",self._id+": executed")
         self._next = self._nextNodes[0][1]
