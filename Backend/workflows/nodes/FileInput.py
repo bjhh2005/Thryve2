@@ -14,7 +14,10 @@ class FileInput(MessageNode):
 
     def run(self):
         print(self._nextNodes)
+        self._eventBus.emit("workflow", self._id)
+        self._eventBus.emit("Message", self._id+":Executing")
         self.updateNext()
+        self._eventBus.emit("Message", self._id+":Executed")
 
     def updateNext(self):
         self._next = self._nextNodes[0][1]
