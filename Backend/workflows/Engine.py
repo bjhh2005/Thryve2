@@ -59,10 +59,14 @@ class WorkflowEngine :
           curNodeID = self._findStartNode()
           logging.info(self.nodes)
           while curNodeID != None:
-               print(curNodeID)
 
+               self.bus.emit("workflow", curNodeID)
+                              
                if curNodeID not in self.instance:
                     self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
+                    if self.instance[curNodeID] is None:
+                         raise Exception("无法实例化节点类型" + self.nodes[curNodeID]['type'], 1)
+                    
                workNode = self.instance[curNodeID]
                print(workNode)
                print(type(curNodeID))
@@ -70,7 +74,6 @@ class WorkflowEngine :
                curNodeID = workNode.getNext()
                if curNodeID is None:
                     curNodeID = self.popStack()
-          return {"status" : "success", "message" : "蓝图运行成功", "results" : "返回代码0"}
 
 
      def askMessage(self, nodeId, nodePort):
