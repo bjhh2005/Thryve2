@@ -25,7 +25,7 @@ class Print(Node):
         打印指定的消息，并更新节点状态
         """
         self._eventBus.emit("workflow", self._id)
-        self._eventBus.emit("Message",self.id+":executing")
+        self._eventBus.emit("Message","info",self.id+":executing")
         try:
             # 如果是引用类型，需要从之前的节点获取值
             if "inputsValues" in self.data and "input" in self.data["inputsValues"]:
@@ -55,5 +55,5 @@ class Print(Node):
             }
 
     def updateNext(self):
-        self._eventBus.emit("Message",self.id+": executed")
+        self._eventBus.emit("Message","info",self.id+": executed")
         self._next = self._nextNodes[0][1]
