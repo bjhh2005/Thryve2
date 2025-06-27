@@ -54,18 +54,13 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
             timeout: 5000, // 连接超时5秒
         });
         socketRef.current = socket;
-
-        socket.on('connect', () => {
-            addLog({ level: 'SUCCESS', message: '连接成功，正在启动工作流...' });
-            socket.emit('start_process', documentData);
-        });
-
-        // 监听后端发来的各种日志事件
+// 监听后端发来的各种日志事件
         socket.on('info', (data) => addLog({ level: 'INFO', message: data.message, nodeId: data.nodeId }));
         socket.on('warning', (data) => addLog({ level: 'WARN', message: data.message, nodeId: data.nodeId }));
         socket.on('error', (data) => addLog({ level: 'ERROR', message: data.message, nodeId: data.nodeId }));
 
-        socket.on('node_output', (data) => {
+        socket.on('nodes_output', (data) => {
+            
             addLog({
                 level: 'OUTPUT',
                 message: data.message,
@@ -85,6 +80,12 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
             setIsRunning(false);
             socketRef.current = null;
         });
+        socket.on('connect', () => {
+            addLog({ level: 'SUCCESS', message: '连接成功，正在启动工作流...' });
+            socket.emit('start_process', documentData);
+        });
+
+        
     }, [isRunning, addLog, clearLogs]);
 
     const value = { logs, isRunning, addLog, clearLogs, startExecution };

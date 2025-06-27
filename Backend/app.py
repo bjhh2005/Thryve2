@@ -10,7 +10,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'
 CORS(app)
 
-# 创建SocketIO实例，支持/api命名空间
+# 创建SocketIO实例，支持/workflow命名空间
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 设置详细的日志记录
@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 def engineConnect(engine : WorkflowEngine):
 
     # 这里的所有的message的传递应该都是str类型的
-    engine.bus.on('workflow', lambda nodeId:socketio.emit('workflow', nodeId, namespace='workflow'))
+    engine.bus.on('workflow', lambda nodeId:socketio.emit('workflow', {"nodeId" : nodeId}, namespace='/workflow'))
 
     # 选择从 info , warning , error
-    engine.bus.on('message', lambda event,message:socketio.emit(event, message,namespace='workflow'))
+    engine.bus.on('message', lambda event,nodeId,message:socketio.emit(event, {"data":nodeId, "message" : message},namespace='/workflow'))
 
-    engine.bus.on("nodes_output", lambda message: socketio.emit('nodes_output', message , namespace='workflow'))
+    engine.bus.on("nodes_output", lambda nodeId, message: socketio.emit('nodes_output', {"data":nodeId, "message" : message} , namespace='/workflow'))
 
 
 def execute_workflow_task(workflow_data):
@@ -36,8 +36,7 @@ def execute_workflow_task(workflow_data):
     logger.info("开始执行工作流任务")
     
     # 创建工作流引擎
-    engine = WorkflowEngine(workflow_data)
-    
+    engine = WorkflowEngine(workflow_data)  
     engineConnect(engine)
 
     # 运行工作流（这里需要修改你的Engine类来支持回调）
