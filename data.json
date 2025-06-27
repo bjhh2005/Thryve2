@@ -1,0 +1,147 @@
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {
+        "position": {
+          "x": 180,
+          "y": 36
+        }
+      },
+      "data": {
+        "title": "Start",
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "default": "Hello Flow."
+            },
+            "enable": {
+              "type": "boolean",
+              "default": true
+            },
+            "array_obj": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "number"
+                  },
+                  "str": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {
+        "position": {
+          "x": 1100,
+          "y": 36
+        }
+      },
+      "data": {
+        "title": "End",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "159623",
+      "type": "comment",
+      "meta": {
+        "position": {
+          "x": 180,
+          "y": 218
+        }
+      },
+      "data": {
+        "size": {
+          "width": 240,
+          "height": 150
+        },
+        "note": "hi ~\n\nthis is a comment node\n\n- flowgram.ai"
+      }
+    },
+    {
+      "id": "print_OZEjE",
+      "type": "print",
+      "meta": {
+        "position": {
+          "x": 640,
+          "y": 0
+        }
+      },
+      "data": {
+        "title": "Print_1",
+        "inputsValues": {
+          "text": {
+            "type": "constant",
+            "content": "111"
+          },
+          "mode": {
+            "type": "constant",
+            "content": "display"
+          }
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "title": "Text",
+              "description": "The text content to be printed"
+            },
+            "mode": {
+              "type": "string",
+              "title": "Mode",
+              "enum": [
+                "console",
+                "display"
+              ],
+              "default": "display"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string",
+              "title": "Printed Text",
+              "description": "The text that was printed"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "sourceNodeID": "start_0",
+      "targetNodeID": "print_OZEjE"
+    },
+    {
+      "sourceNodeID": "print_OZEjE",
+      "targetNodeID": "end_0"
+    }
+  ]
+}
