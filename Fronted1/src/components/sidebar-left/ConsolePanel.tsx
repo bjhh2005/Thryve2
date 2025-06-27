@@ -1,14 +1,16 @@
 import React, { useEffect, useRef } from 'react';
 import { useConsole, LogEntry } from '../../context/ConsoleProvider';
 import { IconTriangleDown } from '@douyinfe/semi-icons';
+import '../../context/console.css';
 
 // 单条日志的渲染组件，用于实现不同级别的样式
 const LogEntryView: React.FC<{ log: LogEntry }> = ({ log }) => {
     return (
-        <div className={`log-entry log-level-${log.level.toLowerCase()}`}>
-            <span className="log-timestamp">{log.timestamp}</span>
-            <span className={`log-level-badge`}>{log.level}</span>
+        <div className={`console-log console-log-${log.level}`}>
+            <span className="console-timestamp">{log.timestamp}</span>
+            <span className="console-type">{log.level}</span>
             <span className="log-message">{log.message}</span>
+            {log.nodeId && <span className="console-node-id">{log.nodeId}</span>}
         </div>
     );
 };
