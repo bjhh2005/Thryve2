@@ -58,12 +58,14 @@ class WorkflowEngine :
      def run(self):
           curNodeID = self._findStartNode()
           logging.info(self.nodes)
-          while curNodeID is not None:
+          while curNodeID != None:
                print(curNodeID)
+
                if curNodeID not in self.instance:
                     self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
                workNode = self.instance[curNodeID]
                print(workNode)
+               print(type(curNodeID))
                workNode.run()
                curNodeID = workNode.getNext()
                if curNodeID is None:
@@ -84,7 +86,7 @@ class WorkflowEngine :
                return None
           else:
                return self.backStack.pop()
-          
+     
      
      def _findStartNode(self):
           """
