@@ -81,11 +81,17 @@ class Loop(MessageNode):
             
         try:
             # 执行节点
+            
             result = node.run()
             
             # 获取下一个要执行的节点
             next_nodes = self.execution_graph.get(node_id, [])
             
+            # 如果没有下一个节点，说明这是循环体内的最后一个节点
+            if not next_nodes:
+                return result
+                
+
             # 递归执行后续节点
             for next_node in next_nodes:
                 self.execute_block_node(next_node, item)
@@ -159,10 +165,13 @@ class Loop(MessageNode):
                     node = self._eventBus.emit("createNode", block_nodes[node_id])
                     if not node:
                         raise LoopError(f"创建循环体节点 {node_id} 失败")
+                    # 标记这是一个循环内部节点
+                    node._is_loop_internal = True
+
                     self.block_nodes[node_id] = node
                 except Exception as e:
                     raise LoopError(f"初始化循环体节点 {node_id} 失败: {str(e)}")
-            
+
             # 获取起始节点
             start_nodes = self.find_start_nodes()
             
@@ -187,9 +196,11 @@ class Loop(MessageNode):
         Raises:
             LoopError: 当无法确定下一个节点时
         """
-        if not self._nextNodes or len(self._nextNodes) == 0:
+        if not self._nextNodes and not self._is_loop_internal:
             raise LoopError(f"节点 {self._id} 没有可用的下一个节点")
             
         self._next = self._nextNodes[0][1]
-        if self._next is None:
-            raise LoopError(f"节点 {self._id} 的下一个节点无效")
+        
+            
+        
+        
