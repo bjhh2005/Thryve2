@@ -18,7 +18,9 @@
     "strict": true,
     "noUnusedLocals": false,  // 暂时禁用未使用变量的检查
     "noUnusedParameters": false,  // 暂时禁用未使用参数的检查
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
