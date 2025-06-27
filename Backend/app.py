@@ -32,22 +32,29 @@ def engineConnect(engine : WorkflowEngine):
 
 def execute_workflow_task(workflow_data):
     """在后台线程中执行工作流任务"""
+    try:
+        logger.info("开始执行工作流任务")
+        
+        # 创建工作流引擎
+        engine = WorkflowEngine(workflow_data)  
+        engineConnect(engine)
 
-    logger.info("开始执行工作流任务")
-    
-    # 创建工作流引擎
-    engine = WorkflowEngine(workflow_data)  
-    engineConnect(engine)
+        # 运行工作流（这里需要修改你的Engine类来支持回调）
+        engine.run()
 
-    # 运行工作流（这里需要修改你的Engine类来支持回调）
-    engine.run()
-
-    # 发送结束信号
-    socketio.emit('over', {
-        'message': '工作流执行成功',
-        'data': 0,
-        'status': 'success'
-    }, namespace='/workflow')
+        # 发送结束信号
+        socketio.emit('over', {
+            'message': '工作流执行成功',
+            'data': 0,
+            'status': 'success'
+        }, namespace='/workflow')
+    except Exception as e:
+        # 向前端发送失败信号
+        socketio.emit('over', {
+            'message': f'工作流执行失败: {str(e)}',
+            'data': e.args,
+            'status': 'error'
+        }, namespace='/workflow')
         
 
 @socketio.on('connect', namespace='/workflow')
