@@ -166,25 +166,6 @@ const FileInput: React.FC<{
         <div style={{ position: 'relative', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <div style={{ flexGrow: 1 }}>
-                    <FormItem
-                        name={`Variable Name ${index + 1}`}
-                        type="string"
-                        required={true}
-                    >
-                        <input
-                            type="text"
-                            value={fileData.variableName}
-                            onChange={(e) => field.onChange({ ...field.value, variableName: e.target.value })}
-                            placeholder="Enter variable name"
-                            style={{
-                                width: '100%',
-                                padding: '4px 8px',
-                                marginBottom: '8px',
-                                border: '1px solid var(--semi-color-border)',
-                                borderRadius: '4px'
-                            }}
-                        />
-                    </FormItem>
                     <div style={{ 
                         padding: '12px',
                         backgroundColor: 'var(--semi-color-fill-0)',
@@ -344,29 +325,29 @@ export const FileInputFormRender = ({ form }: FormRenderProps<FileInputNodeJSON>
         }
     }, [isAdding]);
 
-    if (isSidebar) {
-        return (
-            <>
-                <FormHeader />
-                <FormContent>
-                    <Field
-                        name="outputs"
-                        render={({ field: { value, onChange } }) => (
-                            <>
-                                <JsonSchemaEditor
-                                    value={value as IJsonSchema}
-                                    onChange={(value) => onChange(value as JsonSchema)}
-                                />
-                                <div style={{ marginTop: '24px', textAlign: 'center' }}>
-                                    <Button type="primary">OK</Button>
-                                </div>
-                            </>
-                        )}
-                    />
-                </FormContent>
-            </>
-        );
-    }
+    // if (isSidebar) {
+    //     return (
+    //         <>
+    //             <FormHeader />
+    //             <FormContent>
+    //                 <Field
+    //                     name="outputs"
+    //                     render={({ field: { value, onChange } }) => (
+    //                         <>
+    //                             <JsonSchemaEditor
+    //                                 value={value as IJsonSchema}
+    //                                 onChange={(value) => onChange(value as JsonSchema)}
+    //                             />
+    //                             <div style={{ marginTop: '24px', textAlign: 'center' }}>
+    //                                 <Button type="primary">OK</Button>
+    //                             </div>
+    //                         </>
+    //                     )}
+    //                 />
+    //             </FormContent>
+    //         </>
+    //     );
+    // }
 
     return (
         <>
