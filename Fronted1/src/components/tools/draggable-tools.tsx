@@ -12,25 +12,34 @@ interface DraggableToolsProps {
 
 export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [position, setPosition] = useState<Position | null>(() => {
+    // 在初始化时就读取localStorage，避免后续状态更新导致的闪现
+    const savedPosition = localStorage.getItem('toolbarPosition');
+    if (savedPosition) {
+      try {
+        const parsed = JSON.parse(savedPosition);
+        if (parsed && typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          return parsed;
+        }
+      } catch (e) {
+        localStorage.removeItem('toolbarPosition');
+      }
+    }
+    return null;
+  });
   const dragRef = useRef<HTMLDivElement>(null);
   const initialMousePos = useRef<Position>({ x: 0, y: 0 });
   const initialElementPos = useRef<Position>({ x: 0, y: 0 });
 
-  // 保存位置到 localStorage
   useEffect(() => {
-    const savedPosition = localStorage.getItem('toolbarPosition');
-    if (savedPosition) {
-      setPosition(JSON.parse(savedPosition));
+    if (position) {
+      localStorage.setItem('toolbarPosition', JSON.stringify(position));
     }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('toolbarPosition', JSON.stringify(position));
   }, [position]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!dragRef.current) return;
+    e.preventDefault(); // 防止拖动时选中文本
 
     setIsDragging(true);
     const rect = dragRef.current.getBoundingClientRect();
@@ -85,12 +94,10 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
     <ToolContainer
       ref={dragRef}
       onMouseDown={handleMouseDown}
-      style={{
-        transform: 'none',
+      style={position ? {
         left: `${position.x}px`,
         top: `${position.y}px`,
-        bottom: 'auto'
-      }}
+      } : undefined}
     >
       {children}
     </ToolContainer>
