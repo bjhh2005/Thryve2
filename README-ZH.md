@@ -269,7 +269,7 @@ Thryve2/
 
 1. 克隆仓库
 ```bash
-git clone https://github.com/bjhh/Thryve2.git
+git clone https://github.com/bjhh2005/Thryve2.git
 cd Thryve2
 ```
 

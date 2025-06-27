@@ -223,7 +223,7 @@ Thryve2/
 
 1. Clone repository
 ```bash
-git clone https://github.com/your-username/Thryve2.git
+git clone https://github.com/bjhh2005/Thryve2.git
 cd Thryve2
 ```
 
