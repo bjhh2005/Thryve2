@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { io } from 'socket.io-client';
 
 import { useClientContext, getNodeForm, FlowNodeEntity } from '@flowgram.ai/free-layout-editor';
 import { Button, Badge, SideSheet } from '@douyinfe/semi-ui';
@@ -11,63 +12,85 @@ export function TestRunButton(props: { disabled: boolean }) {
   const clientContext = useClientContext();
   const [visible, setVisible] = useState(false);
 
-  const updateValidateData = useCallback(() => {
-    const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
-    const count = allForms.filter((form) => form?.state.invalid).length;
-    setErrorCount(count);
-  }, [clientContext]);
+  // 实现通讯新增
+  const [isRunning, setIsRunning] = useState(false);
 
   /**
-   * Validate all node and Save
+   * Validate all node and Save with WebSocket
    */
+  const a = function(){
+    console.log("1");
+    
+  }
   const onTestRun = useCallback(async () => {
-    const allForms = clientContext.document.getAllNodes().map((node) => getNodeForm(node));
-    await Promise.all(allForms.map(async (form) => form?.validate()));
-    console.log('>>>>> save data: ', clientContext.document.toJSON());
-    setVisible(true);
+
+    // 按钮变红色，开始运行
+    setIsRunning(true);
+    const socket = io('http://localhost:5000',{
+          reconnection: true, // 允许重连
+          reconnectionAttempts: 3, // 最多重连3次
+          reconnectionDelay: 1000, // 重连延迟1秒
+          timeout: 5000, // 连接超时5秒
+    });
+
+    socket.on('connect', () => {
+      console.log('✅ WebSocket连接成功');
+      
+      // 发送数据到后端
+      const documentData = clientContext.document.toJSON();
+      socket.emit('start_process', documentData);
+    });
+
+    // 监听info事件
+    socket.on('info', (data) => {
+      console.log('ℹ️ [INFO]:', data);
+    });
+    
+    // 监听warning事件
+    socket.on('warning', (data) => {
+      console.log('⚠️ [WARNING]:', data);
+    });
+    
+    // 监听error事件
+    socket.on('error', (data) => {
+      console.log('❌ [ERROR]:', data);
+    });
+    
+    // 监听结束事件
+    socket.on('over', (data) => {
+      console.log('🏁 [OVER]:', data);
+      
+      // 按钮变回绿色，结束运行
+      setIsRunning(false);
+      
+      // 断开连接
+      socket.close();
+    });
+
+    // 监听连接错误
+    socket.on('connect_error', (error) => {
+      console.log('❌ WebSocket连接失败:', error);
+      setIsRunning(false);
+    });
+
   }, [clientContext]);
 
-  /**
-   * Listen single node validate
-   */
-  useEffect(() => {
-    const listenSingleNodeValidate = (node: FlowNodeEntity) => {
-      const form = getNodeForm(node);
-      if (form) {
-        const formValidateDispose = form.onValidate(() => updateValidateData());
-        node.onDispose(() => formValidateDispose.dispose());
-      }
-    };
-    clientContext.document.getAllNodes().map((node) => listenSingleNodeValidate(node));
-    const dispose = clientContext.document.onNodeCreate(({ node }) =>
-      listenSingleNodeValidate(node)
-    );
-    return () => dispose.dispose();
-  }, [clientContext]);
 
   const button =
-    errorCount === 0 ? (
+     
       <Button
         disabled={props.disabled}
         onClick={onTestRun}
         icon={<IconPlay size="small" />}
-        style={{ backgroundColor: 'rgba(0,178,60,1)', borderRadius: '8px', color: '#fff' }}
+        style={{ 
+          backgroundColor: isRunning ? 'rgba(255,115,0, 1)' : 'rgba(0,178,60,1)', 
+          borderRadius: '8px', 
+          color: '#fff' 
+        }}
       >
-        Test Run
+        {isRunning ? 'Running...' : 'Test Run'}
       </Button>
-    ) : (
-      <Badge count={errorCount} position="rightTop" type="danger">
-        <Button
-          type="danger"
-          disabled={props.disabled}
-          onClick={onTestRun}
-          icon={<IconPlay size="small" />}
-          style={{ backgroundColor: 'rgba(255,115,0, 1)', borderRadius: '8px', color: '#fff' }}
-        >
-            Test Run
-        </Button>
-      </Badge>
-    );
+    
 
   return (
     <>

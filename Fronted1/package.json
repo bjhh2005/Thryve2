@@ -30,7 +30,8 @@
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-textarea-autosize": "^8.5.9"
+    "react-textarea-autosize": "^8.5.9",
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.18.6",
