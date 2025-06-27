@@ -20,8 +20,11 @@ class Start(MessageNode):
         print(self.MessageList)
 
     def run(self):
+        self._eventBus.emit("workflow", self._id)
+        self._eventBus.emit("Message",self.id+":executing")
         print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
+        self._eventBus.emit("Message",self.id+": executed")
         self._next = self._nextNodes[0][1]
