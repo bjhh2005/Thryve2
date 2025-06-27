@@ -56,7 +56,7 @@ export const SidebarRenderer = () => {
       });
       return () => toDispose.dispose();
     }
-    return () => { };
+    return () => {};
   }, [node]);
 
   const visible = useMemo(() => {
