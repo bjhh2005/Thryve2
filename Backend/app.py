@@ -48,18 +48,18 @@ def execute_workflow_task(workflow_data):
         'message': '工作流执行成功',
         'data': 0,
         'status': 'success'
-    }, namespace='/api')
+    }, namespace='/workflow')
         
 
-@socketio.on('connect', namespace='/api')
+@socketio.on('connect', namespace='/workflow')
 def handle_connect():
-    logger.info('客户端连接到 /api 命名空间')
+    logger.info('客户端连接到 /workflow 命名空间')
 
-@socketio.on('disconnect', namespace='/api')
+@socketio.on('disconnect', namespace='/workflow')
 def handle_disconnect():
-    logger.info('客户端从 /api 命名空间断开连接')
+    logger.info('客户端从 /workflow 命名空间断开连接')
 
-@socketio.on('start_process', namespace='/api')
+@socketio.on('start_process', namespace='/workflow')
 def handle_start_process(workflow_data):
     
     # 在新线程中执行工作流，避免阻塞WebSocket
