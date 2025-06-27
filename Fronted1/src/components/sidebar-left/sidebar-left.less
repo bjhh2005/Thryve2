@@ -1,6 +1,8 @@
 // --- 变量定义 ---
 @left-sidebar-width: 500px;
 @left-sidebar-collapsed-width: 56px;
+@action-bar-bg-color: #f7f7f7;
+@border-color: #e8eaed;
 @border-color-light: #e8eaed;
 @border-color-dark: rgba(255, 255, 255, 0.1);
 @bg-color-light: #ffffff;
@@ -16,11 +18,18 @@
     width: @left-sidebar-width;
     z-index: 10;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    border-right: 1px solid #e8eaed;
+    background-color: #fff;
     transition: width @transition-speed @transition-curve;
 
     &.collapsed {
         width: @left-sidebar-collapsed-width;
+
+        .main-panel {
+            opacity: 0;
+            visibility: hidden;
+        }
 
         .left-sidebar-header,
         .left-sidebar-content-wrapper {
@@ -31,31 +40,44 @@
     }
 }
 
-// --- 头部、内容区、底部布局 ---
-.left-sidebar-header,
-.left-sidebar-footer {
-    flex-shrink: 0;
-    padding: 8px 12px;
-    border-color: @border-color-dark;
-    background-color: #fff;
-    text-align: right;
-    border-right: 1px solid #e8eaed;
-}
-
-.left-sidebar-header {
-    padding: 8px 12px;
-    flex-shrink: 0;
-    text-align: right;
-    transition: opacity @transition-speed ease;
-}
-
-.left-sidebar-footer {
-    padding: 8px 12px;
+.action-bar {
+    width: @left-sidebar-collapsed-width;
     flex-shrink: 0;
     display: flex;
-    justify-content: center;
+    flex-direction: column; // 按钮垂直排列
     align-items: center;
+    padding: 16px 0;
+    gap: 16px;
+    border-right: 1px solid @border-color;
+    background-color: @action-bar-bg-color; // 独立的背景色
+}
 
+.action-bar-button.semi-button {
+    width: 40px;
+    height: 40px;
+    color: #5f6368;
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+}
+
+.main-panel {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    width: calc(@left-sidebar-width - @left-sidebar-collapsed-width);
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+// --- 头部、内容区、底部布局 ---
+.left-sidebar-header {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background-color: #fff;
+    text-align: right;
+    border-bottom: 1px solid @border-color;
+    // border-right: 1px solid #e8eaed;
 }
 
 .left-sidebar-content-wrapper {
@@ -84,6 +106,17 @@
     }
 }
 
+.left-sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: @left-sidebar-collapsed-width;
+    padding: 8px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 // --- AI 助手面板专属样式 ---
 .ai-assistant-panel {
     display: flex;
@@ -91,8 +124,8 @@
     height: 100%;
     background-color: #ffffff;
     color: #1f1f1f;
-    border-right: 1px solid #e0e0e0;
-    box-shadow: 4px 0px 12px rgba(0, 0, 0, 0.08);
+    // border-right: 1px solid #e0e0e0;
+    // box-shadow: 4px 0px 12px rgba(0, 0, 0, 0.08);
 }
 
 .messages-list {

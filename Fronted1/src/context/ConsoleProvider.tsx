@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useCallback, ReactNode, useRef } from 'react';
+import { createContext, useState, useContext, useCallback, ReactNode, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid'; // 用于生成唯一ID，需安装: npm install uuid @types/uuid
 
@@ -47,7 +47,12 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
         setIsRunning(true);
         addLog({ level: 'SYSTEM', message: '正在连接到执行服务器...' });
 
-        const socket = io('http://localhost:5000', { /* ... options ... */ });
+        const socket = io('http://localhost:4000/workflow', {
+            reconnection: true, // 允许重连
+            reconnectionAttempts: 3, // 最多重连3次
+            reconnectionDelay: 1000, // 重连延迟1秒
+            timeout: 5000, // 连接超时5秒
+        });
         socketRef.current = socket;
 
         socket.on('connect', () => {
