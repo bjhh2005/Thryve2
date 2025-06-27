@@ -1,9 +1,6 @@
 import logging
-from .nodes import Start
-from .nodes.ConditionNode import ConditionNode
-from .nodes.Print import Print
-from .nodes.Loop import Loop
-from .nodes.FileInput import FileInput
+from .nodes import Start, FileInput, ConditionNode, Print, Loop
+
 
 logger = logging.getLogger(__name__)
 
