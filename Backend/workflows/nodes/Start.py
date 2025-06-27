@@ -1,5 +1,10 @@
 from .MessageNode import MessageNode
 
+class StartNodeError(Exception):
+    """Start节点执行时的异常"""
+    pass
+
+
 class Start(MessageNode):
 
     def __init__(self,id, type, nextNodes, eventBus, data):
@@ -21,16 +26,10 @@ class Start(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
-<<<<<<< Updated upstream
-        self._eventBus.emit("message","info",self._id+":executing")
-=======
->>>>>>> Stashed changes
         print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
-<<<<<<< Updated upstream
-        self._eventBus.emit("message","info",self._id+": executed")
-=======
->>>>>>> Stashed changes
+        if not self._nextNodes:
+            raise StartNodeError(f"节点 {self._id}: 缺少后续节点配置", 8)
         self._next = self._nextNodes[0][1]
