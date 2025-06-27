@@ -55,15 +55,14 @@ class Print(Node):
 
         # 检查输入值
         if self.input_value is None:
-            self._eventBus.emit("message","warning",{"data":self._id, "message" : "输入值为空"})
-
-        self._eventBus.emit("nodes_output", {"data":self._id, "message" : str(self.input_value)})
+            self._eventBus.emit("message", "warning", self._id, "输入值为空")
+        print(self.input_value)
+        self._eventBus.emit("nodes_output", self._id, str(self.input_value))
         
         # 更新下一个节点
-        self.updateNext()
-        
+        self.updateNext()        
     def updateNext(self):
         """更新下一个节点"""
-        if not self._nextNodes:
+        if not self._nextNodes and not self._is_loop_internal:
             raise PrintNodeError(f"节点 {self._id}: 缺少后续节点配置",7)
         self._next = self._nextNodes[0][1]

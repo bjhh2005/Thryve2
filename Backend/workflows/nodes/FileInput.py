@@ -70,7 +70,7 @@ class FileInput(MessageNode):
         Raises:
             FileInputError: 当无法确定下一个节点时
         """
-        if not self._nextNodes or len(self._nextNodes) == 0:
+        if not self._nextNodes and not self._is_loop_internal:
             raise FileInputError(f"节点 {self._id} 没有可用的下一个节点")
             
         self._next = self._nextNodes[0][1]

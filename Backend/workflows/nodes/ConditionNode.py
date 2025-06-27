@@ -202,7 +202,7 @@ class ConditionNode(Node):
         更新下一个节点
         根据当前选择的分支设置下一个节点
         """
-        if self.current_branch is None:
+        if self.current_branch is None and not self._is_loop_internal:
             self._next = None
             raise ConditionError(f"条件节点 {self._id} 没有任何分支被选中")
             return
