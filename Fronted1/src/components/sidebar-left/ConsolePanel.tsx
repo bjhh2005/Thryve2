@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useConsole, LogEntry } from '../../context/ConsoleProvider'; // 导入Hook和类型
+import { useConsole, LogEntry } from '../../context/ConsoleProvider';
 import { IconTriangleDown } from '@douyinfe/semi-icons';
 
 // 单条日志的渲染组件，用于实现不同级别的样式
