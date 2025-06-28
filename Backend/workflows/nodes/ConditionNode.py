@@ -111,7 +111,7 @@ class ConditionNode(Node):
         if operator not in (Op.IS_EMPTY.value, Op.IS_NOT_EMPTY.value, Op.IS_TRUE.value, Op.IS_FALSE.value):
             right_value = self._get_value(right)
             if right_value is None:
-                raise ConditionError("缺少右操作数")
+                right_value = False
             
             # 验证操作数类型
             self._validate_operands(operator, left_value, right_value)
@@ -210,7 +210,7 @@ class ConditionNode(Node):
         # 在nextNodes中查找对应分支的下一个节点
         for node in self._nextNodes:
             if node[0] == self.current_branch:
-                self._eventBus.emit("message", "info", self._id, "Choose branch: "+self.current_branch)
+                self._eventBus.emit("message", "info", self._id, "Choose branch: "+str(self.current_branch))
                 self._next = node[1]
                 return
         
