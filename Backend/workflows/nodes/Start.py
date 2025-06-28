@@ -26,26 +26,10 @@ class Start(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-        self._eventBus.emit("message","info",self._id+":executing")
->>>>>>> Stashed changes
-=======
-        self._eventBus.emit("message","info",self._id+":executing")
->>>>>>> Stashed changes
         print(self._nextNodes)
         self.updateNext()
 
     def updateNext(self):
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         if not self._nextNodes:
             raise StartNodeError(f"节点 {self._id}: 缺少后续节点配置", 8)
-=======
-        self._eventBus.emit("message","info",self._id+": executed")
->>>>>>> Stashed changes
-=======
-        self._eventBus.emit("message","info",self._id+": executed")
->>>>>>> Stashed changes
         self._next = self._nextNodes[0][1]
