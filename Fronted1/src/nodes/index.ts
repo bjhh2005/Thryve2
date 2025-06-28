@@ -9,6 +9,7 @@ import { CommentNodeRegistry } from './comment';
 import { PrintNodeRegistry } from './print';
 import { FileInputNodeRegistry } from './file-input';
 import { TextProcessorNodeRegistry } from './text-processor';
+import { CsvProcessorRegistry } from './csv-processor';
 
 export { WorkflowNodeType } from './constants';
 
@@ -22,6 +23,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   CommentNodeRegistry,
   PrintNodeRegistry,
   TextProcessorNodeRegistry,
+  CsvProcessorRegistry,
 ];
 
 /**
