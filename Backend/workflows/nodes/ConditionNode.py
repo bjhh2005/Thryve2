@@ -183,6 +183,7 @@ class ConditionNode(Node):
         执行条件节点
         根据条件判断结果选择执行分支
         """
+<<<<<<< Updated upstream
         try:
             # 遍历所有条件分支
             for branch_key, condition in self.conditions.items():
@@ -196,6 +197,23 @@ class ConditionNode(Node):
             return True
         except ConditionError as e:
             raise Exception(f"条件节点 {self._id} 执行错误: {str(e)}", 1)
+=======
+        # print(f"执行条件节点: {self._id}")
+        self._eventBus.emit("workflow", self._id)
+        self._eventBus.emit("message","info", self._id+":Executing")
+        # 遍历所有条件分支
+        for branch_key, condition in self.conditions.items():
+            # 如果条件满足，选择该分支
+            if self._evaluate_condition(condition):
+                self.current_branch = branch_key
+                print(f"条件分支 {branch_key} 满足条件")
+                break
+        
+        # 更新下一个节点
+        self.updateNext()
+        self._eventBus.emit("message","info", self._id+":Executed")
+        return True
+>>>>>>> Stashed changes
 
     def updateNext(self):
         """

@@ -99,6 +99,7 @@ def engineConnect(engine : WorkflowEngine):
 
 def execute_workflow_task(workflow_data):
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     """Execute workflow task in background"""
     try:
         logger.info("Starting workflow execution")
@@ -133,6 +134,8 @@ def execute_workflow_task(workflow_data):
         }, namespace='/workflow')
         
 =======
+=======
+>>>>>>> Stashed changes
     logger.info("开始执行工作流任务")
     engine = WorkflowEngine(workflow_data)
     engineConnect(engine)
@@ -142,6 +145,9 @@ def execute_workflow_task(workflow_data):
         'data': 0,
         'status': 'success'
     }, namespace='/workflow')
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 @socketio.on('connect', namespace='/workflow')
@@ -155,8 +161,11 @@ def handle_disconnect():
 @socketio.on('start_process', namespace='/workflow')
 def handle_start_process(workflow_data):
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     
     # Execute workflow in new thread to avoid blocking WebSocket
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
     thread = threading.Thread(target=execute_workflow_task, args=(workflow_data,))
@@ -165,7 +174,13 @@ def handle_start_process(workflow_data):
 
 if __name__ == '__main__':
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     logger.info("Starting workflow WebSocket server...")
+=======
+    # 注意：这里的端口4000需要和前端API请求的端口一致
+    # socketio.run会同时启动一个支持HTTP和WebSocket的服务器
+    logger.info("启动服务器，同时支持工作流(WebSocket)和AI聊天(HTTP)...")
+>>>>>>> Stashed changes
 =======
     # 注意：这里的端口4000需要和前端API请求的端口一致
     # socketio.run会同时启动一个支持HTTP和WebSocket的服务器
