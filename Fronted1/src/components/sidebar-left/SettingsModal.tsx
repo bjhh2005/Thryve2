@@ -5,8 +5,6 @@ import { useAIConfig } from '../../context/AIConfigContext';
 // 1. 不再依赖 <Form>，我们用 React 的 useState 来独立管理数据
 interface FormData {
     modelName: string;
-    apiKey: string;
-    apiHost: string;
     temperature: number;
 }
 
@@ -66,32 +64,6 @@ export const AISettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose
                     />
                 </div>
             </div>
-
-            <div style={{ marginBottom: '20px' }}>
-                <Typography.Text strong>API Key</Typography.Text>
-                <div style={{ marginTop: '8px' }}>
-                    <Input
-                        value={formData.apiKey}
-                        onChange={(value) => handleValueChange('apiKey', value)}
-                        type="password"
-                        placeholder="输入你的 API Key (例如 sk-xxxx)"
-                    />
-                    <Typography.Text type="tertiary" size="small">密钥将仅保存在你的浏览器本地</Typography.Text>
-                </div>
-            </div>
-
-            <div style={{ marginBottom: '20px' }}>
-                <Typography.Text strong>API Host (可选)</Typography.Text>
-                <div style={{ marginTop: '8px' }}>
-                    <Input
-                        value={formData.apiHost}
-                        onChange={(value) => handleValueChange('apiHost', value)}
-                        placeholder="例如: https://api.your-proxy.com/v1"
-                    />
-                    <Typography.Text type="tertiary" size="small">留空则使用官方默认地址</Typography.Text>
-                </div>
-            </div>
-
             <div style={{ marginBottom: '20px' }}>
                 <Typography.Text strong>Temperature (模型创造性)</Typography.Text>
                 <div style={{ marginTop: '8px' }}>

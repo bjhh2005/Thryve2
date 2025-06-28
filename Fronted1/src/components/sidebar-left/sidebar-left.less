@@ -1,14 +1,15 @@
 // --- 变量定义 ---
 @left-sidebar-width: 500px;
 @left-sidebar-collapsed-width: 56px;
-@action-bar-bg-color: #f7f7f7;
+@panel-bg-color: #ffffff;
+@action-bar-bg-color: @panel-bg-color;
 @border-color: #e8eaed;
 @border-color-light: #e8eaed;
 @border-color-dark: rgba(255, 255, 255, 0.1);
 @bg-color-light: #ffffff;
-@bg-color-dark: #2f2f2f;
+@input-bg-light: #fff;
 @transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
-@transition-speed: 0.3s;
+@transition-speed: 0.25s;
 
 .left-sidebar-container {
     position: fixed;
@@ -20,7 +21,7 @@
     display: flex;
     flex-direction: row;
     border-right: 1px solid #e8eaed;
-    background-color: #fff;
+    background-color: @panel-bg-color;
     transition: width @transition-speed @transition-curve;
 
     &.collapsed {
@@ -44,12 +45,12 @@
     width: @left-sidebar-collapsed-width;
     flex-shrink: 0;
     display: flex;
-    flex-direction: column; // 按钮垂直排列
+    flex-direction: column;
     align-items: center;
     padding: 16px 0;
     gap: 16px;
     border-right: 1px solid @border-color;
-    background-color: @action-bar-bg-color; // 独立的背景色
+    background-color: @action-bar-bg-color;
 }
 
 .action-bar-button.semi-button {
@@ -70,14 +71,12 @@
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-// --- 头部、内容区、底部布局 ---
 .left-sidebar-header {
     flex-shrink: 0;
     padding: 8px 12px;
     background-color: #fff;
     text-align: right;
     border-bottom: 1px solid @border-color;
-    // border-right: 1px solid #e8eaed;
 }
 
 .left-sidebar-content-wrapper {
@@ -106,15 +105,55 @@
     }
 }
 
-.left-sidebar-footer {
+.sidebar-edge-button {
+    // --- 定位 ---
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: @left-sidebar-collapsed-width;
-    padding: 8px 0;
+    top: 50%; // 先移动到垂直50%的位置
+    right: -16px; // 向右偏移，让按钮一半在侧边栏外
+    transform: translateY(-50%); // 通过向上偏移自身高度的50%来实现真正的垂直居中
+    z-index: 12; // 确保在最上层
+
+    // --- 外观 ---
+    width: 32px;
+    height: 32px;
+    border-radius: 50%; // 完美圆形
+    background-color: #ffffff; // 干净的白色背景
+    border: 1px solid #e8eaed; // 精致的浅灰色边框
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0; // 移除默认padding
+
+    // --- “高级感”来源：阴影和悬浮效果 ---
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s @transition-curve, box-shadow 0.2s @transition-curve;
+
+    &:hover {
+        // 悬浮时轻微放大，并加深阴影，提供物理反馈
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    &:active {
+        // 点击时进一步放大
+        transform: translateY(-50%) scale(1.05);
+    }
+}
+
+.sidebar-edge-button .icon-wrapper {
+    display: flex; // 确保图标居中
+    align-items: center;
+    justify-content: center;
+    color: #4a5568; // 图标颜色
+    transition: transform 0.8s @transition-curve;
+}
+
+// 当侧边栏展开时 (即：主容器没有 .collapsed 类时)
+.left-sidebar-container:not(.collapsed) {
+    .sidebar-edge-button .icon-wrapper {
+        transform: rotate(180deg);
+    }
 }
 
 // --- AI 助手面板专属样式 ---
@@ -122,11 +161,28 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background-color: #ffffff;
+    background-color: @panel-bg-color;
     color: #1f1f1f;
-    // border-right: 1px solid #e0e0e0;
-    // box-shadow: 4px 0px 12px rgba(0, 0, 0, 0.08);
 }
+
+.ai-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 8px 8px 20px;
+    border-bottom: 1px solid @border-color;
+    flex-shrink: 0;
+
+    .semi-typography {
+        font-weight: 500;
+        color: #5f6368;
+    }
+
+    .semi-button {
+        color: #5f6368;
+    }
+}
+
 
 .messages-list {
     flex-grow: 1;

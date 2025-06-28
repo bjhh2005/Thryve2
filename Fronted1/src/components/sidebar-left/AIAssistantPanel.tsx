@@ -1,35 +1,33 @@
-import React, { useState, useCallback } from 'react';
-import { Tooltip } from '@douyinfe/semi-ui';
-import { IconCopy, IconSend, IconUser, IconBolt } from '@douyinfe/semi-icons';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Tooltip, Typography, Button, Spin } from '@douyinfe/semi-ui';
+import { IconCopy, IconSend, IconUser, IconBolt, IconSetting } from '@douyinfe/semi-icons';
+import { useAIConfig } from '../../context/AIConfigContext';
+import { AISettingsModal } from './SettingsModal';
 
-// 消息的数据结构
+// Message 接口 (保持不变)
 interface Message {
     id: number;
-    role: 'user' | 'ai';
+    role: 'user' | 'assistant';
     content: string;
 }
 
-// 模拟的初始对话数据
+// 初始对话数据 (保持不变)
 const initialMessages: Message[] = [
-    { id: 1, role: 'ai', content: '您好！我是您的工作流AI助手，有什么可以帮助您的吗？' },
-    { id: 2, role: 'user', content: '你好，请帮我创建一个包含“开始”和“结束”节点的简单工作流。' },
-    { id: 3, role: 'ai', content: '好的，已为您创建。\n\n```json\n{\n  "nodes": [\n    { "id": "start-1", "type": "START" },\n    { "id": "end-1", "type": "END" }\n  ],\n  "edges": []\n}\n```\n\n请问还有其他需要吗？' },
+    { id: 1, role: 'assistant', content: '您好！我是您的工作流AI助手，有什么可以帮助您的吗？请点击右上角的设置图标配置您的AI模型。' },
 ];
 
-// 单条消息气泡组件
+// MessageBubble 组件 (保持不变)
 const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
     const handleCopy = (code: string) => {
-        navigator.clipboard.writeText(code).then(() => {
-            // 这里可以添加一个复制成功的提示，例如一个短暂的 Tooltip
-            console.log('代码已复制');
-        });
+        navigator.clipboard.writeText(code);
     };
-
     const renderContent = (content: string) => {
-        // 简单实现代码块和普通文本分离
+        if (content === 'Thinking...') {
+            return <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>
+        }
         const parts = content.split(/```(json|typescript|javascript|bash|)\n([\s\S]*?)\n```/);
         return parts.map((part, index) => {
-            if (index % 3 === 2) { // 这是代码部分
+            if (index % 3 === 2) {
                 return (
                     <div className="code-block" key={index}>
                         <pre><code>{part}</code></pre>
@@ -41,14 +39,13 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                     </div>
                 );
             }
-            return <p key={index}>{part}</p>; // 这是普通文本
+            return <p key={index}>{part}</p>;
         });
     };
-
     return (
         <div className={`message-bubble ${message.role}`}>
             <div className="avatar">
-                {message.role === 'ai' ? <IconBolt /> : <IconUser />}
+                {message.role === 'assistant' ? <IconBolt /> : <IconUser />}
             </div>
             <div className="bubble-content">
                 {renderContent(message.content)}
@@ -57,13 +54,21 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
     );
 };
 
-
+// 主要的AI助手面板组件
 export const AIAssistantPanel = () => {
     const [messages, setMessages] = useState<Message[]>(initialMessages);
     const [input, setInput] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSettingsVisible, setSettingsVisible] = useState(false);
+    const { config } = useAIConfig();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const handleSend = useCallback(() => {
-        if (!input.trim()) return;
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    const handleSend = useCallback(async () => {
+        if (!input.trim() || isLoading) return;
 
         const newUserMessage: Message = {
             id: Date.now(),
@@ -71,26 +76,111 @@ export const AIAssistantPanel = () => {
             content: input,
         };
 
-        setMessages(prev => [...prev, newUserMessage]);
+        const updatedMessages = [...messages, newUserMessage];
+        setMessages(updatedMessages);
         setInput('');
+        setIsLoading(true);
 
-        // 模拟AI回复
-        setTimeout(() => {
-            const aiResponse: Message = {
-                id: Date.now() + 1,
-                role: 'ai',
-                content: `关于您的问题“${input}”，我正在处理...`
-            };
-            setMessages(prev => [...prev, aiResponse]);
-        }, 1000);
+        const aiResponsePlaceholder: Message = {
+            id: Date.now() + 1,
+            role: 'assistant',
+            content: 'Thinking...', // 特殊内容，用于显示Spin动画
+        };
+        setMessages(prev => [...prev, aiResponsePlaceholder]);
 
-    }, [input]);
+        try {
+            const apiBaseUrl = 'http://localhost:4000';
+            const response = await fetch(`${apiBaseUrl}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: config.modelName,
+                    messages: updatedMessages.map(({ role, content }) => ({ role, content })),
+                    temperature: config.temperature,
+                }),
+            });
+
+            if (!response.ok || !response.body) {
+                const errorText = await response.text();
+                throw new Error(`API request failed with status ${response.status}: ${errorText}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let aiFullResponse = '';
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n\n');
+
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.substring(6);
+                        try {
+                            const parsed = JSON.parse(data);
+
+                            // 增强错误处理：检查从流中返回的错误
+                            if (parsed.error) {
+                                throw new Error(parsed.error);
+                            }
+
+                            if (parsed.end) {
+                                if (aiFullResponse === '') { // 如果模型没返回任何内容
+                                    aiFullResponse = '我暂时无法回答这个问题。';
+                                }
+                                break;
+                            }
+
+                            aiFullResponse += parsed.content || '';
+                            setMessages(prev => prev.map(msg =>
+                                msg.id === aiResponsePlaceholder.id
+                                    ? { ...msg, content: aiFullResponse }
+                                    : msg
+                            ));
+                        } catch (e) {
+                            console.error("Failed to parse stream data:", data, e);
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch AI response:', error);
+            const errorMessage = `抱歉，请求出错了: ${error instanceof Error ? error.message : String(error)}`;
+            setMessages(prev => prev.map(msg =>
+                msg.id === aiResponsePlaceholder.id
+                    ? { ...msg, content: errorMessage }
+                    : msg
+            ));
+        } finally {
+            setIsLoading(false);
+        }
+    }, [input, isLoading, messages, config]);
 
     return (
         <div className="ai-assistant-panel">
-            <div className="messages-list">
-                {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
+            <div className="ai-panel-header">
+                <Typography.Text strong>
+                    当前模型: {config.modelName || '未配置'}
+                </Typography.Text>
+                <Tooltip content="配置AI模型">
+                    <Button
+                        icon={<IconSetting />}
+                        type="tertiary"
+                        theme="borderless"
+                        onClick={() => setSettingsVisible(true)}
+                    />
+                </Tooltip>
             </div>
+
+            <div className="messages-list">
+                {/* 不再需要独立的加载中提示，因为它被合并到了消息气泡里 */}
+                {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
+                <div ref={messagesEndRef} />
+            </div>
+
             <div className="ai-input-form">
                 <textarea
                     placeholder="直接向AI下达指令或提问..."
@@ -102,13 +192,19 @@ export const AIAssistantPanel = () => {
                             handleSend();
                         }
                     }}
+                    disabled={isLoading}
                 />
                 <Tooltip content="发送" position="top">
-                    <button onClick={handleSend} disabled={!input.trim()}>
+                    <button onClick={handleSend} disabled={!input.trim() || isLoading}>
                         <IconSend />
                     </button>
                 </Tooltip>
             </div>
+
+            <AISettingsModal
+                visible={isSettingsVisible}
+                onClose={() => setSettingsVisible(false)}
+            />
         </div>
     );
 };

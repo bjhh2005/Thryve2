@@ -3,8 +3,6 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 // 定义配置的数据结构
 interface AIConfig {
     modelName: string;
-    apiKey: string;
-    apiHost: string;
     temperature: number;
 }
 
@@ -29,33 +27,16 @@ export const useAIConfig = () => {
 // Provider组件，包裹你的应用
 export const AIConfigProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [config, setConfigState] = useState<AIConfig>(() => {
-        // 从 localStorage 读取初始配置，实现持久化
-        try {
-            const savedConfig = localStorage.getItem('aiConfig');
-            return savedConfig ? JSON.parse(savedConfig) : {
-                modelName: 'gpt-3.5-turbo',
-                apiKey: '',
-                apiHost: '',
-                temperature: 0.7,
-            };
-        } catch (error) {
-            console.error("Failed to parse AI config from localStorage", error);
-            return {
-                modelName: 'gpt-3.5-turbo',
-                apiKey: '',
-                apiHost: '',
-                temperature: 0.7,
-            };
-        }
+        const savedConfig = localStorage.getItem('aiConfig');
+        const initialConfig = savedConfig ? JSON.parse(savedConfig) : null;
+        return {
+            modelName: initialConfig?.modelName || 'Qwen/QwQ-32B',
+            temperature: initialConfig?.temperature || 0.7,
+        };
     });
 
-    // 当配置变化时，存入 localStorage
     useEffect(() => {
-        try {
-            localStorage.setItem('aiConfig', JSON.stringify(config));
-        } catch (error) {
-            console.error("Failed to save AI config to localStorage", error);
-        }
+        localStorage.setItem('aiConfig', JSON.stringify(config));
     }, [config]);
 
     const setConfig = (newConfig: AIConfig) => {
