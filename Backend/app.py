@@ -31,41 +31,56 @@ def engineConnect(engine : WorkflowEngine):
 
 
 def execute_workflow_task(workflow_data):
-    """在后台线程中执行工作流任务"""
+    """Execute workflow task in background"""
+    try:
+        logger.info("Starting workflow execution")
+        
+        # Create workflow engine
+        engine = WorkflowEngine(workflow_data)  
+        engineConnect(engine)
 
-    logger.info("开始执行工作流任务")
-    
-    # 创建工作流引擎
-    engine = WorkflowEngine(workflow_data)  
-    engineConnect(engine)
+        # Run workflow
+        success, message = engine.run()
 
-    # 运行工作流（这里需要修改你的Engine类来支持回调）
-    engine.run()
-
-    # 发送结束信号
-    socketio.emit('over', {
-        'message': '工作流执行成功',
-        'data': 0,
-        'status': 'success'
-    }, namespace='/workflow')
+        # Send appropriate signal based on execution result
+        if success:
+            socketio.emit('over', {
+                'message': message,
+                'data': 0,
+                'status': 'success'
+            }, namespace='/workflow')
+        else:
+            socketio.emit('over', {
+                'message': f'Workflow execution failed: {message}',
+                'data': ['workflow_incomplete'],
+                'status': 'error'
+            }, namespace='/workflow')
+            
+    except Exception as e:
+        # Send failure signal to frontend
+        socketio.emit('over', {
+            'message': f'Workflow execution error: {str(e)}',
+            'data': e.args,
+            'status': 'error'
+        }, namespace='/workflow')
         
 
 @socketio.on('connect', namespace='/workflow')
 def handle_connect():
-    logger.info('客户端连接到 /workflow 命名空间')
+    logger.info('Client connected to /workflow namespace')
 
 @socketio.on('disconnect', namespace='/workflow')
 def handle_disconnect():
-    logger.info('客户端从 /workflow 命名空间断开连接')
+    logger.info('Client disconnected from /workflow namespace')
 
 @socketio.on('start_process', namespace='/workflow')
 def handle_start_process(workflow_data):
     
-    # 在新线程中执行工作流，避免阻塞WebSocket
+    # Execute workflow in new thread to avoid blocking WebSocket
     thread = threading.Thread(target=execute_workflow_task, args=(workflow_data,))
     thread.start()
 
 
 if __name__ == '__main__':
-    logger.info("启动工作流WebSocket服务器...")
+    logger.info("Starting workflow WebSocket server...")
     socketio.run(app, debug=True, port=4000)
