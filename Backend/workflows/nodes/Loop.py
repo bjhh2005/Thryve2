@@ -123,6 +123,9 @@ class Loop(MessageNode):
         Raises:
             LoopError: 当节点执行失败时
         """
+
+        self._eventBus.emit("message", "info", self._id, "Loop start!")
+        
         # 验证循环数组配置
         batch_for_type = self.batchFor.get("type") if self.batchFor else None
         if batch_for_type != "ref":

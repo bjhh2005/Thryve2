@@ -95,6 +95,7 @@ class TextProcessor(MessageNode):
         try:
             with open(self.input_file, 'a', encoding='utf-8') as f:
                 f.write(self.content)
+            self._eventBus.emit("message", "info", self._id, "Append text success!")
             return {}
         except Exception as e:
             raise RuntimeError(f"追加文本时发生错误: {str(e)}",9)
@@ -115,7 +116,7 @@ class TextProcessor(MessageNode):
 
             with open(self.input_file, 'w', encoding='utf-8') as f:
                 f.write(replaced_content)
-
+            self._eventBus.emit("message", "info", self._id, "Replace text success!")
             return {"replacementCount": replacement_count}
         except Exception as e:
             raise RuntimeError(f"替换文本时发生错误: {str(e)}",9)
@@ -124,6 +125,7 @@ class TextProcessor(MessageNode):
         try:
             with open(self.input_file, 'w', encoding='utf-8') as f:
                 f.write(self.content)
+            self._eventBus.emit("message", "info", self._id, "Write text success!")
             return {}
         except Exception as e:
             raise RuntimeError(f"写入文本时发生错误: {str(e)}",9)
@@ -150,7 +152,8 @@ class TextProcessor(MessageNode):
             frequencies = {
                 word: count for word, count in word_counts.items()
             }
-            print(frequencies)
+            #print(frequencies)
+            self._eventBus.emit("message", "info", self._id, "Word frequency success!")
             return {
                 "statistics": {
                     "totalWords": len(words),

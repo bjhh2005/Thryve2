@@ -54,8 +54,8 @@ class Print(Node):
                 raise PrintNodeError(f"节点 {self._id}: 无法获取引用节点 {ref_node_id} 的值",7)
 
         # 检查输入值
-        if self.input_value is None:
-            self._eventBus.emit("message", "warning", self._id, "输入值为空")
+        if len(self.input_value) == 0:
+            self._eventBus.emit("message", "warning", self._id, "input value is empty")
         print(self.input_value)
         self._eventBus.emit("nodes_output", self._id, str(self.input_value))
         
