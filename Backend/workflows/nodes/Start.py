@@ -10,8 +10,6 @@ class Start(MessageNode):
     def __init__(self,id, type, nextNodes, eventBus, data):
         super(MessageNode, self).__init__(id, type, nextNodes, eventBus)
 
-        print(data)
-
         property = data["outputs"]["properties"]
         self.MessageList = {}
         for propName,propInfo in property.items():

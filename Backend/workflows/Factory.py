@@ -1,6 +1,6 @@
 import logging
 
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor
 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +35,8 @@ class NodeFactory:
                 return Loop(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "fileinput":
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "text_processor":
+                return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
