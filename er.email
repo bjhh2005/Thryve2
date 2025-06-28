@@ -1,0 +1,238 @@
+[33mcommit 8a26ae1a9b1277bda6a680c08e53b0980a976de2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/Aiassistant[m[33m, [m[1;31morigin/feature/Aiassistant[m[33m)[m
+Merge: 9512d330 ab5b864e
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 17:15:05 2025 +0800
+
+    Merge branch 'develop' into feature/Aiassistant
+
+[33mcommit 9512d33015fccf81eec7012003f4773892c8d6c4[m
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 17:07:54 2025 +0800
+
+    <feat>(<AI>):引入了前端AI助手的配置和问答逻辑，暂未实现后端接口逻辑
+
+[33mcommit ab5b864ead87b9696709d5cdaeda381c10e198a5[m
+Merge: da030617 6a868d2f
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 16:48:43 2025 +0800
+
+    Merge branch 'text-processor' into develop
+
+[33mcommit 6a868d2f5342ba00ae5451482ff92600cf003935[m[33m ([m[1;31morigin/text-processor[m[33m)[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 16:48:23 2025 +0800
+
+    <feat>: text-processor 块前端实现完成。
+
+[33mcommit d46632d9bee39ac6829104b375298190d8e2d788[m
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 16:26:42 2025 +0800
+
+    <feat>:实现了基本的AI对话组件，但未配置真正的AI
+
+[33mcommit da030617167c6e683e234160c29bef234864697b[m
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 15:40:18 2025 +0800
+
+    <fix>:<前后通讯协调设计>
+
+[33mcommit f5d52c41c909a8347d21bb58be191d7932726a3a[m
+Author: ich-liebe-dich-Elysia <3280354053@qq.com>
+Date:   Fri Jun 27 14:56:51 2025 +0800
+
+    Update app.py
+
+[33mcommit 6ede9e2b2f07b94e7a268601a03628de5b109902[m
+Author: ich-liebe-dich-Elysia <3280354053@qq.com>
+Date:   Fri Jun 27 14:44:16 2025 +0800
+
+    <fix>修正了eventBus.emit的命名错误
+
+[33mcommit f0d64fa6b321e72bcd93ff19882aed58046df981[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 14:26:52 2025 +0800
+
+    <fix>: 修复了group拖动时事件冒泡的bug
+
+[33mcommit 4662ba6f35168d5a1ded227e2fbed6843592bca4[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 14:21:26 2025 +0800
+
+    <fix>: 优化了工具栏的初始位置与边界检测功能，优化了用户体验
+
+[33mcommit 9694474de171a6c675cabc59ae9fcfc6b1ce330d[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 14:08:00 2025 +0800
+
+    Reapply "Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop"
+    
+    This reverts commit f7ed3327de71489510444a3916b9174736f0152e.
+
+[33mcommit 3586f84a8282344498fc6a99a961554b2544734e[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 14:06:28 2025 +0800
+
+    Revert "<feat>: 优化了工具栏的使用，拖拽与group的拖拽"
+    
+    This reverts commit df28a9aa8ca3b9a29d11f72da7a2f5354670bd45.
+
+[33mcommit f7ed3327de71489510444a3916b9174736f0152e[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 14:05:15 2025 +0800
+
+    Revert "Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop"
+    
+    This reverts commit 4ff5db6f1f57a33030319584dfc03bc35d70d377, reversing
+    changes made to 5e79f8edc48346bcfead9bc518496cb47599bec1.
+
+[33mcommit 51765fa5556a8911b74b3c84a3e38ff4e5267d87[m
+Merge: df28a9aa 4ff5db6f
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 13:59:30 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit df28a9aa8ca3b9a29d11f72da7a2f5354670bd45[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 13:59:27 2025 +0800
+
+    <feat>: 优化了工具栏的使用，拖拽与group的拖拽
+
+[33mcommit 4ff5db6f1f57a33030319584dfc03bc35d70d377[m
+Merge: 5e79f8ed 80728307
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 11:59:12 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit 5e79f8edc48346bcfead9bc518496cb47599bec1[m
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 11:58:47 2025 +0800
+
+    <fix>：修复节点通讯中messege参数问题
+
+[33mcommit 80728307c0712dad250ed351c614a0de35e0929e[m
+Merge: 0a19b701 538a1f27
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 11:53:45 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit 0a19b7018fc21ed57721b44f14d307a3e53eb4ba[m
+Merge: 4aea0bb4 5f718717
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 11:53:30 2025 +0800
+
+    Merge branch 'feature/Aiassistant' into develop
+
+[33mcommit 538a1f27b7a639a8ed85bd4d082bb34dc11b05ca[m
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 11:52:09 2025 +0800
+
+    <feat>:为Print和Start节点实现了与前端通信
+
+[33mcommit 15369f20e73190cbf8eac9d3911b29066b60fa22[m
+Merge: e2f9fab3 4aea0bb4
+Author: ich-liebe-dich-Elysia <3280354053@qq.com>
+Date:   Fri Jun 27 11:50:50 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit 5f718717becf0ec530cff99bae325282a24f4964[m
+Author: Calmer2024 <15073769+calmer2024@user.noreply.gitee.com>
+Date:   Fri Jun 27 11:50:18 2025 +0800
+
+    <feat>:进一步开发了AIassistant 的组件，完成了页面优化
+
+[33mcommit e2f9fab336baed54a73a0d179dac4d8a19558a45[m
+Author: ich-liebe-dich-Elysia <3280354053@qq.com>
+Date:   Fri Jun 27 11:50:08 2025 +0800
+
+    <feat>添加了ConditionNode,FileInputNode,LoopNode的前后端通信机制
+
+[33mcommit 4aea0bb43502baa9767a866aa916acd96203dff2[m
+Merge: f2913712 4fdc3377
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 11:48:25 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit f2913712b9973a5ec0b8fab4ca3d064bb331ff54[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 11:47:16 2025 +0800
+
+    <feat>: 禁止用户修改file input的变量名，加强对文件同步变量的保护
+
+[33mcommit 4fdc3377e14365d4027054271c8019168f60561b[m
+Author: ich-liebe-dich-Elysia <3280354053@qq.com>
+Date:   Fri Jun 27 11:41:30 2025 +0800
+
+    <fix>find ConditionNode.py
+
+[33mcommit 459f18fc25a7556c6702332378805ad9208769ed[m
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:37:57 2025 +0800
+
+    <fix>:<项目目录管理>
+
+[33mcommit ad0f028350727aadb85b76a3385f03ca978b423f[m
+Merge: ecb6fb48 f43e11fa
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:36:23 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit ecb6fb48da00f7d81a3e58b6c05f8d86e9488224[m
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:35:02 2025 +0800
+
+    <fix>:<修复文件路径>
+
+[33mcommit f43e11fa733bc5ad5e7ef87595d40913ee14e1a5[m
+Merge: f1c20b9e 11e32456
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:29:27 2025 +0800
+
+    <feat>:<添加了后端的连接逻辑>
+    
+    <feat>:<添加了后端的连接逻辑>
+
+[33mcommit 11e324565540f289b30424a4d9c1f1d982030d50[m
+Merge: 82a81873 f1c20b9e
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:28:33 2025 +0800
+
+    Merge branch 'develop' into feature/front_end_connect_end
+
+[33mcommit 82a81873aee18f9e514c3d30c60af7f2027bb981[m
+Author: Zhanng-Whu <1552323699@qq.com>
+Date:   Fri Jun 27 11:23:08 2025 +0800
+
+    <feat>:<添加了后端的连接逻辑>
+
+[33mcommit f1c20b9ee2476d8652d5586cabbb23d4ba2b2010[m
+Merge: dd7c08a6 0d286e2f
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 11:13:28 2025 +0800
+
+    Merge branch 'develop' of https://github.com/bjhh2005/Thryve2 into develop
+
+[33mcommit dd7c08a67c1a665ec98e1c056e0aa88d36a60678[m
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 11:13:11 2025 +0800
+
+    <refactor>:重写Factory内的文件引入逻辑
+
+[33mcommit 0d286e2f90dc874c00637365513ea3bd73621b74[m
+Author: bjhh2005 <2467366054@qq.com>
+Date:   Fri Jun 27 11:12:10 2025 +0800
+
+    <refactor>: 删除了没有使用的代码。
+
+[33mcommit 96ed4afb99304b5b26c79dee44b7e32b2e1e5dc2[m
+Author: ywtshuai <2287943335@qq.com>
+Date:   Fri Jun 27 10:59:41 2025 +0800
+
+    <update>fileinput块完善
+
+[33mcommit c0e2f9031ea8af871cfe03269ac880efb83e6a73[m[33m ([m[1;31morigin/feature/ConsolePage[m
