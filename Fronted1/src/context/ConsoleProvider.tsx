@@ -17,7 +17,7 @@ interface ConsoleContextType {
     isRunning: boolean;
     addLog: (log: Omit<LogEntry, 'id' | 'timestamp'>) => void;
     clearLogs: () => void;
-    startExecution: (documentData: any) => void; // 修改：由外部传入工作流数据
+    startExecution: (documentData: any) => void;
 }
 
 const ConsoleContext = createContext<ConsoleContextType | undefined>(undefined);
@@ -45,22 +45,21 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
 
         clearLogs(); // 每次开始前清空日志
         setIsRunning(true);
-        addLog({ level: 'SYSTEM', message: '正在连接到执行服务器...' });
+        addLog({ level: 'SYSTEM', message: 'Connecting to execution server...' });
 
         const socket = io('http://localhost:4000/workflow', {
-            reconnection: true, // 允许重连
-            reconnectionAttempts: 3, // 最多重连3次
-            reconnectionDelay: 1000, // 重连延迟1秒
-            timeout: 5000, // 连接超时5秒
+            reconnection: true,
+            reconnectionAttempts: 3,
+            reconnectionDelay: 1000,
+            timeout: 5000,
         });
         socketRef.current = socket;
-        // 监听后端发来的各种日志事件
+
         socket.on('info', (data) => addLog({ level: 'INFO', message: data.message, nodeId: data.nodeId }));
         socket.on('warning', (data) => addLog({ level: 'WARN', message: data.message, nodeId: data.nodeId }));
         socket.on('error', (data) => addLog({ level: 'ERROR', message: data.message, nodeId: data.nodeId }));
 
         socket.on('nodes_output', (data) => {
-
             addLog({
                 level: 'OUTPUT',
                 message: data.message,
@@ -69,19 +68,20 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
         });
 
         socket.on('over', (data) => {
-            addLog({ level: 'SUCCESS', message: `执行完成。${data.message}` });
+            const level = data.status === 'success' ? 'SUCCESS' : 'ERROR';
+            addLog({ level, message: data.message });
             setIsRunning(false);
             socket.close();
             socketRef.current = null;
         });
 
         socket.on('connect_error', (error) => {
-            addLog({ level: 'ERROR', message: `连接失败: ${error.message}` });
+            addLog({ level: 'ERROR', message: `Connection failed: ${error.message}` });
             setIsRunning(false);
             socketRef.current = null;
         });
         socket.on('connect', () => {
-            addLog({ level: 'SUCCESS', message: '连接成功，正在启动工作流...' });
+            addLog({ level: 'SUCCESS', message: 'Connected successfully, starting workflow...' });
             socket.emit('start_process', documentData);
         });
 
