@@ -23,14 +23,13 @@ class Print(Node):
             raise PrintNodeError(f"节点 {id}: 数据格式错误",7)
             
         if "inputsValues" not in data:
-            raise PrintNodeError(f"节点 {id}: 缺少inputsValues配置",7)
-            
-        if "input" not in data["inputsValues"]:
-            raise PrintNodeError(f"节点 {id}: 缺少input配置",7)
-            
-        input_config = data["inputsValues"]["input"]
-        if input_config["type"] == "constant":
-            self.input_value = input_config["content"]
+            self.input_value = ""
+        else:
+            input_config = data["inputsValues"]["input"]
+            if input_config["type"] == "constant":
+                self.input_value = input_config["content"]
+            elif input_config["type"] == "ref":
+                self.input_value = ""
         # ref类型的值会在运行时获取
 
     def run(self):
@@ -40,6 +39,14 @@ class Print(Node):
         """
         self._eventBus.emit("workflow", self._id)
         
+        # 检查输入值
+        if self.input_value == "":
+            self._eventBus.emit("message", "warning", self._id, "input value is empty")
+            self._eventBus.emit("nodes_output", self._id, str(self.input_value))
+            # 更新下一个节点
+            self.updateNext() 
+            return True
+
         # 处理引用类型的输入
         if self.data["inputsValues"]["input"]["type"] == "ref":
             content = self.data["inputsValues"]["input"]["content"]
@@ -61,6 +68,8 @@ class Print(Node):
         
         # 更新下一个节点
         self.updateNext()        
+        return True
+
     def updateNext(self):
         """更新下一个节点"""
         if not self._nextNodes and not self._is_loop_internal:

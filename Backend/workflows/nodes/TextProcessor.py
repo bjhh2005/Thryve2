@@ -62,6 +62,8 @@ class TextProcessor(MessageNode):
                 self.search_text = self._get_input_value(self.data, 'searchText')
                 self.replace_text = self._get_input_value(self.data, 'replaceText')
                 self.use_regex = self._get_input_value(self.data, 'useRegex')
+                if self.use_regex == None:
+                    self.use_regex = False
                 result = self._replace_text()
             elif self.mode == 'write':
                 self.content = self._get_input_value(self.data, 'content')
