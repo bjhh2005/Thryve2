@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
-import iconFileUpload from '../../assets/icon-txt-processor.svg';
+import iconFileUpload from '../../assets/icon-txt-processor.png';
 
 export const TextProcessorNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.TextProcessor,
