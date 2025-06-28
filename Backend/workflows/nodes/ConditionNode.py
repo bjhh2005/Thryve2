@@ -204,12 +204,13 @@ class ConditionNode(Node):
         """
         if self.current_branch is None and not self._is_loop_internal:
             self._next = None
-            raise ConditionError(f"条件节点 {self._id} 没有任何分支被选中")
+            self._eventBus.emit("message", "warning", self._id, "No branch selected")
             return
             
         # 在nextNodes中查找对应分支的下一个节点
         for node in self._nextNodes:
             if node[0] == self.current_branch:
+                self._eventBus.emit("message", "info", self._id, "Choose branch: "+self.current_branch)
                 self._next = node[1]
                 return
         
