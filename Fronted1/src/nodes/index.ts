@@ -12,7 +12,6 @@ import { TextProcessorNodeRegistry } from './text-processor';
 import { CsvProcessorRegistry } from './csv-processor';
 import { JsonProcessorRegistry } from './json-processor';
 import { PdfProcessorRegistry } from './pdf-processor';
-import { MarkdownProcessorRegistry } from './markdown-processor';
 
 export { WorkflowNodeType } from './constants';
 
@@ -29,7 +28,6 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   CsvProcessorRegistry,
   JsonProcessorRegistry,
   PdfProcessorRegistry,
-  MarkdownProcessorRegistry,
 ];
 
 /**
