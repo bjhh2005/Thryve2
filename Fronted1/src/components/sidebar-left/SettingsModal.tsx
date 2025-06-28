@@ -1,83 +1,140 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, Input, Slider, Button, Toast, Typography } from '@douyinfe/semi-ui';
-import { useAIConfig } from '../../context/AIConfigContext';
+import React, { useState } from 'react';
+import { Modal, Button, Form, Input, Tag, Tooltip, Typography } from '@douyinfe/semi-ui';
+import { IconSetting, IconPlus, IconBolt } from '@douyinfe/semi-icons';
+import { useAIConfig, PRESET_PROVIDERS, ProviderConfig, ProviderId } from '../../context/AIConfigContext';
+import './SettingsModal.less';
 
-// 1. 不再依赖 <Form>，我们用 React 的 useState 来独立管理数据
-interface FormData {
-    modelName: string;
-    temperature: number;
-}
+// 2. 修正：从本地资源导入图标。注意，您需要自己准备这些SVG文件
+//    如果您也不想在这里使用本地图片，可以直接使用 semi-ui 的图标或纯文字
+import IconDeepSeek from '../../assets/deepseek.svg';
+import IconOpenAI from '../../assets/openai.svg';
 
-interface SettingsModalProps {
+// 服务商的显示信息
+const PROVIDER_DISPLAY_INFO = {
+    siliconflow: { name: '内置模型', icon: <IconBolt /> },
+    deepseek: { name: 'DeepSeek', icon: <img src={IconDeepSeek} width={20} alt="DeepSeek" /> },
+    openai: { name: 'OpenAI', icon: <img src={IconOpenAI} width={20} alt="OpenAI" /> },
+    custom: { name: '自定义服务商', icon: <IconPlus /> },
+};
+
+
+// 可复用的配置表单弹窗
+const ProviderConfigModal: React.FC<{
+    providerId: ProviderId;
     visible: boolean;
     onClose: () => void;
-}
+}> = ({ providerId, visible, onClose }) => {
+    const { config, updateProviderConfig } = useAIConfig();
+    const [formApi, setFormApi] = useState<any>();
+    // providerConfig 和 providerDefaults 的逻辑保持不变
+    const providerConfig = config.providers[providerId];
+    const providerDefaults: Partial<ProviderConfig> = (providerId in PRESET_PROVIDERS) ? PRESET_PROVIDERS[providerId as keyof typeof PRESET_PROVIDERS]
+        : {};
 
-export const AISettingsModal: React.FC<SettingsModalProps> = ({ visible, onClose }) => {
-    const { config, setConfig } = useAIConfig();
-    const [formData, setFormData] = useState<FormData>(config);
-
-    // 2. 当弹窗打开或外部配置变化时，用全局配置初始化我们的本地数据
-    useEffect(() => {
-        if (visible) {
-            setFormData(config);
-        }
-    }, [config, visible]);
-
-    // 3. 创建一个通用的处理函数来更新本地数据
-    const handleValueChange = (field: keyof FormData, value: any) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
-    };
-
-    // 4. 在保存时，用本地数据去更新全局配置
-    const handleSave = () => {
-        if (!formData.modelName.trim()) {
-            Toast.error('Model Name 是必填项');
-            return;
-        }
-        setConfig(formData);
-        Toast.success('AI配置已保存');
+    const handleSave = (values: ProviderConfig) => {
+        updateProviderConfig(providerId, values);
         onClose();
     };
 
+    // renderLabel 辅助函数已被移除
+
     return (
         <Modal
-            title="AI 模型配置"
+            title={`配置 ${PROVIDER_DISPLAY_INFO[providerId]?.name || '服务商'}`}
             visible={visible}
             onCancel={onClose}
-            footer={
-                <Button type="primary" onClick={handleSave}>
-                    保存
-                </Button>
-            }
-            width={500}
-            maskClosable={false}
+            onOk={() => formApi?.submitForm()}
+            width={480}
         >
-            {/* 5. 手动渲染每个表单项和它的标签 */}
-            <div style={{ marginBottom: '20px' }}>
-                <Typography.Text strong>Model Name</Typography.Text>
-                <div style={{ marginTop: '8px' }}>
-                    <Input
-                        value={formData.modelName}
-                        onChange={(value) => handleValueChange('modelName', value)}
-                        placeholder="例如: gpt-4, gpt-3.5-turbo"
-                    />
-                </div>
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-                <Typography.Text strong>Temperature (模型创造性)</Typography.Text>
-                <div style={{ marginTop: '8px' }}>
-                    <Slider
-                        value={formData.temperature}
-                        onChange={(value) => handleValueChange('temperature', value as number)}
-                        min={0}
-                        max={2}
-                        step={0.1}
-                        tipFormatter={(v) => `${v}`}
-                        style={{ width: '95%', padding: '0 10px' }} // 增加一些内边距防止滑块出界
-                    />
-                </div>
-            </div>
+            <Form
+                initValues={providerConfig}
+                getFormApi={setFormApi}
+                onSubmit={handleSave}
+            >
+                <Form.Input
+                    field="apiKey"
+                    label='API Key'
+                    placeholder="输入您的 API Key"
+                    type="password"
+                />
+                <Form.Input
+                    field="apiHost"
+                    label='API Host (可选)'
+                    placeholder={providerDefaults.apiHost || "例如: https://api.openai.com/v1"}
+                />
+                <Form.Input
+                    field="model"
+                    label='Model Name (可选)'
+                    placeholder={providerDefaults.model || "例如: gpt-4-turbo"}
+                />
+            </Form>
         </Modal>
+    );
+};
+
+
+// 主设置弹窗 AISettingsModal 组件的代码保持我们上次修改后的版本，无需改动
+export const AISettingsModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
+    const { config, setConfig } = useAIConfig();
+    const [editingProvider, setEditingProvider] = useState<ProviderId | null>(null);
+
+    const handleSelectProvider = (providerId: ProviderId) => {
+        setConfig({ activeProviderId: providerId });
+    };
+
+    return (
+        <>
+            <Modal
+                title="服务商配置"
+                visible={visible}
+                onCancel={onClose}
+                footer={null}
+                width={640}
+                className="provider-selection-modal"
+            >
+                <div className="provider-grid">
+                    {(Object.keys(PROVIDER_DISPLAY_INFO) as ProviderId[]).map(providerId => {
+                        const info = PROVIDER_DISPLAY_INFO[providerId];
+                        const isConfigured = !!config.providers[providerId]?.apiKey;
+                        const isActive = config.activeProviderId === providerId;
+
+                        return (
+                            <div
+                                key={providerId}
+                                className={`provider-card ${isActive ? 'active' : ''}`}
+                                onClick={() => handleSelectProvider(providerId)}
+                            >
+                                <div className="provider-info">
+                                    <span className="provider-icon">{info.icon}</span>
+                                    <span className="provider-name">{info.name}</span>
+                                </div>
+                                <div className="provider-actions">
+                                    {isConfigured && <Tag color='green' size='small'>已配置</Tag>}
+                                    <Tooltip content="详细配置">
+                                        <Button
+                                            icon={<IconSetting />}
+                                            type="tertiary"
+                                            theme="borderless"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingProvider(providerId);
+                                            }}
+                                        />
+                                    </Tooltip>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </Modal>
+
+            {editingProvider && (
+                <ProviderConfigModal
+                    providerId={editingProvider}
+                    visible={!!editingProvider}
+                    onClose={() => setEditingProvider(null)}
+                />
+            )}
+        </>
     );
 };
