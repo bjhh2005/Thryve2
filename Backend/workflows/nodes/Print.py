@@ -40,6 +40,7 @@ class Print(Node):
         """
         self._eventBus.emit("workflow", self._id)
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         
         # 处理引用类型的输入
         if self.data["inputsValues"]["input"]["type"] == "ref":
@@ -54,6 +55,8 @@ class Print(Node):
             if self.input_value is None:
                 raise PrintNodeError(f"节点 {self._id}: 无法获取引用节点 {ref_node_id} 的值",7)
 =======
+=======
+>>>>>>> Stashed changes
         self._eventBus.emit("message","info",self._id+":executing")
         try:
             # 如果是引用类型，需要从之前的节点获取值
@@ -82,6 +85,9 @@ class Print(Node):
                 "status": "error",
                 "message": str(e)
             }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
         # 检查输入值
@@ -94,10 +100,15 @@ class Print(Node):
         self.updateNext()        
     def updateNext(self):
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         """更新下一个节点"""
         if not self._nextNodes and not self._is_loop_internal:
             raise PrintNodeError(f"节点 {self._id}: 缺少后续节点配置",7)
         self._next = self._nextNodes[0][1]
+=======
+        self._eventBus.emit("message","info",self._id+": executed")
+        self._next = self._nextNodes[0][1]
+>>>>>>> Stashed changes
 =======
         self._eventBus.emit("message","info",self._id+": executed")
         self._next = self._nextNodes[0][1]
