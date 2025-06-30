@@ -37,6 +37,8 @@ class NodeFactory:
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "text_processor":
                 return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "pdf_processor":
+                return PdfProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "csv_processor":
                 return CSV.CSVProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "json_processor":
