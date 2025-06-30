@@ -7,15 +7,19 @@ export const formMeta: FormMeta = {
   validate: {
     title: ({ value }) => (value ? undefined : 'Title is required'),
     'inputsValues.selectedVariable': ({ value }) => {
-      if (!value) return 'Please select a variable to export';
+      if (!value?.content) return 'Please select a variable to export';
       return undefined;
     },
-    'inputsValues.exportPath': ({ value }) => {
-      if (!value?.content) return 'Please specify the export path';
+    'inputsValues.outputFolder': ({ value }) => {
+      if (!value?.content) return 'Please select output folder';
+      return undefined;
+    },
+    'inputsValues.outputName': ({ value }) => {
+      if (!value?.content) return 'Please enter output file name';
       return undefined;
     },
     'inputsValues.exportFormat': ({ value }) => {
-      if (!value?.content) return 'Please select the export format';
+      if (!value?.content) return 'Please select export format';
       return undefined;
     }
   }

@@ -8,5 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     readFile: (filePath) => ipcRenderer.invoke('read-file', filePath),
     
     // 获取文件信息
-    getFileInfo: (filePath) => ipcRenderer.invoke('get-file-info', filePath)
+    getFileInfo: (filePath) => ipcRenderer.invoke('get-file-info', filePath),
+
+    // 选择文件夹
+    selectFolder: () => ipcRenderer.invoke('select-folder')
 }); 

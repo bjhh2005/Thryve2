@@ -37,11 +37,6 @@ const MODE_INPUTS = {
     }
   },
   write: {
-    outputFile: {
-      type: 'string',
-      title: 'Output File',
-      description: 'Name of the output CSV file'
-    },
     delimiter: {
       type: 'string',
       title: 'Delimiter',
@@ -53,6 +48,16 @@ const MODE_INPUTS = {
       title: 'Include Header',
       description: 'Include column names in the first row',
       default: true
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the CSV file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the CSV file'
     }
   },
   filter: {
@@ -70,6 +75,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Value',
       description: 'Value to filter by'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the filtered CSV'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the filtered CSV file'
     }
   },
   sort: {
@@ -83,6 +98,16 @@ const MODE_INPUTS = {
       title: 'Ascending Order',
       description: 'Sort in ascending order',
       default: true
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the sorted CSV'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the sorted CSV file'
     }
   },
   aggregate: {
@@ -100,6 +125,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Target Column',
       description: 'Column to perform operation on'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the aggregated CSV'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the aggregated CSV file'
     }
   }
 };

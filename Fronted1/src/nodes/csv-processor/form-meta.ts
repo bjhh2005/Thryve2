@@ -23,9 +23,27 @@ export const formMeta: FormMeta = {
       }
       return undefined;
     },
-    'inputsValues.outputFile': ({ value, formValues }) => {
-      if (formValues.mode === 'write' && !value?.content) {
-        return 'Please specify the output file';
+    'inputsValues.column': ({ value, formValues }) => {
+      if ((formValues.mode === 'filter' || formValues.mode === 'sort') && !value?.content) {
+        return 'Please select a column';
+      }
+      return undefined;
+    },
+    'inputsValues.operation': ({ value, formValues }) => {
+      if (formValues.mode === 'aggregate' && !value?.content) {
+        return 'Please select an operation';
+      }
+      return undefined;
+    },
+    'inputsValues.outputFolder': ({ value, formValues }) => {
+      if (['write', 'filter', 'sort', 'aggregate'].includes(formValues.mode) && !value?.content) {
+        return 'Please select output folder';
+      }
+      return undefined;
+    },
+    'inputsValues.outputName': ({ value, formValues }) => {
+      if (['write', 'filter', 'sort', 'aggregate'].includes(formValues.mode) && !value?.content) {
+        return 'Please enter output file name';
       }
       return undefined;
     }

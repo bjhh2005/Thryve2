@@ -39,6 +39,14 @@ export const formMeta: FormMeta = {
         return 'Output format is required';
       }
       return undefined;
+    },
+    'inputsValues.outputFolder': ({ value }) => {
+      if (!value?.content) return 'Please select output folder';
+      return undefined;
+    },
+    'inputsValues.outputName': ({ value }) => {
+      if (!value?.content) return 'Please enter output file name';
+      return undefined;
     }
   }
 }; 
