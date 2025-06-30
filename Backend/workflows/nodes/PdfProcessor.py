@@ -76,7 +76,7 @@ class PdfProcessor(MessageNode):
             elif self.mode == 'metadata':
                 result = self._edit_metadata()
             else:
-                raise ValueError(f"不支持的操作模式: {self.mode}")
+                raise ValueError(f"不支持的操作模式: {self.mode}",10)
 
             # 更新消息
             self.MessageList = result
@@ -86,12 +86,12 @@ class PdfProcessor(MessageNode):
             return True
             
         except Exception as e:
-            raise Exception(f"PDF处理节点 {self._id} 执行错误: {str(e)}", 9)
+            raise Exception(f"PDF处理节点 {self._id} 执行错误: {str(e)}", 10)
 
     def updateNext(self):
         """更新下一个节点"""
         if not self._nextNodes and not self._is_loop_internal:
-            raise Exception(f"节点 {self._id}: 缺少后续节点配置", 9)
+            raise Exception(f"节点 {self._id}: 缺少后续节点配置", 10)
         self._next = self._nextNodes[0][1]
 
     def _extract_pdf(self) -> Dict[str, Any]:
@@ -143,7 +143,7 @@ class PdfProcessor(MessageNode):
                 "images": images if extract_images else []
             }
         except Exception as e:
-            raise RuntimeError(f"提取PDF内容时发生错误: {str(e)}")
+            raise RuntimeError(f"提取PDF内容时发生错误: {str(e)}",10)
 
     def _merge_pdfs(self) -> Dict[str, Any]:
         """合并多个PDF文件"""
@@ -174,7 +174,7 @@ class PdfProcessor(MessageNode):
                 "pageCount": total_pages
             }
         except Exception as e:
-            raise RuntimeError(f"合并PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"合并PDF文件时发生错误: {str(e)}",10)
 
     def _split_pdf(self) -> Dict[str, Any]:
         """拆分PDF文件"""
@@ -284,7 +284,7 @@ class PdfProcessor(MessageNode):
                 "fileCount": len(output_files)
             }
         except Exception as e:
-            raise RuntimeError(f"拆分PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"拆分PDF文件时发生错误: {str(e)}",10)
 
     def _convert_pdf(self) -> Dict[str, Any]:
         """转换PDF为其他格式"""
@@ -331,7 +331,7 @@ class PdfProcessor(MessageNode):
                 "conversionLog": "\n".join(conversion_log)
             }
         except Exception as e:
-            raise RuntimeError(f"转换PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"转换PDF文件时发生错误: {str(e)}",10)
 
     def _compress_pdf(self) -> Dict[str, Any]:
         """压缩PDF文件"""
@@ -420,7 +420,7 @@ class PdfProcessor(MessageNode):
                 "compressionRatio": round(compression_ratio, 2)
             }
         except Exception as e:
-            raise RuntimeError(f"压缩PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"压缩PDF文件时发生错误: {str(e)}",10)
 
     def _encrypt_pdf(self) -> Dict[str, Any]:
         """加密PDF文件"""
@@ -460,7 +460,7 @@ class PdfProcessor(MessageNode):
                 "success": True
             }
         except Exception as e:
-            raise RuntimeError(f"加密PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"加密PDF文件时发生错误: {str(e)}",10)
 
     def _decrypt_pdf(self) -> Dict[str, Any]:
         """解密PDF文件"""
@@ -487,7 +487,7 @@ class PdfProcessor(MessageNode):
                 "success": True
             }
         except Exception as e:
-            raise RuntimeError(f"解密PDF文件时发生错误: {str(e)}")
+            raise RuntimeError(f"解密PDF文件时发生错误: {str(e)}",10)
 
     def _add_watermark(self) -> Dict[str, Any]:
         """添加水印到PDF"""
@@ -570,7 +570,7 @@ class PdfProcessor(MessageNode):
                 "outputFile": output_file
             }
         except Exception as e:
-            raise RuntimeError(f"添加水印时发生错误: {str(e)}")
+            raise RuntimeError(f"添加水印时发生错误: {str(e)}",10)
 
     def _edit_metadata(self) -> Dict[str, Any]:
         """编辑PDF元数据"""
@@ -606,7 +606,7 @@ class PdfProcessor(MessageNode):
                 "metadata": metadata
             }
         except Exception as e:
-            raise RuntimeError(f"更新元数据时发生错误: {str(e)}")
+            raise RuntimeError(f"更新元数据时发生错误: {str(e)}",10)
 
     def _parse_page_range(self, page_range: str, total_pages: int) -> List[int]:
         """解析页面范围字符串"""
