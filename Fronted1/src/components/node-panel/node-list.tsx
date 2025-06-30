@@ -15,6 +15,7 @@ const NodeSearchContainer = styled.div`
     display: flex;
     flex-direction: column;
     background-color: #ffffff;
+    border-radius: 8px;
 `;
 const SearchInputWrapper = styled.div`
     padding: 8px;
@@ -49,7 +50,6 @@ const ResultItem = styled.li<{ $active: boolean }>`
     align-items: center;
     gap: 10px;
     background-color: ${props => props.$active ? 'var(--semi-color-fill-0)' : 'transparent'};
-
     &:hover {
         background-color: var(--semi-color-fill-0);
     }
@@ -57,6 +57,10 @@ const ResultItem = styled.li<{ $active: boolean }>`
 
 const ResultIcon = styled.div`
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px; 
     img {
         width: 16px;
         height: 16px;
@@ -67,7 +71,7 @@ const ResultIcon = styled.div`
 const ResultContent = styled.div`
     font-size: 14px;
     color: var(--semi-color-text-0);
-    font-weight: 500;
+    font-weight: normal;
     // 高亮字符的样式
     b {
         color: var(--semi-color-primary);
