@@ -4,8 +4,6 @@ import { IconSetting, IconPlus, IconBolt } from '@douyinfe/semi-icons';
 import { useAIConfig, PRESET_PROVIDERS, ProviderConfig, ProviderId } from '../../context/AIConfigContext';
 import './SettingsModal.less';
 
-// 2. 修正：从本地资源导入图标。注意，您需要自己准备这些SVG文件
-//    如果您也不想在这里使用本地图片，可以直接使用 semi-ui 的图标或纯文字
 import IconDeepSeek from '../../assets/deepseek.svg';
 import IconOpenAI from '../../assets/openai.svg';
 
