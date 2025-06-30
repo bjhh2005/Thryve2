@@ -63,8 +63,10 @@ const FolderInput: React.FC<{
                 files: result.files
             };
 
-            // 使用文件夹名作为变量名，但将特殊字符替换为下划线
-            const variableName = folderRef.folderName.replace(/[^a-zA-Z0-9_]/g, '_');
+            // 使用文件夹名作为变量名，保留中文但替换空格和特殊字符为下划线
+            const variableName = folderRef.folderName
+                .trim()
+                .replace(/[\s\(\)\[\]\{\}\+\*\?\^\$\|\.\\]/g, '_');
             
             field.onChange({ 
                 ...field.value, 
@@ -85,7 +87,7 @@ const FolderInput: React.FC<{
                     [variableName]: {
                         type: 'string',
                         title: folderRef.folderName,
-                        description: 'Folder Path',
+                        description: '文件夹路径',
                         isOutput: true,
                         default: folderRef.folderPath
                     },
@@ -94,8 +96,8 @@ const FolderInput: React.FC<{
                         items: {
                             type: 'string'
                         },
-                        title: `${folderRef.folderName} Files`,
-                        description: 'List of files in the folder',
+                        title: `${folderRef.folderName} 文件列表`,
+                        description: '文件夹中的文件列表',
                         isOutput: true,
                         default: folderRef.files
                     }
@@ -125,7 +127,7 @@ const FolderInput: React.FC<{
                 variableData.setVar(
                     ASTFactory.createVariableDeclaration({
                         meta: {
-                            title: `${folderRef.folderName} Files`,
+                            title: `${folderRef.folderName} 文件列表`,
                             icon: node.getNodeRegistry()?.info?.icon,
                         },
                         key: `${node.id}_${variableName}_files`,
