@@ -1,35 +1,44 @@
-// /components/node-panel/index.tsx
-
-import { FC } from 'react';
+import { FC, useRef, useEffect } from 'react';
 import { NodePanelRenderProps } from '@flowgram.ai/free-node-panel-plugin';
 import { Popover } from '@douyinfe/semi-ui';
 
 import { NodeList } from './node-list';
-// 不再需要 NodePlaceholder 和它的样式，可以删除
-// import { NodePlaceholder } from './node-placeholder'; 
-// import './index.less';
 
 export const NodePanel: FC<NodePanelRenderProps> = (props) => {
-  const { onSelect, position, onClose, panelProps } = props;
-  // enableNodePlaceholder 不再需要，可以忽略
-  // const { enableNodePlaceholder } = panelProps || {};
+  const { onSelect, position, onClose } = props;
+
+  const popoverContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (popoverContentRef.current && !popoverContentRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // 关键的清理步骤：在组件卸载（消失）时，务必移除事件监听，防止内存泄漏
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]); // 依赖项数组中放入 onClose，确保函数引用最新
+
 
   return (
     <Popover
-      trigger="custom" // 确保是 custom，由外部逻辑控制显示
+      trigger="custom"
       visible={true}
-      onVisibleChange={(v) => (v ? null : onClose())} // 当popover消失时调用onClose
-      // 核心修改：将 onClose 传递给 NodeList
-      content={<NodeList onSelect={onSelect} onClose={onClose} />}
+      onVisibleChange={(v) => (v ? null : onClose())}
       position="right"
-      // 其他 Popover 属性可以保持
-      popupAlign={{ offset: [10, 0] }} // 调整一下偏移，使其更美观
-      overlayStyle={{
-        padding: 0, // 移除 Popover 的默认内边距
-        overflow: 'hidden', // 确保圆角生效
-        borderRadius: '8px', // 给 Popover 也加上圆角
-      }}
-      showArrow={false} // 不显示小箭头
+      popupAlign={{ offset: [10, 0] }}
+      overlayStyle={{ padding: 0, overflow: 'hidden', borderRadius: '8px' }}
+      showArrow={false}
+      content={
+        <div ref={popoverContentRef}>
+          <NodeList onSelect={onSelect} onClose={onClose} />
+        </div>
+      }
     >
       {/* 触发器：一个在右键位置的、不可见的点 */}
       <div
