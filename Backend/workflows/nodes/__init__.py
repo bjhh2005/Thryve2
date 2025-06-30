@@ -6,19 +6,10 @@ from .Print import Print
 from .Loop import Loop
 from .End import End
 from .TextProcessor import TextProcessor
-<<<<<<< Updated upstream
-from .PdfProcessor import PdfProcessor
-=======
 from .CSV import CSVProcessor
 from .JSON import JSONProcessor
->>>>>>> Stashed changes
 
-# 重命名导出的类，避免与模块名冲突
 
 __version__ = "1.0.0"
 
-<<<<<<< Updated upstream
-__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor"]
-=======
 __all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "CSVProcessor", "JSONProcessor"]
->>>>>>> Stashed changes
