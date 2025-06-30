@@ -126,7 +126,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "图像调整大小完成！")
+            self._eventBus.emit("message", "info", self._id, "image resized success!")
             return processed_info
 
         except Exception as e:
@@ -164,7 +164,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "图像压缩完成！")
+            self._eventBus.emit("message", "info", self._id, "image compressed success!")
             return processed_info
 
         except Exception as e:
@@ -201,7 +201,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "图像格式转换完成！")
+            self._eventBus.emit("message", "info", self._id, "image format converted success!")
             return processed_info
 
         except Exception as e:
@@ -231,7 +231,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "图像旋转完成！")
+            self._eventBus.emit("message", "info", self._id, "image rotated success!")
             return processed_info
 
         except Exception as e:
@@ -264,7 +264,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "图像裁剪完成！")
+            self._eventBus.emit("message", "info", self._id, "image cropped success!")
             return processed_info
 
         except Exception as e:
@@ -320,7 +320,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "滤镜效果应用完成！")
+            self._eventBus.emit("message", "info", self._id, "filter applied success!")
             return processed_info
 
         except Exception as e:
@@ -416,7 +416,7 @@ class ImageProcessor(MessageNode):
                 "size": os.path.getsize(output_file)
             }
 
-            self._eventBus.emit("message", "info", self._id, "水印添加完成！")
+            self._eventBus.emit("message", "info", self._id, "watermark added success!")
             return processed_info
 
         except Exception as e:
