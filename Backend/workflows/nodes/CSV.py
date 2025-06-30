@@ -116,7 +116,7 @@ class CSVProcessor(Node):
                 output_file,
                 sep=delimiter,
                 index=False,
-                header=include_header
+                header=(include_header == "True" or include_header is True)
             )
             
             self._eventBus.emit("message", "info", self._id, f"成功写入CSV文件: {output_file}")

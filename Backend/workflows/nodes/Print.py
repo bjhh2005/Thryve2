@@ -16,20 +16,14 @@ class Print(Node):
         """
         super().__init__(id, type, nextNodes, eventBus)
         self.data = data
-        self.input_value = None
-        
-        # 检查必要的配置
+        # self.input_value 直接保存 inputsValues.input
         if not isinstance(data, dict):
             raise PrintNodeError(f"节点 {id}: 数据格式错误",7)
-            
-        if "inputsValues" not in data:
-            self.input_value = ""
+        if "inputsValues" not in data or "input" not in data["inputsValues"]:
+            self.input_value = None
         else:
-            input_config = data["inputsValues"]["input"]
-            if input_config["type"] == "constant":
-                self.input_value = input_config["content"]
-            elif input_config["type"] == "ref":
-                self.input_value = ""
+            self.input_value = data["inputsValues"]["input"]
+        self.output = None
         # ref类型的值会在运行时获取
 
     def run(self):
@@ -38,34 +32,33 @@ class Print(Node):
         打印指定的消息，并更新节点状态
         """
         self._eventBus.emit("workflow", self._id)
-        
-        # 检查输入值
-        if self.input_value == "":
-            self._eventBus.emit("message", "warning", self._id, "input value is empty")
-            self._eventBus.emit("nodes_output", self._id, str(self.input_value))
-            # 更新下一个节点
-            self.updateNext() 
-            return True
 
-        # 处理引用类型的输入
-        if self.data["inputsValues"]["input"]["type"] == "ref":
-            content = self.data["inputsValues"]["input"]["content"]
+        # 处理输入值
+        input_config = self.input_value
+        value = None
+        if input_config is None:
+            value = ""
+        elif input_config["type"] == "constant":
+            value = input_config.get("content", "")
+        elif input_config["type"] == "ref":
+            content = input_config.get("content", None)
             if not isinstance(content, list) or len(content) != 2:
                 raise PrintNodeError(f"节点 {self._id}: 引用值格式错误",7)
-                
             ref_node_id = content[0]
             ref_property = content[1]
-            
-            self.input_value = self._eventBus.emit("askMessage", ref_node_id, ref_property)
-            if self.input_value is None:
+            value = self._eventBus.emit("askMessage", ref_node_id, ref_property)
+            if value is None:
                 raise PrintNodeError(f"节点 {self._id}: 无法获取引用节点 {ref_node_id} 的值",7)
+        else:
+            value = ""
 
-        # 检查输入值
-        if len(self.input_value) == 0:
+        self.output = value
+
+        # 检查输出值
+        if not value:
             self._eventBus.emit("message", "warning", self._id, "input value is empty")
-        print(self.input_value)
-        self._eventBus.emit("nodes_output", self._id, str(self.input_value))
-        
+        self._eventBus.emit("nodes_output", self._id, str(value))
+
         # 更新下一个节点
         self.updateNext()        
         return True
