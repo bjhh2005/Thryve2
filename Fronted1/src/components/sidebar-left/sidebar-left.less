@@ -16,16 +16,17 @@
     left: 0;
     top: 0;
     height: 100vh;
-    width: @left-sidebar-width;
+    min-width: 300px;
+    max-width: 800px;
     z-index: 10;
     display: flex;
     flex-direction: row;
-    border-right: 1px solid #e8eaed;
+    border-right: 1px solid @border-color;
     background-color: @panel-bg-color;
-    transition: width @transition-speed @transition-curve;
 
     &.collapsed {
-        width: @left-sidebar-collapsed-width;
+        min-width: @left-sidebar-collapsed-width;
+        width: @left-sidebar-collapsed-width !important;
 
         .main-panel {
             opacity: 0;
@@ -67,7 +68,7 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    width: calc(@left-sidebar-width - @left-sidebar-collapsed-width);
+    min-width: 0; // ！允许flex子元素收缩，防止内容溢出
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
@@ -110,9 +111,8 @@
     top: 50%; // 先移动到垂直50%的位置
     right: -16px; // 向右偏移，让按钮一半在侧边栏外
     transform: translateY(-50%); // 通过向上偏移自身高度的50%来实现真正的垂直居中
-    z-index: 12; // 确保在最上层
+    z-index: 12;
 
-    // --- 外观 ---
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -124,7 +124,6 @@
     cursor: pointer;
     padding: 0;
 
-    // --- “高级感”来源：阴影和悬浮效果 ---
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s @transition-curve, box-shadow 0.2s @transition-curve;
 
@@ -151,6 +150,21 @@
         transform: rotate(180deg);
     }
 }
+
+.sidebar-resizer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 5px;
+    height: 100%;
+    cursor: col-resize;
+    z-index: 15;
+
+    &:hover {
+        background-color: rgba(var(--semi-color-primary-rgb), 0.2);
+    }
+}
+
 
 // --- AI 助手面板专属样式 ---
 .ai-assistant-panel {
@@ -213,7 +227,8 @@
 .message-bubble {
     display: flex;
     gap: 12px;
-    max-width: 95%;
+    width: fit-content;
+    max-width: 100%;
 
     .avatar {
         flex-shrink: 0;
@@ -233,8 +248,8 @@
         border-radius: 12px;
         line-height: 1.6;
         word-break: break-word;
-        // white-space: pre-wrap;
         font-size: 14px;
+        min-width: 0;
 
         p {
             margin: 0;

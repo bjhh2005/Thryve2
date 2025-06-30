@@ -28,7 +28,7 @@ const ActionBarButton: React.FC<{ icon: React.ReactNode; tooltip: string; onClic
 );
 
 export const SidebarRenderer = () => {
-    const { isCollapsed, activeTab, toggleSidebar, setActiveTab } = useLeftSidebar();
+    const { isCollapsed, activeTab, toggleSidebar, setActiveTab, width, startResizing } = useLeftSidebar();
 
     const handleNewCanvas = () => {
         // 这里的逻辑未来实现
@@ -42,7 +42,10 @@ export const SidebarRenderer = () => {
 
     return (
         <AIConfigProvider>
-            <aside className={`left-sidebar-container ${isCollapsed ? 'collapsed' : ''}`}>
+            <aside
+                className={`left-sidebar-container ${isCollapsed ? 'collapsed' : ''}`}
+                style={{ width: isCollapsed ? undefined : `${width}px` }}
+            >
                 {/* 操作栏：始终存在，但其内容会根据折叠状态调整 */}
                 <div className="action-bar">
                     {/* 这里放置折叠后也需要显示的功能按钮 */}
@@ -102,6 +105,13 @@ export const SidebarRenderer = () => {
                         </div>
                     </button>
                 </Tooltip>
+
+                {!isCollapsed && (
+                    <div
+                        className="sidebar-resizer"
+                        onMouseDown={startResizing}
+                    />
+                )}
             </aside>
         </AIConfigProvider>
     );
