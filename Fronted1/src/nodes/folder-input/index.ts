@@ -9,7 +9,10 @@ export const FolderInputRegistry: FlowNodeRegistry = {
     meta: {
         deleteDisable: false,
         copyDisable: false,
-        defaultPorts: [{ type: 'output' }],
+        defaultPorts: [
+            { type: 'input' },
+            { type: 'output' }
+        ],
         size: {
             width: 360,
             height: 211,
