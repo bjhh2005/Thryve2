@@ -4,6 +4,8 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta';
 import iconImgProcessor from '../../assets/icon-image-processor.png';
 
+let index = 0;
+
 export const ImgProcessorRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.ImgProcessor,
   info: {
@@ -28,7 +30,7 @@ export const ImgProcessorRegistry: FlowNodeRegistry = {
       id: `img_processor_${nanoid(5)}`,
       type: WorkflowNodeType.ImgProcessor,
       data: {
-        title: 'Image Processor',
+        title: `Image Processor_${++index}`,
         mode: 'resize', // 默认模式
         inputs: {
           type: 'object',

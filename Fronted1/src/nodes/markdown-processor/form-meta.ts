@@ -7,7 +7,7 @@ export const formMeta: FormMeta = {
   validate: {
     title: ({ value }) => (value ? undefined : 'Title is required'),
     'inputsValues.inputFile': ({ value, formValues }) => {
-      if (['parse', 'convert', 'frontMatter', 'toc', 'lint'].includes(formValues.mode) && !value?.content) {
+      if (['parse', 'convert', 'frontMatter', 'toc', 'lint', 'write', 'append'].includes(formValues.mode) && !value?.content) {
         return 'Please select a Markdown file';
       }
       if (value?.content && !value.content.toLowerCase().endsWith('.md')) {

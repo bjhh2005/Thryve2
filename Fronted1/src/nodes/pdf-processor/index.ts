@@ -4,6 +4,8 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta.ts';
 import iconPdfProcessor from '../../assets/icon-pdf-processor.png';
 
+let index = 0;
+
 export const PdfProcessorRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.PdfProcessor,
   info: {
@@ -28,7 +30,7 @@ export const PdfProcessorRegistry: FlowNodeRegistry = {
       id: `pdf_processor_${nanoid(5)}`,
       type: WorkflowNodeType.PdfProcessor,
       data: {
-        title: 'PDF Processor',
+        title: `PDF Processor_${++index}`,
         mode: 'extract', // 默认模式
         inputs: {
           type: 'object',

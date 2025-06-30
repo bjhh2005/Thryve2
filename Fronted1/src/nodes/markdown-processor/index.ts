@@ -4,6 +4,8 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta';
 import iconMarkdownProcessor from '../../assets/icon-markdown-processor.png';
 
+let index = 0;
+
 export const MarkdownProcessorRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.MarkdownProcessor,
   info: {
@@ -28,7 +30,7 @@ export const MarkdownProcessorRegistry: FlowNodeRegistry = {
       id: `markdown_processor_${nanoid(5)}`,
       type: WorkflowNodeType.MarkdownProcessor,
       data: {
-        title: 'Markdown Processor',
+        title: `Markdown Processor_${++index}`,
         mode: 'parse', // 默认模式
         inputs: {
           type: 'object',

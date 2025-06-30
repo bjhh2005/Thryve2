@@ -4,6 +4,8 @@ import iconFolder from '../../assets/icon-folder.png';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 
+let index = 0;
+
 export const FolderInputRegistry: FlowNodeRegistry = {
     type: WorkflowNodeType.FolderInput,
     meta: {
@@ -28,7 +30,7 @@ export const FolderInputRegistry: FlowNodeRegistry = {
             id: `folder_input_${nanoid(5)}`,
             type: 'folder-input',
             data: {
-                title: 'Folder Input',
+                title: `Folder Input_${++index}`,
                 folders: [{
                     id: `folder_${nanoid(6)}`,
                     folder: null,

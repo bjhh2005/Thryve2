@@ -4,6 +4,8 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta';
 import iconOutputSyncVariable from '../../assets/icon-output-sync-variable.png';
 
+let index = 0;
+
 export const ExportVariableRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.ExportVariable,
   info: {
@@ -28,26 +30,20 @@ export const ExportVariableRegistry: FlowNodeRegistry = {
       id: `export_variable_${nanoid(5)}`,
       type: WorkflowNodeType.ExportVariable,
       data: {
-        title: 'Export Variable',
+        title: `Export Variable_${++index}`,
         inputs: {
           type: 'object',
-          required: ['selectedVariable', 'exportPath', 'exportFormat'],
+          required: ['variables'],
           properties: {
-            selectedVariable: {
-              type: 'string',
-              title: 'Variable to Export',
-              description: 'Select the variable you want to export'
+            variables: {
+              type: 'array',
+              title: 'Variables',
+              description: 'Select variables to export'
             },
-            exportPath: {
-              type: 'string',
-              title: 'Export Path',
-              description: 'Specify where to save the exported file'
-            },
-            exportFormat: {
+            format: {
               type: 'string',
               title: 'Export Format',
-              description: 'Select the format for the exported file',
-              enum: ['json', 'yaml', 'csv', 'txt', 'xml'],
+              enum: ['json', 'yaml', 'env'],
               default: 'json'
             }
           }
@@ -57,15 +53,7 @@ export const ExportVariableRegistry: FlowNodeRegistry = {
           properties: {
             exportedFile: {
               type: 'string',
-              description: 'Path to the exported file'
-            },
-            success: {
-              type: 'boolean',
-              description: 'Whether the export was successful'
-            },
-            error: {
-              type: 'string',
-              description: 'Error message if export failed'
+              description: 'Path to exported file'
             }
           }
         }

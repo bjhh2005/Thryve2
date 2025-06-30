@@ -54,6 +54,11 @@ const MODE_INPUTS = {
     }
   },
   write: {
+    inputFile: {
+      type: 'string',
+      title: 'Input File',
+      description: 'Select the file to write to'
+    },
     content: {
       type: 'string',
       title: 'Content',
@@ -71,6 +76,11 @@ const MODE_INPUTS = {
     }
   },
   append: {
+    inputFile: {
+      type: 'string',
+      title: 'Input File',
+      description: 'Select the file to append to'
+    },
     content: {
       type: 'string',
       title: 'Content',
