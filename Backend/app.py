@@ -58,7 +58,7 @@ def execute_workflow_task(workflow_data):
         else:
             socketio.emit('over', {
                 'message': f'Workflow execution failed: {message}',
-                'data': ['workflow_incomplete'],
+                'data': -1,
                 'status': 'error'
             }, namespace='/workflow')
             

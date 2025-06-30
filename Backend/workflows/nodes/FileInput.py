@@ -25,7 +25,6 @@ class FileInput(MessageNode):
         
         self.MessageList = {}
         
-
         # 验证data结构
         if not isinstance(data, dict):
             raise FileInputError(f"节点 {id} 的data参数必须是字典类型")

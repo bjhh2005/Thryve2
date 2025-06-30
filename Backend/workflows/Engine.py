@@ -74,11 +74,12 @@ class WorkflowEngine :
           if not has_end_node:
                return False, "Missing End node"
           
+          logging.info(self.nodes)
           last_node_type = None  # Track the last executed node type
           
           while curNodeID != None:
                self.bus.emit("workflow", curNodeID)
-
+                              
                if curNodeID not in self.instance:
                     self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
                     if self.instance[curNodeID] is None:
@@ -118,6 +119,7 @@ class WorkflowEngine :
           """
           Find the node with type 'start' in the node list and return its ID
           """
+          print(self.nodes)
           for nodeId, nodeData in self.nodes.items():
                if nodeData.get('type') == 'start':
                     return nodeId
