@@ -106,7 +106,6 @@
 }
 
 .sidebar-edge-button {
-    // --- 定位 ---
     position: absolute;
     top: 50%; // 先移动到垂直50%的位置
     right: -16px; // 向右偏移，让按钮一半在侧边栏外
@@ -116,40 +115,37 @@
     // --- 外观 ---
     width: 32px;
     height: 32px;
-    border-radius: 50%; // 完美圆形
-    background-color: #ffffff; // 干净的白色背景
-    border: 1px solid #e8eaed; // 精致的浅灰色边框
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #e8eaed;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 0; // 移除默认padding
+    padding: 0;
 
     // --- “高级感”来源：阴影和悬浮效果 ---
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s @transition-curve, box-shadow 0.2s @transition-curve;
 
     &:hover {
-        // 悬浮时轻微放大，并加深阴影，提供物理反馈
         transform: translateY(-50%) scale(1.1);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     &:active {
-        // 点击时进一步放大
         transform: translateY(-50%) scale(1.05);
     }
 }
 
 .sidebar-edge-button .icon-wrapper {
-    display: flex; // 确保图标居中
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: #4a5568; // 图标颜色
+    color: #4a5568;
     transition: transform 0.8s @transition-curve;
 }
 
-// 当侧边栏展开时 (即：主容器没有 .collapsed 类时)
 .left-sidebar-container:not(.collapsed) {
     .sidebar-edge-button .icon-wrapper {
         transform: rotate(180deg);
@@ -198,7 +194,7 @@
     }
 
     &::-webkit-scrollbar-track {
-        margin: 140px 0;
+        margin: 100px 0;
         background: transparent;
     }
 
@@ -237,7 +233,7 @@
         border-radius: 12px;
         line-height: 1.6;
         word-break: break-word;
-        white-space: pre-wrap;
+        // white-space: pre-wrap;
         font-size: 14px;
 
         p {
@@ -350,6 +346,7 @@
         }
     }
 }
+
 
 
 /* --- Console Panel Styles --- */
