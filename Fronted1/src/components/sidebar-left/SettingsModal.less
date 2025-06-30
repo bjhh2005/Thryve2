@@ -1,0 +1,60 @@
+.provider-selection-modal {
+    .semi-modal-body {
+        padding: 8px;
+    }
+}
+
+.provider-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.provider-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--semi-color-border);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        background-color: var(--semi-color-fill-0);
+    }
+
+    &.active {
+        border-color: var(--semi-color-primary);
+        background-color: rgba(var(--semi-color-primary-rgb), 0.05);
+        box-shadow: 0 0 0 1px var(--semi-color-primary);
+    }
+
+    .provider-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .provider-icon {
+        font-size: 20px;
+        color: var(--semi-color-text-2);
+    }
+
+    .provider-name {
+        font-weight: 500;
+    }
+
+    .provider-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
+// 可选：为配置详情弹窗的 Form 添加一些间距
+.semi-form {
+    .semi-form-field {
+        margin-bottom: 20px;
+    }
+}

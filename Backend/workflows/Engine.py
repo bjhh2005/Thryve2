@@ -74,7 +74,6 @@ class WorkflowEngine :
           if not has_end_node:
                return False, "Missing End node"
           
-          logging.info(self.nodes)
           last_node_type = None  # Track the last executed node type
           
           while curNodeID != None:

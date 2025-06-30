@@ -85,7 +85,7 @@ export const ConsoleProvider = ({ children }: { children: ReactNode }) => {
             socket.emit('start_process', documentData);
         });
 
-        
+
     }, [isRunning, addLog, clearLogs]);
 
     const value = { logs, isRunning, addLog, clearLogs, startExecution };

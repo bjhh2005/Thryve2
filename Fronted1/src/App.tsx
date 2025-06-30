@@ -1,5 +1,6 @@
 import { Editor } from './editor'
 import './App.css'
+import './styles/markdown.less';
 
 function App() {
   return (
