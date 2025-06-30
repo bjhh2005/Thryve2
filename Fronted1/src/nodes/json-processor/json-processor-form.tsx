@@ -37,6 +37,16 @@ const MODE_INPUTS = {
       title: 'Indentation',
       description: 'Number of spaces for indentation',
       default: 2
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the JSON file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the JSON file'
     }
   },
   query: {
@@ -50,6 +60,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'JSON Path',
       description: 'JSONPath expression (e.g., $.store.book[0].title)'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the query result'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output file'
     }
   },
   update: {
@@ -68,6 +88,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'New Value',
       description: 'New value to set at the specified path'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the updated JSON'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the updated JSON file'
     }
   },
   validate: {
@@ -82,6 +112,16 @@ const MODE_INPUTS = {
       title: 'JSON Schema',
       description: 'JSON Schema for validation',
       format: 'json'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the validation report'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the validation report file'
     }
   },
   merge: {
@@ -102,6 +142,16 @@ const MODE_INPUTS = {
       title: 'Deep Merge',
       description: 'Perform deep merge of objects',
       default: true
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the merged JSON'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the merged JSON file'
     }
   },
   diff: {
@@ -116,6 +166,16 @@ const MODE_INPUTS = {
       title: 'Compare JSON',
       description: 'JSON to compare against',
       format: 'json'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the comparison result'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the comparison result file'
     }
   }
 };

@@ -44,6 +44,14 @@ export const formMeta: FormMeta = {
         return 'Please select a valid rotation angle';
       }
       return undefined;
+    },
+    'inputsValues.outputFolder': ({ value }) => {
+      if (!value?.content) return 'Please select output folder';
+      return undefined;
+    },
+    'inputsValues.outputName': ({ value }) => {
+      if (!value?.content) return 'Please enter output file name';
+      return undefined;
     }
   }
 }; 

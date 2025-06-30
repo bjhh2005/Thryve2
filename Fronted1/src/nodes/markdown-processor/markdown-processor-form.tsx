@@ -41,6 +41,16 @@ const MODE_INPUTS = {
           default: false
         }
       }
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the parsed HTML'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output HTML file'
     }
   },
   write: {
@@ -48,6 +58,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Content',
       description: 'Markdown content to write'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the Markdown file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the Markdown file'
     }
   },
   append: {
@@ -55,6 +75,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Content',
       description: 'Markdown content to append'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the appended file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output file'
     }
   },
   convert: {
@@ -87,6 +117,16 @@ const MODE_INPUTS = {
           default: true
         }
       }
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the converted file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the converted file'
     }
   },
   frontMatter: {
@@ -99,6 +139,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Front Matter',
       description: 'Front matter content in JSON format'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the modified file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the modified file'
     }
   },
   toc: {
@@ -124,6 +174,16 @@ const MODE_INPUTS = {
           default: false
         }
       }
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the file with TOC'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output file'
     }
   },
   lint: {
@@ -149,6 +209,16 @@ const MODE_INPUTS = {
           default: true
         }
       }
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the linting report'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the linting report file'
     }
   }
 };

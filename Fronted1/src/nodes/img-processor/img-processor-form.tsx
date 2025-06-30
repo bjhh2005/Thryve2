@@ -69,6 +69,16 @@ const MODE_INPUTS = {
       title: 'Maintain Aspect Ratio',
       description: 'Keep original aspect ratio',
       default: true
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the processed image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the processed image file'
     }
   },
   compress: {
@@ -84,6 +94,16 @@ const MODE_INPUTS = {
       minimum: 1,
       maximum: 100,
       default: 80
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the compressed image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the compressed image file'
     }
   },
   convert: {
@@ -106,6 +126,16 @@ const MODE_INPUTS = {
       minimum: 1,
       maximum: 100,
       default: 90
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the converted image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the converted image file'
     }
   },
   rotate: {
@@ -120,6 +150,16 @@ const MODE_INPUTS = {
       description: 'Select rotation angle',
       enum: ROTATION_ANGLES.map(angle => angle.value),
       default: 90
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the rotated image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the rotated image file'
     }
   },
   crop: {
@@ -151,6 +191,16 @@ const MODE_INPUTS = {
       title: 'Height',
       description: 'Crop height in pixels',
       minimum: 1
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the cropped image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the cropped image file'
     }
   },
   filter: {
@@ -173,6 +223,16 @@ const MODE_INPUTS = {
       minimum: 1,
       maximum: 100,
       default: 50
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the filtered image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the filtered image file'
     }
   },
   watermark: {
@@ -207,6 +267,16 @@ const MODE_INPUTS = {
       description: 'Watermark position',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'bottomRight'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the watermarked image'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the watermarked image file'
     }
   }
 };

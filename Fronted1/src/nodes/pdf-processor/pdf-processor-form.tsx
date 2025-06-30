@@ -37,6 +37,16 @@ const MODE_INPUTS = {
       title: 'Extract Images',
       description: 'Also extract images from PDF',
       default: false
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the extracted content'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output file'
     }
   },
   merge: {
@@ -51,6 +61,16 @@ const MODE_INPUTS = {
       description: 'Sort files by name or date',
       enum: ['name', 'date'],
       default: 'name'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the merged PDF'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the merged PDF file'
     }
   },
   split: {
@@ -70,6 +90,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Split Value',
       description: 'Pages per file or size in MB'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the split PDFs'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Base name for the split PDF files'
     }
   },
   convert: {
@@ -90,6 +120,16 @@ const MODE_INPUTS = {
       title: 'DPI',
       description: 'Resolution for image output',
       default: 300
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the converted file'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the converted file'
     }
   },
   compress: {
@@ -104,6 +144,16 @@ const MODE_INPUTS = {
       description: 'Compression quality',
       enum: ['high', 'medium', 'low'],
       default: 'medium'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the compressed PDF'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the compressed PDF file'
     }
   },
   encrypt: {
@@ -125,6 +175,16 @@ const MODE_INPUTS = {
         type: 'string',
         enum: ['print', 'copy', 'modify', 'annotate']
       }
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the encrypted PDF'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the encrypted PDF file'
     }
   },
   decrypt: {
@@ -137,6 +197,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Password',
       description: 'Decryption password'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the decrypted PDF'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the decrypted PDF file'
     }
   },
   watermark: {
@@ -162,6 +232,16 @@ const MODE_INPUTS = {
       description: 'Watermark position',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'center'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the watermarked PDF'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the watermarked PDF file'
     }
   },
   metadata: {
@@ -189,6 +269,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Keywords',
       description: 'Document keywords'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Select folder to save the PDF with updated metadata'
+    },
+    outputName: {
+      type: 'string',
+      title: 'Output Name',
+      description: 'Name for the output PDF file'
     }
   }
 };

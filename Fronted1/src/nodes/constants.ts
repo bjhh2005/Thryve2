@@ -6,25 +6,26 @@ export enum WorkflowNodeType {
   Loop = 'loop',
   Comment = 'comment',
   Print = 'print',
-  FileInput = 'fileinput',
-  ExportVariable = 'export_variable',
+  FileInput = 'file-input',
+  FolderInput = 'folder-input',
+  ExportVariable = 'export-variable',
 
   // 基础文本处理
-  TextProcessor = 'text_processor',
-  CsvProcessor = 'csv_processor',
-  JsonProcessor = 'json_processor',
+  TextProcessor = 'text-processor',
+  CsvProcessor = 'csv-processor',
+  JsonProcessor = 'json-processor',
   XmlProcessor = 'xml_processor',
   YamlProcessor = 'yaml_processor',
   
   // 文档处理
-  PdfProcessor = 'pdf_processor',
+  PdfProcessor = 'pdf-processor',
   WordProcessor = 'word_processor',
   ExcelProcessor = 'excel_processor',
   PptProcessor = 'ppt_processor',
-  MarkdownProcessor = 'markdown_processor',
+  MarkdownProcessor = 'markdown-processor',
   
   // 多媒体处理
-  ImgProcessor = 'img_processor',
+  ImgProcessor = 'img-processor',
   AudioProcessor = 'audio_processor',
   VideoProcessor = 'video_processor',
   
