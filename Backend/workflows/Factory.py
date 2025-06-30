@@ -33,15 +33,17 @@ class NodeFactory:
                 return Print(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "loop":
                 return Loop(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "fileinput":
+            case "file-input":
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "folder-input":
+                return FolderInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "text_processor":
                 return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "pdf_processor":
+            case "pdf-processor":
                 return PdfProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "csv_processor":
+            case "csv-processor":
                 return CSV.CSVProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "json_processor":
+            case "json-processor":
                 return JSON.JSONProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])

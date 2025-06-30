@@ -23,11 +23,22 @@ class PdfProcessor(MessageNode):
         self.data = data
         self.mode = data.get('mode', '')
         self.input_file = None
-        self.output_dir = "output"  # 输出目录
+        
+        # 获取输出路径配置
+        self.output_folder = self._get_input_value(data, 'outputFolder') or "output"
+        self.output_name = self._get_input_value(data, 'outputName') or "output"
         
         # 确保输出目录存在
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir)
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+            
+        # 对于多文件输出的操作，创建以output_name命名的子文件夹
+        if self.mode in ['extract', 'split', 'convert']:
+            self.output_dir = os.path.join(self.output_folder, self.output_name)
+            if not os.path.exists(self.output_dir):
+                os.makedirs(self.output_dir)
+        else:
+            self.output_dir = self.output_folder
 
     def _get_input_value(self, data: Dict[str, Any], key: str) -> Any:
         """从inputsValues中获取值，处理constant和ref两种类型"""
@@ -122,14 +133,14 @@ class PdfProcessor(MessageNode):
                         base_image = doc.extract_image(xref)
                         image_data = base_image["image"]
                         
-                        # 保存图片
+                        # 保存图片到指定目录
                         image_filename = f"page_{page_num + 1}_img_{img_index + 1}.png"
                         image_path = os.path.join(self.output_dir, image_filename)
                         with open(image_path, "wb") as img_file:
                             img_file.write(image_data)
                         images.append(image_path)
             
-            # 保存提取的文本到文件
+            # 保存提取的文本到指定目录
             text_content_str = "\n".join(text_content)
             text_output_file = os.path.join(self.output_dir, "extracted_text.txt")
             with open(text_output_file, "w", encoding="utf-8") as f:
@@ -160,7 +171,8 @@ class PdfProcessor(MessageNode):
             for pdf_file in input_files:
                 merger.append(pdf_file)
             
-            output_file = os.path.join(self.output_dir, "merged.pdf")
+            # 使用指定的输出路径
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             merger.write(output_file)
             merger.close()
             
@@ -198,7 +210,7 @@ class PdfProcessor(MessageNode):
                     for page_num in range(start_page, end_page):
                         writer.add_page(reader.pages[page_num])
                     
-                    output_file = os.path.join(self.output_dir, f"split_{i + 1}.pdf")
+                    output_file = os.path.join(self.output_dir, f"{self.output_name}_{i + 1}.pdf")
                     with open(output_file, "wb") as output:
                         writer.write(output)
                     output_files.append(output_file)
@@ -219,7 +231,7 @@ class PdfProcessor(MessageNode):
                     if level == 1:  # 只在顶级书签处分割
                         if current_start < page - 1:
                             # 保存当前部分
-                            output_file = os.path.join(self.output_dir, f"split_{file_counter}.pdf")
+                            output_file = os.path.join(self.output_dir, f"{self.output_name}_{file_counter}.pdf")
                             with open(output_file, "wb") as output:
                                 current_writer.write(output)
                             output_files.append(output_file)
@@ -234,7 +246,7 @@ class PdfProcessor(MessageNode):
                 
                 # 保存最后一部分
                 if current_writer.pages:
-                    output_file = os.path.join(self.output_dir, f"split_{file_counter}.pdf")
+                    output_file = os.path.join(self.output_dir, f"{self.output_name}_{file_counter}.pdf")
                     with open(output_file, "wb") as output:
                         current_writer.write(output)
                     output_files.append(output_file)
@@ -259,7 +271,7 @@ class PdfProcessor(MessageNode):
                     
                     if current_size + page_size > target_size_mb:
                         # 保存当前文件
-                        output_file = os.path.join(self.output_dir, f"split_{file_counter}.pdf")
+                        output_file = os.path.join(self.output_dir, f"{self.output_name}_{file_counter}.pdf")
                         with open(output_file, "wb") as output:
                             current_writer.write(output)
                         output_files.append(output_file)
@@ -273,7 +285,7 @@ class PdfProcessor(MessageNode):
                 
                 # 保存最后一个文件
                 if current_writer.pages:
-                    output_file = os.path.join(self.output_dir, f"split_{file_counter}.pdf")
+                    output_file = os.path.join(self.output_dir, f"{self.output_name}_{file_counter}.pdf")
                     with open(output_file, "wb") as output:
                         current_writer.write(output)
                     output_files.append(output_file)
@@ -300,7 +312,7 @@ class PdfProcessor(MessageNode):
                 page = doc[page_num]
                 if output_format in ['png', 'jpg']:
                     pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
-                    image_filename = f"page_{page_num + 1}.{output_format}"
+                    image_filename = f"{self.output_name}_page_{page_num + 1}.{output_format}"
                     image_path = os.path.join(self.output_dir, image_filename)
                     pix.save(image_path)
                     output_files.append(image_path)
@@ -308,7 +320,7 @@ class PdfProcessor(MessageNode):
                 
                 elif output_format == 'text':
                     text = page.get_text()
-                    text_filename = f"page_{page_num + 1}.txt"
+                    text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
                     text_path = os.path.join(self.output_dir, text_filename)
                     with open(text_path, 'w', encoding='utf-8') as f:
                         f.write(text)
@@ -317,7 +329,7 @@ class PdfProcessor(MessageNode):
                 
                 elif output_format == 'html':
                     html = page.get_text("html")
-                    html_filename = f"page_{page_num + 1}.html"
+                    html_filename = f"{self.output_name}_page_{page_num + 1}.html"
                     html_path = os.path.join(self.output_dir, html_filename)
                     with open(html_path, 'w', encoding='utf-8') as f:
                         f.write(html)
@@ -347,7 +359,7 @@ class PdfProcessor(MessageNode):
             settings = quality_settings[quality]
             
             doc = fitz.open(self.input_file)
-            output_file = os.path.join(self.output_dir, "compressed.pdf")
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             
             for page in doc:
                 # 压缩页面上的图片
@@ -450,7 +462,7 @@ class PdfProcessor(MessageNode):
             writer.encrypt(password, password, use_128bit=True, 
                          permissions_flag=permissions_bits)
             
-            output_file = os.path.join(self.output_dir, "encrypted.pdf")
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             with open(output_file, "wb") as output:
                 writer.write(output)
             
@@ -477,7 +489,7 @@ class PdfProcessor(MessageNode):
             for page in reader.pages:
                 writer.add_page(page)
             
-            output_file = os.path.join(self.output_dir, "decrypted.pdf")
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             with open(output_file, "wb") as output:
                 writer.write(output)
             
@@ -499,69 +511,71 @@ class PdfProcessor(MessageNode):
             doc = fitz.open(self.input_file)
             
             for page in doc:
-                # 创建水印
-                font_size = min(page.rect.width, page.rect.height) * 0.1
-                text_width = fitz.get_text_length(watermark_text, fontname="helv", fontsize=font_size)
-                text_height = font_size
-                
-                # 计算水印位置
-                if position == 'center':
-                    x = (page.rect.width - text_width) / 2
-                    y = (page.rect.height - text_height) / 2
-                elif position == 'topLeft':
-                    x = 20
-                    y = 20
-                elif position == 'topRight':
-                    x = page.rect.width - text_width - 20
-                    y = 20
-                elif position == 'bottomLeft':
-                    x = 20
-                    y = page.rect.height - text_height - 20
-                elif position == 'bottomRight':
-                    x = page.rect.width - text_width - 20
-                    y = page.rect.height - text_height - 20
-                
-                                # 添加水印
                 # 获取页面尺寸
                 rect = page.rect
                 
-                # 计算文本大小
-                font_size = min(rect.width, rect.height) * 0.3  # 增大字体大小
+                # 创建临时PDF页面作为水印模板
+                temp_doc = fitz.open()
+                temp_page = temp_doc.new_page(width=rect.width, height=rect.height)
                 
-                # 创建水印文本
-                gray_level = 0.5  # 更深的灰色 (0-1范围)
+                # 计算水印文本大小（根据页面大小自适应）
+                diagonal = (rect.width ** 2 + rect.height ** 2) ** 0.5
+                font_size = diagonal * 0.05  # 水印大小为对角线的05%
                 
-                # 在页面上添加水印
-                # 计算中心位置
-                center_x = rect.width / 2
-                center_y = rect.height / 2
+                # 计算不同位置的坐标
+                margin = font_size  # 边距为字体大小
+                positions = {
+                    "center": (rect.width / 4, rect.height / 4),
+                    "topLeft":(margin, margin),
+                    "topRight": (rect.width/2 - margin, margin),
+                    "bottomLeft": (margin, rect.height/2 - margin),
+                    "bottomRight":  (rect.width/2 - margin, rect.height/2 - margin)
+                }
                 
-                # 创建一个新的形状对象用于绘制水印
-                shape = page.new_shape()
+                # 获取位置（如果未指定则默认为center）
+                pos = position if position in positions else "center"
+                x, y = positions[pos]
                 
-                # 保存当前图形状态
-                shape.insert_textbox(
-                    rect,  # 使用整个页面区域
-                    watermark_text,
-                    fontname="helv",
-                    fontsize=font_size,
-                    color=(gray_level, gray_level, gray_level),  # 灰色
-                    align=1  # 居中对齐
+                # 设置水印颜色和透明度
+                alpha = opacity / 100.0  # 将百分比转换为0-1范围
+                gray_level = 0.8
+                color = (gray_level, gray_level, gray_level, alpha)  # RGBA颜色
+                
+                # 根据位置决定是否旋转
+                if pos == "center":
+                    # 中心位置时旋转45度
+                    temp_page.insert_text(
+                        (x - font_size/2, y),  # 调整位置以确保真正居中
+                        watermark_text,
+                        fontname="china-s",
+                        fontsize=font_size,
+                        color=color
+                    )
+                    temp_page.set_rotation(45)
+                else:
+                    # 其他位置不旋转
+                    temp_page.insert_text(
+                        (x, y),
+                        watermark_text,
+                        fontname="china-s",
+                        fontsize=font_size,
+                        color=color
+                    )
+                
+                # 将临时页面作为水印叠加到原页面上
+                page.show_pdf_page(
+                    rect,  # 目标矩形（整个页面）
+                    temp_doc,  # 源文档
+                    0,  # 源页面号（第一页）
                 )
                 
-                # 提交形状
-                shape.commit()
+                # 关闭临时文档
+                temp_doc.close()
                 
-                # 保存更改
+                # 应用更改
                 page.clean_contents()
-                
-                # 确保更改被应用
-                page.set_rotation(0)  # 重置旋转以确保正确显示
-                
-                # 强制更新页面内容
-                page.apply_redactions()  # 应用所有更改
             
-            output_file = os.path.join(self.output_dir, "watermarked.pdf")
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             doc.save(output_file)
             doc.close()
             
@@ -596,7 +610,7 @@ class PdfProcessor(MessageNode):
             }
             writer.add_metadata(metadata)
             
-            output_file = os.path.join(self.output_dir, "metadata_updated.pdf")
+            output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
             with open(output_file, "wb") as output:
                 writer.write(output)
             
