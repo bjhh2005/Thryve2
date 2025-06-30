@@ -87,7 +87,7 @@ const FolderInput: React.FC<{
                     [variableName]: {
                         type: 'string',
                         title: folderRef.folderName,
-                        description: '文件夹路径',
+                        description: 'File path',
                         isOutput: true,
                         default: folderRef.folderPath
                     },
@@ -96,8 +96,8 @@ const FolderInput: React.FC<{
                         items: {
                             type: 'string'
                         },
-                        title: `${folderRef.folderName} 文件列表`,
-                        description: '文件夹中的文件列表',
+                        title: `${folderRef.folderName} File list`,
+                        description: 'File list in the folder',
                         isOutput: true,
                         default: folderRef.files
                     }
@@ -127,7 +127,7 @@ const FolderInput: React.FC<{
                 variableData.setVar(
                     ASTFactory.createVariableDeclaration({
                         meta: {
-                            title: `${folderRef.folderName} 文件列表`,
+                            title: `${folderRef.folderName} File list`,
                             icon: node.getNodeRegistry()?.info?.icon,
                         },
                         key: `${node.id}_${variableName}_files`,
@@ -156,7 +156,7 @@ const FolderInput: React.FC<{
             });
         } catch (error: any) {
             Notification.error({
-                title: '错误',
+                title: 'Error',
                 content: error.message
             });
         } finally {
