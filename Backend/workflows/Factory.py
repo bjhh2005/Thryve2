@@ -1,10 +1,6 @@
 import logging
 
-<<<<<<< Updated upstream
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, PdfProcessor
-=======
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON
->>>>>>> Stashed changes
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, PdfProcessor
 
 
 logger = logging.getLogger(__name__)
