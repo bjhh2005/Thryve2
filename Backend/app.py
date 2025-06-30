@@ -10,6 +10,7 @@ from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
+# from Backend.agent.workflow_agent import agent as wf_agent  # 新增导入
 
 load_dotenv()
 app = Flask(__name__)
@@ -136,6 +137,22 @@ def chat():
 
     return Response(stream_generator(), mimetype="text/event-stream")
 
+# -------------------------------------------------------------------
+#  新增：工作流自动生成 API
+# -------------------------------------------------------------------
+@app.route("/api/agent/generate", methods=["POST"])
+def generate_workflow():
+    """根据自然语言需求生成工作流 JSON"""
+    data = request.get_json()
+    if not data or "requirement" not in data:
+        return Response(json.dumps({"error": "Missing 'requirement' field."}), status=400, mimetype="application/json")
+
+    try:
+        result = wf_agent.invoke({"requirement": data["requirement"]})
+        return Response(json.dumps(result["workflow_json"], ensure_ascii=False), mimetype="application/json")
+    except Exception as e:
+        logger.error(f"Generate workflow error: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype="application/json")
 
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server...")
