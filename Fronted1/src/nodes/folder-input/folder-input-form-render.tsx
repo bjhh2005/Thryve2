@@ -64,7 +64,7 @@ const FolderInput: React.FC<{
             };
 
             // 使用文件夹名作为变量名，但将特殊字符替换为下划线
-            const variableName = result.folderName.replace(/[^a-zA-Z0-9_]/g, '_');
+            const variableName = folderRef.folderName.replace(/[^a-zA-Z0-9_]/g, '_');
             
             field.onChange({ 
                 ...field.value, 
@@ -154,7 +154,7 @@ const FolderInput: React.FC<{
             });
         } catch (error: any) {
             Notification.error({
-                title: 'Error',
+                title: '错误',
                 content: error.message
             });
         } finally {
@@ -165,38 +165,44 @@ const FolderInput: React.FC<{
     return (
         <div style={{ position: 'relative', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FolderPort>
-                    <Spin spinning={isProcessing}>
-                        {field.value?.folder ? (
-                            <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <IconFolder />
-                                    <Typography.Text strong>{field.value.folder.folderName}</Typography.Text>
-                                    {!readonly && (
-                                        <Button
-                                            type="tertiary"
-                                            theme="borderless"
-                                            icon={<IconClear />}
-                                            onClick={() => field.onChange({ ...field.value, folder: null })}
-                                        />
-                                    )}
+                <div style={{ flexGrow: 1 }}>
+                    <div style={{ 
+                        padding: '12px',
+                        backgroundColor: 'var(--semi-color-fill-0)',
+                        borderRadius: '6px'
+                    }}>
+                        <Spin spinning={isProcessing}>
+                            {field.value?.folder ? (
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <IconFolder />
+                                        <Typography.Text strong>{field.value.folder.folderName}</Typography.Text>
+                                        {!readonly && (
+                                            <Button
+                                                type="tertiary"
+                                                theme="borderless"
+                                                icon={<IconClear />}
+                                                onClick={() => field.onChange({ ...field.value, folder: null })}
+                                            />
+                                        )}
+                                    </div>
+                                    <Typography.Text type="tertiary">
+                                        {field.value.folder.files.length} files
+                                    </Typography.Text>
                                 </div>
-                                <Typography.Text type="tertiary">
-                                    {field.value.folder.files.length} files
-                                </Typography.Text>
-                            </div>
-                        ) : (
-                            <Button
-                                icon={<IconFolder />}
-                                onClick={handleSelectFolder}
-                                disabled={readonly || isProcessing}
-                                block
-                            >
-                                Select Folder
-                            </Button>
-                        )}
-                    </Spin>
-                </FolderPort>
+                            ) : (
+                                <Button
+                                    icon={<IconFolder />}
+                                    onClick={handleSelectFolder}
+                                    disabled={readonly || isProcessing}
+                                    block
+                                >
+                                    Select Folder
+                                </Button>
+                            )}
+                        </Spin>
+                    </div>
+                </div>
                 {!readonly && onRemove && (
                     <Button
                         type="danger"
@@ -212,31 +218,10 @@ const FolderInput: React.FC<{
 };
 
 export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJSON>) => {
-    const { readonly } = useNodeRenderContext();
     const isSidebar = useIsSidebar();
+    const { readonly } = useNodeRenderContext();
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
     const [isAdding, setIsAdding] = useState(false);
-
-    const handleFolderSelect = (folder: FolderReference, index: number) => {
-        const currentFolders = form.values?.folders || [];
-        const folderData = currentFolders[index];
-        
-        // 更新输出变量的值
-        const currentOutputs = form.values?.outputs;
-        if (currentOutputs?.properties && folderData) {
-            const property = currentOutputs.properties[folderData.variableName];
-            if (property) {
-                form.setValueIn(
-                    `outputs.properties.${folderData.variableName}.default`,
-                    folder.folderPath
-                );
-                form.setValueIn(
-                    `outputs.properties.${folderData.variableName}_files.default`,
-                    folder.files
-                );
-            }
-        }
-    };
 
     const handleRemove = useCallback(async (field: any, index: number) => {
         if (isDeleting === index) return;
@@ -272,9 +257,7 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
                 properties: newProperties
             });
 
-            const newValue = [...field.value];
-            newValue.splice(index, 1);
-            field.onChange(newValue);
+            await field.remove(index);
             
         } catch (error: any) {
             console.error('Failed to remove folder input:', error);
@@ -294,21 +277,15 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             setIsAdding(true);
             
             if (!field.value) {
-                field.onChange([]);
+                await field.onChange([]);
             }
             
             const newFolderId = nanoid(6);
-            const currentFolders = field.value || [];
-            
-            const newValue = [
-                ...currentFolders,
-                {
-                    id: `folder_${newFolderId}`,
-                    folder: null,
-                    variableName: `folder_${currentFolders.length + 1}`
-                }
-            ];
-            field.onChange(newValue);
+            await field.append({
+                id: `folder_${newFolderId}`,
+                folder: null,
+                variableName: `folder_${(field.value || []).length + 1}`
+            });
             
         } catch (error: any) {
             console.error('Failed to add folder input:', error);
@@ -344,7 +321,6 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
                                                     : undefined
                                             }
                                             readonly={readonly}
-                                            onFolderSelect={(folder) => handleFolderSelect(folder, index)}
                                             form={form}
                                         />
                                     )}
