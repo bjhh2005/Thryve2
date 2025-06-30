@@ -5,7 +5,14 @@ python-socketio==5.11.1
 python-engineio==4.9.0
 Werkzeug==3.0.1
 openai==1.35.7
+<<<<<<< Updated upstream
 dotenv==1.0.1
 PyMuPDF==1.23.26
 Pillow==10.2.0
 PyPDF2==3.0.1
+=======
+python-dotenv==1.0.1
+jsonpath-ng>=1.5.3
+jsonschema>=4.17.3
+pandas>=2.0.0
+>>>>>>> Stashed changes
