@@ -7,31 +7,8 @@ import { JsonSchemaEditor, IJsonSchema } from '@flowgram.ai/form-materials';
 
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormHeader, FormContent, FormItem, FormOutputs } from '../../form-components';
-import { FileReference, DesktopFilePayload, JsonSchema } from '../../typings';
+import { FileReference, DesktopFilePayload, JsonSchema, IElectronAPI } from '../../typings';
 import { FilePort } from './styles';
-
-declare global {
-    interface Window {
-        electronAPI: {
-            selectFile: () => Promise<DesktopFilePayload>;
-            readFile: (filePath: string) => Promise<{
-                success: boolean;
-                content: string | null;
-                error: string | null;
-            }>;
-            getFileInfo: (filePath: string) => Promise<{
-                success: boolean;
-                info: {
-                    size: number;
-                    created: Date;
-                    modified: Date;
-                    accessed: Date;
-                } | null;
-                error: string | null;
-            }>;
-        };
-    }
-}
 
 interface FileInputNodeJSON extends FlowNodeJSON {
     data: {
@@ -70,7 +47,7 @@ const FileInput: React.FC<{
         setIsProcessing(true);
         try {
             const result = await window.electronAPI.selectFile();
-            if (result.canceled) {
+            if (result.canceled || !result.filePath || !result.fileName || !result.mimeType || !result.fileSize) {
                 return;
             }
 

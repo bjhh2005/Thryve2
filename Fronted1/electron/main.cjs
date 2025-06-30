@@ -82,6 +82,46 @@ ipcMain.handle('select-file', async () => {
     return { canceled: true };
 });
 
+// 处理文件夹选择
+ipcMain.handle('select-folder', async () => {
+    try {
+        const result = await dialog.showOpenDialog({
+            properties: ['openDirectory']
+        });
+
+        if (!result.canceled && result.filePaths.length > 0) {
+            const folderPath = result.filePaths[0];
+            const stats = fs.statSync(folderPath);
+            
+            // 读取文件夹中的文件列表
+            const files = fs.readdirSync(folderPath)
+                .filter(file => {
+                    try {
+                        return fs.statSync(path.join(folderPath, file)).isFile();
+                    } catch (err) {
+                        return false;
+                    }
+                })
+                .map(file => path.join(folderPath, file));
+
+            return {
+                canceled: false,
+                folderPath: folderPath,
+                folderName: path.basename(folderPath),
+                files: files,
+                created: stats.birthtime,
+                modified: stats.mtime,
+                accessed: stats.atime
+            };
+        }
+
+        return { canceled: true };
+    } catch (error) {
+        console.error('Error in select-folder:', error);
+        throw error;
+    }
+});
+
 // 读取文件内容
 ipcMain.handle('read-file', async (event, filePath) => {
     try {

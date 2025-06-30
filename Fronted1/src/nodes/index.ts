@@ -8,7 +8,7 @@ import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
 import { PrintNodeRegistry } from './print';
 import { FileInputNodeRegistry } from './file-input';
-// import { FolderInputRegistry } from './folder-input';
+import { FolderInputRegistry } from './folder-input';
 import { TextProcessorNodeRegistry } from './text-processor';
 import { CsvProcessorRegistry } from './csv-processor';
 import { JsonProcessorRegistry } from './json-processor';
@@ -23,7 +23,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   ConditionNodeRegistry,
   StartNodeRegistry,
   FileInputNodeRegistry,
-  // FolderInputRegistry,
+  FolderInputRegistry,
   EndNodeRegistry,
   LLMNodeRegistry,
   LoopNodeRegistry,
@@ -45,3 +45,6 @@ export const nodeRegistries: FlowNodeRegistry[] = [
 export const visibleNodeRegistries = nodeRegistries.filter(
   (r) => r.type !== WorkflowNodeType.Comment
 );
+
+export { FileInputNodeRegistry as fileInput } from './file-input';
+export { FolderInputRegistry as folderInput } from './folder-input';
