@@ -1,10 +1,6 @@
 import logging
 
-<<<<<<< Updated upstream
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, PdfProcessor
-=======
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON
->>>>>>> Stashed changes
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, PdfProcessor
 
 
 logger = logging.getLogger(__name__)
@@ -41,15 +37,12 @@ class NodeFactory:
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "text_processor":
                 return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-<<<<<<< Updated upstream
             case "pdf_processor":
                 return PdfProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-=======
             case "csv_processor":
                 return CSV.CSVProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "json_processor":
                 return JSON.JSONProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
->>>>>>> Stashed changes
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
