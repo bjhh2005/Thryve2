@@ -2,10 +2,17 @@ import pandas as pd
 from typing import Dict, Any, List, Optional
 from .Node import Node
 import json
+import os
 
 class CSVProcessError(Exception):
     """CSV处理错误"""
     pass
+
+def generate_output_path(output_folder: str, output_name: str) -> str:
+    """生成输出文件路径"""
+    if not output_name.endswith('.csv'):
+        output_name += '.csv'
+    return os.path.join(output_folder, output_name)
 
 class CSVProcessor(Node):
     def __init__(self, id: str, type: str, nextNodes: list, eventBus: Any, data: Dict[str, Any]):
@@ -27,15 +34,18 @@ class CSVProcessor(Node):
 
     def _get_input_value(self, value):
         """获取输入值，处理引用类型"""
-        if isinstance(value, dict) and value.get("type") == "ref":
-            content = value.get("content", [])
-            if len(content) >= 2:
-                node_id = content[0]
-                param_name = content[1]
-                result = self._eventBus.emit("askMessage", node_id, param_name)
-                self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
-                return result
-        return value
+        if isinstance(value, dict):
+            if value.get("type") == "ref":
+                content = value.get("content", [])
+                if len(content) >= 2:
+                    node_id = content[0]
+                    param_name = content[1]
+                    result = self._eventBus.emit("askMessage", node_id, param_name)
+                    self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
+                    return result
+            elif value.get("type") == "constant":
+                return str(value.get("content", ""))
+        return str(value) if value is not None else ""
 
     def read_csv(self) -> Dict[str, Any]:
         """读取CSV文件"""
@@ -81,14 +91,20 @@ class CSVProcessor(Node):
             input_file = self._get_input_value(self.inputs.get("inputFile"))
             self._eventBus.emit("message", "info", self._id, f"准备读取源文件: {input_file}")
             
-            output_file = self._get_input_value(self.inputs.get("outputFile"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
+            output_file = generate_output_path(output_folder, output_name)
+            
             self._eventBus.emit("message", "info", self._id, f"准备写入目标文件: {output_file}")
             
             delimiter = self.inputs.get("delimiter", ",")
             include_header = self._get_input_value(self.inputs.get("includeHeader", True))
 
-            if not input_file or not output_file:
-                raise CSVProcessError("未指定输入或输出文件")
+            if not input_file or not output_folder or not output_name:
+                raise CSVProcessError("未指定输入文件或输出路径")
+
+            # 确保输出目录存在
+            os.makedirs(output_folder, exist_ok=True)
 
             # 读取输入文件
             self._eventBus.emit("message", "info", self._id, f"开始读取源CSV文件")
@@ -124,10 +140,17 @@ class CSVProcessor(Node):
             condition = self.inputs.get("condition")
             value = self._get_input_value(self.inputs.get("value"))
             
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
+            output_file = generate_output_path(output_folder, output_name)
+            
             self._eventBus.emit("message", "info", self._id, f"过滤条件: {column} {condition} {value}")
 
-            if not all([input_file, column, condition, value]):
+            if not all([input_file, column, condition, value, output_folder, output_name]):
                 raise CSVProcessError("过滤参数不完整")
+
+            # 确保输出目录存在
+            os.makedirs(output_folder, exist_ok=True)
 
             # 读取CSV文件
             self._eventBus.emit("message", "info", self._id, "开始读取CSV文件")
@@ -154,9 +177,14 @@ class CSVProcessor(Node):
                 
             self._eventBus.emit("message", "info", self._id, f"过滤完成，结果包含 {len(filtered_df)} 行数据")
 
+            # 保存过滤后的数据
+            filtered_df.to_csv(output_file, index=False)
+            self._eventBus.emit("message", "info", self._id, f"已保存过滤后的数据到: {output_file}")
+
             return {
                 "filteredData": filtered_df.values.tolist(),
-                "rowCount": len(filtered_df)
+                "rowCount": len(filtered_df),
+                "filePath": output_file
             }
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, f"过滤CSV数据失败: {str(e)}")
@@ -172,10 +200,17 @@ class CSVProcessor(Node):
             column = self.inputs.get("column")
             ascending = self._get_input_value(self.inputs.get("ascending", True))
             
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
+            output_file = generate_output_path(output_folder, output_name)
+            
             self._eventBus.emit("message", "info", self._id, f"排序参数: 列名={column}, 升序={ascending}")
 
-            if not input_file or not column:
+            if not all([input_file, column, output_folder, output_name]):
                 raise CSVProcessError("排序参数不完整")
+
+            # 确保输出目录存在
+            os.makedirs(output_folder, exist_ok=True)
 
             # 读取CSV文件
             self._eventBus.emit("message", "info", self._id, "开始读取CSV文件")
@@ -189,11 +224,16 @@ class CSVProcessor(Node):
             try:
                 sorted_df = df.sort_values(by=column, ascending=ascending)
                 self._eventBus.emit("message", "info", self._id, "排序完成")
+                
+                # 保存排序后的数据
+                sorted_df.to_csv(output_file, index=False)
+                self._eventBus.emit("message", "info", self._id, f"已保存排序后的数据到: {output_file}")
             except Exception as e:
                 raise CSVProcessError(f"排序失败: {str(e)}")
 
             return {
-                "sortedData": sorted_df.values.tolist()
+                "sortedData": sorted_df.values.tolist(),
+                "filePath": output_file
             }
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, f"排序CSV数据失败: {str(e)}")
@@ -210,10 +250,17 @@ class CSVProcessor(Node):
             operation = self.inputs.get("operation")
             target_column = self.inputs.get("targetColumn")
             
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
+            output_file = generate_output_path(output_folder, output_name)
+            
             self._eventBus.emit("message", "info", self._id, f"聚合参数: 分组列={group_by}, 操作={operation}, 目标列={target_column}")
 
-            if not all([input_file, group_by, operation, target_column]):
+            if not all([input_file, group_by, operation, target_column, output_folder, output_name]):
                 raise CSVProcessError("聚合参数不完整")
+
+            # 确保输出目录存在
+            os.makedirs(output_folder, exist_ok=True)
 
             # 读取CSV文件
             self._eventBus.emit("message", "info", self._id, "开始读取CSV文件")
@@ -239,11 +286,19 @@ class CSVProcessor(Node):
                     raise CSVProcessError(f"不支持的聚合操作: {operation}")
                     
                 self._eventBus.emit("message", "info", self._id, f"聚合完成，共 {len(result)} 个分组")
+                
+                # 将结果转换为DataFrame并保存
+                result_df = result.reset_index()
+                result_df.columns = [group_by, f"{operation}_{target_column}"]
+                result_df.to_csv(output_file, index=False)
+                self._eventBus.emit("message", "info", self._id, f"已保存聚合结果到: {output_file}")
+                
             except Exception as e:
                 raise CSVProcessError(f"聚合操作失败: {str(e)}")
 
             return {
-                "result": result.to_dict()
+                "result": result.to_dict(),
+                "filePath": output_file
             }
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, f"聚合CSV数据失败: {str(e)}")
