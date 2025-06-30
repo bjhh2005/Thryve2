@@ -9,25 +9,36 @@ import { FlowNodeRegistry } from '../../typings';
 import { visibleNodeRegistries } from '../../nodes';
 import styled from 'styled-components'; // 我们继续使用 styled-components
 
-// --- 样式组件定义 (可以保持或微调) ---
+// --- 样式组件定义 ---
 const NodeSearchContainer = styled.div`
-    width: 280px; // 为搜索面板设置一个合适的宽度
+    width: 280px;
     display: flex;
     flex-direction: column;
+    background-color: #ffffff;
 `;
-
 const SearchInputWrapper = styled.div`
     padding: 8px;
     border-bottom: 1px solid var(--semi-color-border);
     flex-shrink: 0;
 `;
-
 const ResultsList = styled.ul`
     list-style: none;
     padding: 8px;
     margin: 0;
     max-height: 400px;
     overflow-y: auto;
+    
+    &::-webkit-scrollbar { width: 10px; }
+    &::-webkit-scrollbar-track { background: transparent; }
+    &::-webkit-scrollbar-thumb {
+        background-color: #e0e0e0;
+        border-radius: 5px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+        &:hover { background-color: #c7c7c7; }
+    }
+    scrollbar-width: thin;
+    scrollbar-color: #e0e0e0 transparent;
 `;
 
 const ResultItem = styled.li<{ $active: boolean }>`
@@ -87,7 +98,7 @@ export const NodeList: FC<NodeListProps> = (props) => {
   const searchResults = useMemo((): Fuzzysort.KeyResults<FlowNodeRegistry> => {
     return fuzzysort.go(query, visibleNodeRegistries, {
       key: 'type',
-      // all: true, // 如果希望空字符串返回所有结果，可以明确加上此项，但通常是默认行为
+      all: true, // 如果希望空字符串返回所有结果，可以明确加上此项，但通常是默认行为  
     });
   }, [query]);
 
