@@ -1,6 +1,6 @@
 import logging
 
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, PdfProcessor, FolderInput
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, PdfProcessor, FolderInput, ImageProcessor
 
 
 logger = logging.getLogger(__name__)
@@ -45,6 +45,8 @@ class NodeFactory:
                 return CSV.CSVProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "json-processor":
                 return JSON.JSONProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "img-processor":
+                return ImageProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:

@@ -10,8 +10,9 @@ from .PdfProcessor import PdfProcessor
 from .CSV import CSVProcessor
 from .JSON import JSONProcessor
 from .FolderInput import FolderInput
+from .ImageProcessor import ImageProcessor
 
 
 __version__ = "1.0.0"
 
-__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor", "CSVProcessor", "JSONProcessor", "FolderInput"]
+__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor", "CSVProcessor", "JSONProcessor", "FolderInput", "ImageProcessor"]
