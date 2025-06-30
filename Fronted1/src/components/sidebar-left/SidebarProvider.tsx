@@ -9,6 +9,7 @@ interface LeftSidebarContextType {
   isCollapsed: boolean;
   activeTab: string;
   width: number;
+  isDragging: boolean;
   toggleSidebar: () => void;
   setActiveTab: (tab: string) => void;
   startResizing: (e: React.MouseEvent) => void;
@@ -28,6 +29,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('ai');
   const [width, setWidth] = useState(INITIAL_WIDTH);
+  const [isDragging, setIsDragging] = useState(false);
 
   const toggleSidebar = useCallback(() => {
     setIsCollapsed(prev => !prev);
@@ -38,6 +40,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
     mouseDownEvent.preventDefault();
     isResizing.current = true;
+    setIsDragging(true);
 
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
@@ -51,6 +54,7 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     const handleMouseUp = () => {
+      setIsDragging(false);
       isResizing.current = false;
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
@@ -67,10 +71,11 @@ export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const value = {
     isCollapsed,
     activeTab,
-    width, // 传递 width
+    width,
+    isDragging,
     toggleSidebar,
     setActiveTab,
-    startResizing, // 传递开始缩放的函数
+    startResizing,
   };
 
   return (

@@ -2,14 +2,12 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm'; // 导入 GFM 插件以支持表格、删除线等
+import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-// 选择一个您喜欢的高亮主题，例如 a11yDark, atomDark, dracula, coldarkDark 等
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './MarkdownRenderer.less'; // 引入样式文件
 
 interface MarkdownRendererProps {
-    // 组件接收一个名为 content 的字符串属性
     content: string;
 }
 

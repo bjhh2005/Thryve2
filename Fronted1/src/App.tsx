@@ -1,6 +1,6 @@
 import { Editor } from './editor'
 import './App.css'
-import './styles/tailwind-typography.less';
+import './styles/markdown.less';
 
 function App() {
   return (
