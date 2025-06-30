@@ -3,6 +3,7 @@ import { Tooltip, Typography, Button, Spin } from '@douyinfe/semi-ui';
 import { IconCopy, IconSend, IconUser, IconBolt, IconSetting } from '@douyinfe/semi-icons';
 import { useAIConfig } from '../../context/AIConfigContext';
 import { AISettingsModal } from './SettingsModal';
+import { MarkdownRenderer } from '../../components/markdown/MarkdownRenderer';
 
 // Message 接口定义
 interface Message {
@@ -22,7 +23,7 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
         navigator.clipboard.writeText(code);
     };
     const renderContent = (content: string) => {
-        // 在占位符消息中显示加载动画
+        // 在占位符消息中显示加载动画   
         if (content === 'Thinking...') {
             return <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>
         }
@@ -50,7 +51,17 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                 {message.role === 'assistant' ? <IconBolt /> : <IconUser />}
             </div>
             <div className="bubble-content">
-                {renderContent(message.content)}
+                {message.role === 'user' ? (
+                    <p>{message.content}</p>
+                ) : (
+                    message.content === 'Thinking...' ? (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
+                        </div>
+                    ) : (
+                        <MarkdownRenderer content={message.content} />
+                    )
+                )}
             </div>
         </div>
     );
