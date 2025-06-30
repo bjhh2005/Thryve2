@@ -3,6 +3,7 @@ from typing import Dict, Any, List, Optional
 from .Node import Node
 from jsonpath_ng import parse as parse_jsonpath
 from jsonschema import validate as validate_schema, ValidationError
+import os
 
 class JSONProcessError(Exception):
     """JSON处理错误"""
@@ -17,6 +18,18 @@ def deep_merge(dict1: Dict, dict2: Dict) -> Dict:
         else:
             result[key] = value
     return result
+
+def generate_output_path(output_folder: str, output_name: str) -> str:
+    """生成输出文件路径"""
+    if not output_name.endswith('.json'):
+        output_name += '.json'
+    return os.path.join(output_folder, output_name)
+
+def save_json_to_file(data: Any, file_path: str, indent: int = 2) -> None:
+    """保存JSON数据到文件"""
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=indent)
 
 class JSONProcessor(Node):
     def __init__(self, id: str, type: str, nextNodes: list, eventBus: Any, data: Dict[str, Any]):
@@ -38,21 +51,27 @@ class JSONProcessor(Node):
 
     def _get_input_value(self, value):
         """获取输入值，处理引用类型"""
-        if isinstance(value, dict) and value.get("type") == "ref":
-            content = value.get("content", [])
-            if len(content) >= 2:
-                node_id = content[0]
-                param_name = content[1]
-                result = self._eventBus.emit("askMessage", node_id, param_name)
-                self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
-                return result
-        return value
+        if isinstance(value, dict):
+            if value.get("type") == "ref":
+                content = value.get("content", [])
+                if len(content) >= 2:
+                    node_id = content[0]
+                    param_name = content[1]
+                    result = self._eventBus.emit("askMessage", node_id, param_name)
+                    self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
+                    return result
+            elif value.get("type") == "constant":
+                return str(value.get("content", ""))
+        return str(value) if value is not None else ""
 
     def parse_json(self) -> Dict[str, Any]:
         """解析JSON字符串"""
         try:
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
+            
             self._eventBus.emit("message", "info", self._id, "准备解析JSON字符串")
 
             if not input_data:
@@ -63,16 +82,25 @@ class JSONProcessor(Node):
                 if not isinstance(input_data, (str, bytes, bytearray)):
                     raise JSONProcessError("输入数据必须是字符串类型")
                 result = json.loads(input_data)
+                
+                # 保存到文件
+                if output_folder and output_name:
+                    output_file = generate_output_path(output_folder, output_name)
+                    save_json_to_file(result, output_file)
+                    self._eventBus.emit("message", "info", self._id, f"已保存解析结果到: {output_file}")
+                
                 self._eventBus.emit("message", "info", self._id, "JSON解析成功")
                 return {
                     "result": result,
-                    "isValid": True
+                    "isValid": True,
+                    "filePath": output_file if output_folder and output_name else None
                 }
             except json.JSONDecodeError as e:
                 self._eventBus.emit("message", "error", self._id, f"JSON解析失败: {str(e)}")
                 return {
                     "result": None,
-                    "isValid": False
+                    "isValid": False,
+                    "filePath": None
                 }
 
         except Exception as e:
@@ -85,6 +113,8 @@ class JSONProcessor(Node):
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
             indent = self._get_input_value(self.inputs.get("indent", 2))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, f"准备将JSON对象转换为字符串，缩进: {indent}")
 
@@ -96,9 +126,18 @@ class JSONProcessor(Node):
                 if not isinstance(indent, (int, str, type(None))):
                     indent = 2  # 使用默认缩进
                 result = json.dumps(input_data, indent=indent, ensure_ascii=False)
+                
+                # 保存到文件
+                if output_folder and output_name:
+                    output_file = generate_output_path(output_folder, output_name)
+                    with open(output_file, 'w', encoding='utf-8') as f:
+                        f.write(result)
+                    self._eventBus.emit("message", "info", self._id, f"已保存字符串化结果到: {output_file}")
+                
                 self._eventBus.emit("message", "info", self._id, "JSON字符串化成功")
                 return {
-                    "result": result
+                    "result": result,
+                    "filePath": output_file if output_folder and output_name else None
                 }
             except Exception as e:
                 raise JSONProcessError(f"JSON字符串化失败: {str(e)}")
@@ -113,6 +152,8 @@ class JSONProcessor(Node):
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
             path = self._get_input_value(self.inputs.get("path"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, f"准备查询JSON，路径: {path}")
 
@@ -131,11 +172,18 @@ class JSONProcessor(Node):
                 jsonpath_expr = parse_jsonpath(path)
                 matches = [match.value for match in jsonpath_expr.find(input_data)]
                 
+                # 保存查询结果到文件
+                if output_folder and output_name and matches:
+                    output_file = generate_output_path(output_folder, output_name)
+                    save_json_to_file(matches[0], output_file)
+                    self._eventBus.emit("message", "info", self._id, f"已保存查询结果到: {output_file}")
+                
                 self._eventBus.emit("message", "info", self._id, f"查询完成，找到 {len(matches)} 个匹配")
                 
                 return {
                     "result": matches[0] if matches else None,
-                    "found": bool(matches)
+                    "found": bool(matches),
+                    "filePath": output_file if output_folder and output_name and matches else None
                 }
             except Exception as e:
                 raise JSONProcessError(f"JSONPath查询失败: {str(e)}")
@@ -151,6 +199,8 @@ class JSONProcessor(Node):
             input_data = self._get_input_value(self.inputs.get("inputData"))
             path = self._get_input_value(self.inputs.get("path"))
             new_value = self._get_input_value(self.inputs.get("newValue"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, f"准备更新JSON，路径: {path}")
 
@@ -184,11 +234,18 @@ class JSONProcessor(Node):
                 for match in matches:
                     match.value = new_value
 
+                # 保存更新后的数据到文件
+                if output_folder and output_name:
+                    output_file = generate_output_path(output_folder, output_name)
+                    save_json_to_file(input_data, output_file)
+                    self._eventBus.emit("message", "info", self._id, f"已保存更新后的数据到: {output_file}")
+
                 self._eventBus.emit("message", "info", self._id, "更新成功")
                 
                 return {
                     "result": input_data,
-                    "success": True
+                    "success": True,
+                    "filePath": output_file if output_folder and output_name else None
                 }
             except Exception as e:
                 raise JSONProcessError(f"JSON更新失败: {str(e)}")
@@ -203,6 +260,8 @@ class JSONProcessor(Node):
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
             schema = self._get_input_value(self.inputs.get("schema"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, "准备验证JSON")
 
@@ -226,17 +285,26 @@ class JSONProcessor(Node):
             # 执行验证
             try:
                 validate_schema(instance=input_data, schema=schema)
-                self._eventBus.emit("message", "info", self._id, "验证成功")
-                return {
+                result = {
                     "isValid": True,
                     "errors": []
                 }
+                self._eventBus.emit("message", "info", self._id, "验证成功")
             except ValidationError as e:
-                self._eventBus.emit("message", "warning", self._id, f"验证失败: {str(e)}")
-                return {
+                result = {
                     "isValid": False,
                     "errors": [str(e)]
                 }
+                self._eventBus.emit("message", "warning", self._id, f"验证失败: {str(e)}")
+
+            # 保存验证结果到文件
+            if output_folder and output_name:
+                output_file = generate_output_path(output_folder, output_name)
+                save_json_to_file(result, output_file)
+                self._eventBus.emit("message", "info", self._id, f"已保存验证结果到: {output_file}")
+                result["filePath"] = output_file
+
+            return result
 
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, f"JSON验证操作失败: {str(e)}")
@@ -249,6 +317,8 @@ class JSONProcessor(Node):
             input_data = self._get_input_value(self.inputs.get("inputData"))
             source_data = self._get_input_value(self.inputs.get("sourceData"))
             deep = self._get_input_value(self.inputs.get("deep", True))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, f"准备合并JSON，深度合并: {deep}")
 
@@ -275,9 +345,16 @@ class JSONProcessor(Node):
                 else:
                     result = {**input_data, **source_data}
                 
+                # 保存合并结果到文件
+                if output_folder and output_name:
+                    output_file = generate_output_path(output_folder, output_name)
+                    save_json_to_file(result, output_file)
+                    self._eventBus.emit("message", "info", self._id, f"已保存合并结果到: {output_file}")
+                
                 self._eventBus.emit("message", "info", self._id, "合并成功")
                 return {
-                    "result": result
+                    "result": result,
+                    "filePath": output_file if output_folder and output_name else None
                 }
             except Exception as e:
                 raise JSONProcessError(f"JSON合并失败: {str(e)}")
@@ -292,6 +369,8 @@ class JSONProcessor(Node):
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
             compare_data = self._get_input_value(self.inputs.get("compareData"))
+            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
+            output_name = self._get_input_value(self.inputs.get("outputName"))
             
             self._eventBus.emit("message", "info", self._id, "准备比较JSON差异")
 
@@ -316,13 +395,22 @@ class JSONProcessor(Node):
             self._compare_objects("", input_data, compare_data, differences)
             
             are_equal = len(differences) == 0
-            self._eventBus.emit("message", "info", self._id, 
-                              "比较完成，" + ("无差异" if are_equal else f"发现 {len(differences)} 处差异"))
-            
-            return {
+            result = {
                 "differences": differences,
                 "areEqual": are_equal
             }
+            
+            # 保存比较结果到文件
+            if output_folder and output_name:
+                output_file = generate_output_path(output_folder, output_name)
+                save_json_to_file(result, output_file)
+                self._eventBus.emit("message", "info", self._id, f"已保存比较结果到: {output_file}")
+                result["filePath"] = output_file
+            
+            self._eventBus.emit("message", "info", self._id, 
+                              "比较完成，" + ("无差异" if are_equal else f"发现 {len(differences)} 处差异"))
+            
+            return result
 
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, f"JSON比较操作失败: {str(e)}")
