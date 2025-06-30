@@ -6,3 +6,6 @@ python-engineio==4.9.0
 Werkzeug==3.0.1
 openai==1.35.7
 dotenv==1.0.1
+PyMuPDF==1.23.26
+Pillow==10.2.0
+PyPDF2==3.0.1
