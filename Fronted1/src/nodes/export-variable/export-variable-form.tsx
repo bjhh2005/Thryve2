@@ -21,10 +21,15 @@ const INPUT_CONFIG = {
     title: 'Variable to Export',
     description: 'Select the variable you want to export'
   },
-  exportPath: {
+  outputFolder: {
     type: 'string',
-    title: 'Export Path',
-    description: 'Specify where to save the exported file'
+    title: 'Output Folder',
+    description: 'Select folder to save the exported file'
+  },
+  outputName: {
+    type: 'string',
+    title: 'Output Name',
+    description: 'Name for the exported file'
   },
   exportFormat: {
     type: 'string',
@@ -63,7 +68,7 @@ export const ExportVariableFormRender = (props: FormRenderProps<{ mode: string }
     setKey(prev => prev + 1);
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['selectedVariable', 'exportPath', 'exportFormat'],
+      required: ['selectedVariable', 'outputFolder', 'outputName', 'exportFormat'],
       properties: INPUT_CONFIG
     });
 

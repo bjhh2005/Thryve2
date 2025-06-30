@@ -7,6 +7,7 @@ export enum WorkflowNodeType {
   Comment = 'comment',
   Print = 'print',
   FileInput = 'fileinput',
+  FolderInput = 'folderinput',
   ExportVariable = 'export_variable',
 
   // 基础文本处理
