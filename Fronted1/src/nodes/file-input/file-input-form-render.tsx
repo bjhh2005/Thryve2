@@ -88,9 +88,9 @@ const FileInput: React.FC<{
                     [variableName]: {
                         type: 'string',
                         title: fileRef.fileName,
-                        description: 'File Path',
+                        description: 'File path',
                         isOutput: true,
-                        default: fileRef.filePath // 设置默认值为文件路径
+                        default: fileRef.filePath
                     }
                 }
             });

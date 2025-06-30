@@ -80,6 +80,36 @@ const FolderInput: React.FC<{
                 properties: {}
             };
 
+            console.log('Current outputs before update:', currentOutputs);
+
+            // 先注册变量
+            const variableData = node.getData(FlowNodeVariableData);
+            if (!variableData) {
+                console.warn('Variable data manager is not initialized');
+                return;
+            }
+
+            if (!folderRef) {
+                console.warn('Folder reference is empty');
+                return;
+            }
+
+            if (!folderRef.files || !Array.isArray(folderRef.files) || folderRef.files.length === 0) {
+                console.warn('No files in folder or invalid file list format');
+                return;
+            }
+
+            if (!folderRef.folderName) {
+                console.warn('Folder name is empty');
+                return;
+            }
+
+            if (!variableName) {
+                console.warn('Variable name is not set');
+                return;
+            }
+
+            // 更新表单，这会触发同步插件
             form.setValueIn('outputs', {
                 ...currentOutputs,
                 properties: {
@@ -87,7 +117,7 @@ const FolderInput: React.FC<{
                     [variableName]: {
                         type: 'string',
                         title: folderRef.folderName,
-                        description: '文件夹路径',
+                        description: 'Folder path',
                         isOutput: true,
                         default: folderRef.folderPath
                     },
@@ -96,57 +126,24 @@ const FolderInput: React.FC<{
                         items: {
                             type: 'string'
                         },
-                        title: `${folderRef.folderName} 文件列表`,
-                        description: '文件夹中的文件列表',
+                        title: `${folderRef.folderName} File List`,
+                        description: 'File list in the folder',
                         isOutput: true,
                         default: folderRef.files
                     }
                 }
             });
 
-            // 注册变量到系统中
-            const variableData = node.getData(FlowNodeVariableData);
-            if (variableData) {
-                // 注册文件夹路径变量
-                variableData.setVar(
-                    ASTFactory.createVariableDeclaration({
-                        meta: {
-                            title: folderRef.folderName,
-                            icon: node.getNodeRegistry()?.info?.icon,
-                        },
-                        key: `${node.id}_${variableName}`,
-                        type: ASTFactory.createString(),
-                        initializer: {
-                            kind: 'String',
-                            value: folderRef.folderPath
-                        }
-                    })
-                );
+            console.log('Updated outputs:', form.values?.outputs);
 
-                // 注册文件列表变量
-                variableData.setVar(
-                    ASTFactory.createVariableDeclaration({
-                        meta: {
-                            title: `${folderRef.folderName} 文件列表`,
-                            icon: node.getNodeRegistry()?.info?.icon,
-                        },
-                        key: `${node.id}_${variableName}_files`,
-                        type: {
-                            kind: 'Array',
-                            items: {
-                                kind: 'String'
-                            }
-                        },
-                        initializer: {
-                            kind: 'Array',
-                            elements: folderRef.files.map(file => ({
-                                kind: 'String',
-                                value: file
-                            }))
-                        }
-                    })
-                );
-            }
+            // 确保表单更新完成后再触发一次同步
+            setTimeout(() => {
+                console.log('Triggering manual sync');
+                const outputs = form.getValueIn('outputs');
+                if (outputs) {
+                    form.setValueIn('outputs', outputs);
+                }
+            }, 0);
 
             onFolderSelect?.(folderRef);
             
@@ -156,7 +153,7 @@ const FolderInput: React.FC<{
             });
         } catch (error: any) {
             Notification.error({
-                title: '错误',
+                title: 'Error',
                 content: error.message
             });
         } finally {
