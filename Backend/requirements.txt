@@ -16,6 +16,7 @@ itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.2
 openai==1.35.7
+pandas==2.2.1
 pillow==10.2.0
 pydantic==2.11.7
 pydantic_core==2.33.2

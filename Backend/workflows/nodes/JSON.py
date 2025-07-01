@@ -64,88 +64,6 @@ class JSONProcessor(Node):
                 return str(value.get("content", ""))
         return str(value) if value is not None else ""
 
-    def parse_json(self) -> Dict[str, Any]:
-        """解析JSON字符串"""
-        try:
-            # 获取输入参数
-            input_data = self._get_input_value(self.inputs.get("inputData"))
-            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
-            output_name = self._get_input_value(self.inputs.get("outputName"))
-            
-            self._eventBus.emit("message", "info", self._id, "准备解析JSON字符串")
-
-            if not input_data:
-                raise JSONProcessError("未提供输入数据")
-
-            # 解析JSON
-            try:
-                if not isinstance(input_data, (str, bytes, bytearray)):
-                    raise JSONProcessError("输入数据必须是字符串类型")
-                result = json.loads(input_data)
-                
-                # 保存到文件
-                if output_folder and output_name:
-                    output_file = generate_output_path(output_folder, output_name)
-                    save_json_to_file(result, output_file)
-                    self._eventBus.emit("message", "info", self._id, f"已保存解析结果到: {output_file}")
-                
-                self._eventBus.emit("message", "info", self._id, "JSON解析成功")
-                return {
-                    "result": result,
-                    "isValid": True,
-                    "filePath": output_file if output_folder and output_name else None
-                }
-            except json.JSONDecodeError as e:
-                self._eventBus.emit("message", "error", self._id, f"JSON解析失败: {str(e)}")
-                return {
-                    "result": None,
-                    "isValid": False,
-                    "filePath": None
-                }
-
-        except Exception as e:
-            self._eventBus.emit("message", "error", self._id, f"JSON解析操作失败: {str(e)}")
-            raise JSONProcessError(f"JSON解析操作失败: {str(e)}")
-
-    def stringify_json(self) -> Dict[str, Any]:
-        """将JSON对象转换为字符串"""
-        try:
-            # 获取输入参数
-            input_data = self._get_input_value(self.inputs.get("inputData"))
-            indent = self._get_input_value(self.inputs.get("indent", 2))
-            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
-            output_name = self._get_input_value(self.inputs.get("outputName"))
-            
-            self._eventBus.emit("message", "info", self._id, f"准备将JSON对象转换为字符串，缩进: {indent}")
-
-            if input_data is None:
-                raise JSONProcessError("未提供输入数据")
-
-            # 转换为字符串
-            try:
-                if not isinstance(indent, (int, str, type(None))):
-                    indent = 2  # 使用默认缩进
-                result = json.dumps(input_data, indent=indent, ensure_ascii=False)
-                
-                # 保存到文件
-                if output_folder and output_name:
-                    output_file = generate_output_path(output_folder, output_name)
-                    with open(output_file, 'w', encoding='utf-8') as f:
-                        f.write(result)
-                    self._eventBus.emit("message", "info", self._id, f"已保存字符串化结果到: {output_file}")
-                
-                self._eventBus.emit("message", "info", self._id, "JSON字符串化成功")
-                return {
-                    "result": result,
-                    "filePath": output_file if output_folder and output_name else None
-                }
-            except Exception as e:
-                raise JSONProcessError(f"JSON字符串化失败: {str(e)}")
-
-        except Exception as e:
-            self._eventBus.emit("message", "error", self._id, f"JSON字符串化操作失败: {str(e)}")
-            raise JSONProcessError(f"JSON字符串化操作失败: {str(e)}")
-
     def query_json(self) -> Dict[str, Any]:
         """查询JSON数据"""
         try:
@@ -472,10 +390,6 @@ class JSONProcessor(Node):
             # 根据模式执行相应操作
             result = None
             match self.mode:
-                case "parse":
-                    result = self.parse_json()
-                case "stringify":
-                    result = self.stringify_json()
                 case "query":
                     result = self.query_json()
                 case "update":
