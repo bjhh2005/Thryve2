@@ -219,7 +219,7 @@ const MODE_INPUTS = {
     intensity: {
       type: 'number',
       title: 'Intensity',
-      description: 'Filter intensity (1-100)',
+      description: 'Input range: 1-100',
       minimum: 1,
       maximum: 100,
       default: 50

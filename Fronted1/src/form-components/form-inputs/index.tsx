@@ -25,6 +25,7 @@ export function FormInputs() {
                   name={key}
                   type={property.type as string}
                   required={required.includes(key)}
+                  description={property.description}
                 >
                   <DynamicValueInput
                     value={field.value}
@@ -32,6 +33,10 @@ export function FormInputs() {
                     readonly={readonly}
                     hasError={Object.keys(fieldState?.errors || {}).length > 0}
                     schema={property}
+                    constantProps={{
+                      placeholder: property.description || 'Please input...',
+                      style: { width: '100%' }
+                    }}
                   />
                   <Feedback errors={fieldState?.errors} />
                 </FormItem>
