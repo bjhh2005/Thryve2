@@ -5,6 +5,11 @@ import yaml
 from .Node import Node
 from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
+try:
+    import pdfkit
+    PDFKIT_AVAILABLE = True
+except ImportError:
+    PDFKIT_AVAILABLE = False
 
 class MarkdownProcessorError(Exception):
     """MarkdownProcessor 节点执行时的异常"""
@@ -43,36 +48,42 @@ class MarkdownProcessor(Node):
     def run(self):
         try:
             result = None
-            if self.mode == "parse":
-                result = self.handle_parse()
+            if self.mode == "convert":
+                result = self.handle_convert()
+                self.MessageList = {"convertedFile": result.get("filePath")}
             elif self.mode == "write":
                 result = self.handle_write()
+                self.MessageList = {"outputFile": result.get("filePath")}
             elif self.mode == "append":
                 result = self.handle_append()
-            elif self.mode == "convert":
-                result = self.handle_convert()
+                self.MessageList = {"outputFile": result.get("filePath")}
             elif self.mode == "frontMatter":
                 result = self.handle_front_matter()
+                self.MessageList = {"outputFile": result.get("filePath"), "metadata": result.get("frontMatter")}
             elif self.mode == "toc":
                 result = self.handle_toc()
+                self.MessageList = {"tableOfContents": result.get("toc")}
             elif self.mode == "lint":
                 result = self.handle_lint()
+                self.MessageList = result
             else:
                 raise MarkdownProcessorError(f"未知的处理模式: {self.mode}")
-            self.MessageList.update(result)
             self.output = result
-            self._eventBus.emit("nodes_output", self._id, str(result))
+            self._eventBus.emit("nodes_output", self._id, str(self.MessageList))
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, str(e))
         self.updateNext()
         return True
 
-    def handle_parse(self):
+    def handle_convert(self):
         input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        target_format = self._get_input_value(self.inputs.get("targetFormat"), "html") or "html"
         output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
-        output_name = self._get_input_value(self.inputs.get("outputName"), "output.html") or "output.html"
-        if not output_name.endswith('.html'):
+        output_name = self._get_input_value(self.inputs.get("outputName"), f"output.{target_format}") or f"output.{target_format}"
+        if target_format == "html" and not output_name.endswith('.html'):
             output_name += '.html'
+        if target_format == "pdf" and not output_name.endswith('.pdf'):
+            output_name += '.pdf'
         if not input_file or not os.path.exists(input_file):
             raise MarkdownProcessorError("未指定或找不到输入文件")
         with open(input_file, "r", encoding="utf-8") as f:
@@ -80,11 +91,23 @@ class MarkdownProcessor(Node):
         html_body = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'codehilite'])
         html = self._get_html_with_style(html_body)
         os.makedirs(output_folder, exist_ok=True)
-        output_path = os.path.join(output_folder, output_name)
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(html)
-        self._eventBus.emit("message", "info", self._id, f"已解析并保存HTML到: {output_path}")
-        return {"htmlFile": output_path, "html": html}
+        output_file = generate_output_path(output_folder, output_name, f'.{target_format}')
+        if target_format == "html":
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(html)
+            self._eventBus.emit("message", "info", self._id, f"已转换为HTML: {output_file}")
+            return {"filePath": output_file, "html": html}
+        elif target_format == "pdf":
+            if not PDFKIT_AVAILABLE:
+                raise MarkdownProcessorError("pdfkit 未安装，请先运行 pip install pdfkit")
+            try:
+                pdfkit.from_string(html, output_file)
+            except Exception as e:
+                raise MarkdownProcessorError(f"PDF 生成失败: {str(e)}。请确保已安装 wkhtmltopdf 并在 PATH 中。")
+            self._eventBus.emit("message", "info", self._id, f"已转换为PDF: {output_file}")
+            return {"filePath": output_file}
+        else:
+            raise MarkdownProcessorError(f"暂不支持的目标格式: {target_format}")
 
     def handle_write(self):
         content = self._get_input_value(self.inputs.get("content"), "") or ""
@@ -106,29 +129,6 @@ class MarkdownProcessor(Node):
             f.write("\n" + content)
         self._eventBus.emit("message", "info", self._id, f"已追加内容到: {input_file}")
         return {"filePath": input_file}
-
-    def handle_convert(self):
-        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
-        target_format = self._get_input_value(self.inputs.get("targetFormat"), "html") or "html"
-        output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
-        output_name = self._get_input_value(self.inputs.get("outputName"), f"output.{target_format}") or f"output.{target_format}"
-        if target_format == "html" and not output_name.endswith('.html'):
-            output_name += '.html'
-        if not input_file or not os.path.exists(input_file):
-            raise MarkdownProcessorError("未指定或找不到输入文件")
-        with open(input_file, "r", encoding="utf-8") as f:
-            md_text = f.read()
-        if target_format == "html":
-            html_body = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'codehilite'])
-            html = self._get_html_with_style(html_body)
-            os.makedirs(output_folder, exist_ok=True)
-            output_file = generate_output_path(output_folder, output_name, ".html")
-            with open(output_file, "w", encoding="utf-8") as f:
-                f.write(html)
-            self._eventBus.emit("message", "info", self._id, f"已转换为HTML: {output_file}")
-            return {"filePath": output_file, "html": html}
-        else:
-            raise MarkdownProcessorError(f"暂不支持的目标格式: {target_format}")
 
     def handle_front_matter(self):
         input_file = self._get_input_value(self.inputs.get("inputFile"), "")
