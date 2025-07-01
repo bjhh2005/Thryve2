@@ -1,0 +1,33 @@
+.conversation-list-panel {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--semi-color-border);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--semi-color-fill-0);
+
+    .list-header {
+        padding: 12px;
+        border-bottom: 1px solid var(--semi-color-border);
+    }
+
+    .list-body {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    .convo-item {
+        cursor: pointer;
+        padding: 10px 12px !important;
+
+        &.active {
+            background-color: var(--semi-color-primary-light-active);
+        }
+    }
+
+    .convo-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
