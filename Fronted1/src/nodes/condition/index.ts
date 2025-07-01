@@ -5,6 +5,8 @@ import iconCondition from '../../assets/icon-condition.svg';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 
+let index = 0;
+
 export const ConditionNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.Condition,
   info: {
@@ -24,7 +26,7 @@ export const ConditionNodeRegistry: FlowNodeRegistry = {
       id: `condition_${nanoid(5)}`,
       type: 'condition',
       data: {
-        title: 'Condition',
+        title: `Condition_${++index}`,
         conditions: [
           {
             key: `if_${nanoid(5)}`,

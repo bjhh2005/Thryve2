@@ -1,6 +1,6 @@
 import logging
 
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, MarkdownProcessor, PdfProcessor, FolderInput, ImageProcessor, LLMProcessor
 
 
 logger = logging.getLogger(__name__)
@@ -33,8 +33,24 @@ class NodeFactory:
                 return Print(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "loop":
                 return Loop(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "fileinput":
+            case "file-input":
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "folder-input":
+                return FolderInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "text_processor":
+                return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "pdf-processor":
+                return PdfProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "csv-processor":
+                return CSV.CSVProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "json-processor":
+                return JSON.JSONProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "img-processor":
+                return ImageProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "markdown-processor":
+                return MarkdownProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "llm":
+                return LLMProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:

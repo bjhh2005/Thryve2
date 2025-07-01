@@ -4,6 +4,8 @@ import iconEnd from '../../assets/icon-end.jpg';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 
+let index = 0;
+
 export const EndNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.End,
   meta: {
@@ -29,7 +31,7 @@ export const EndNodeRegistry: FlowNodeRegistry = {
       id: `end_${nanoid(5)}`,
       type: 'end',
       data: {
-        title: 'End',
+        title: `End_${++index}`,
         inputs: {
           type: 'object',
           properties: {

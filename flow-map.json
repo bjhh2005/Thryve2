@@ -1,0 +1,401 @@
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {
+        "position": {
+          "x": 407.249819580436,
+          "y": 294.9983138770898
+        }
+      },
+      "data": {
+        "title": "Start",
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "default": "Hello Flow."
+            },
+            "enable": {
+              "type": "boolean",
+              "default": true
+            },
+            "array_obj": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "number"
+                  },
+                  "str": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {
+        "position": {
+          "x": 3461.04556600261,
+          "y": 413.4789771462582
+        }
+      },
+      "data": {
+        "title": "End",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "text_processor_K7cud",
+      "type": "text_processor",
+      "meta": {
+        "position": {
+          "x": 1415.2524209529402,
+          "y": 239.07897714625824
+        }
+      },
+      "data": {
+        "title": "Text Processor",
+        "mode": "append",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "content"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input File",
+              "description": "Select the text file to process"
+            },
+            "content": {
+              "type": "string",
+              "title": "Content to Append",
+              "description": "Content to be appended at the end of the file"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {}
+        },
+        "inputsValues": {
+          "inputFile": {
+            "type": "ref",
+            "content": [
+              "file_input_NZGZW",
+              "测试_txt"
+            ]
+          },
+          "content": {
+            "type": "constant",
+            "content": "12346666"
+          }
+        }
+      }
+    },
+    {
+      "id": "file_input_NZGZW",
+      "type": "fileinput",
+      "meta": {
+        "position": {
+          "x": 938.7919921719263,
+          "y": 239.07897714625824
+        }
+      },
+      "data": {
+        "title": "File Input",
+        "files": [
+          {
+            "id": "file_rhAF6Y",
+            "file": {
+              "filePath": "C:\\Users\\杨文韬\\Desktop\\测试.txt",
+              "fileName": "测试.txt",
+              "mimeType": "text/plain",
+              "size": 167,
+              "created": "2025-06-27T12:26:41.932Z",
+              "modified": "2025-06-27T12:27:55.182Z",
+              "accessed": "2025-06-27T12:27:55.729Z"
+            },
+            "variableName": "测试_txt"
+          }
+        ],
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "测试_txt": {
+              "type": "string",
+              "title": "测试.txt",
+              "description": "File Path",
+              "isOutput": true,
+              "default": "C:\\Users\\杨文韬\\Desktop\\测试.txt"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "text_processor_Sl-pL",
+      "type": "text_processor",
+      "meta": {
+        "position": {
+          "x": 2000.962188565662,
+          "y": 209.5160930647072
+        }
+      },
+      "data": {
+        "title": "Text Processor",
+        "mode": "replace",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "searchText",
+            "replaceText",
+            "useRegex"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input File",
+              "description": "Select the text file to process"
+            },
+            "searchText": {
+              "type": "string",
+              "title": "Search Text",
+              "description": "Text to search for"
+            },
+            "replaceText": {
+              "type": "string",
+              "title": "Replace Text",
+              "description": "Text to replace with"
+            },
+            "useRegex": {
+              "type": "boolean",
+              "title": "Use Regular Expression",
+              "description": "Enable regular expression for search and replace"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "replacementCount": {
+              "type": "number",
+              "title": "Replacement Count",
+              "description": "Number of replacements made"
+            }
+          }
+        },
+        "inputsValues": {
+          "minLength": 1,
+          "inputFile": {
+            "type": "ref",
+            "content": [
+              "file_input_NZGZW",
+              "测试_txt"
+            ]
+          },
+          "searchText": {
+            "type": "constant",
+            "content": "帅"
+          },
+          "replaceText": {
+            "type": "constant",
+            "content": "特别帅"
+          }
+        }
+      }
+    },
+    {
+      "id": "text_processor_Ga7PQ",
+      "type": "text_processor",
+      "meta": {
+        "position": {
+          "x": 2438.263106350867,
+          "y": 249.5160930647072
+        }
+      },
+      "data": {
+        "title": "Text Processor",
+        "mode": "write",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "content"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input File",
+              "description": "Select the text file to process"
+            },
+            "content": {
+              "type": "string",
+              "title": "Content to Write",
+              "description": "Content to write to the file (will overwrite existing content)"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {}
+        },
+        "inputsValues": {
+          "inputFile": {
+            "type": "ref",
+            "content": [
+              "file_input_NZGZW",
+              "测试_txt"
+            ]
+          },
+          "content": {
+            "type": "constant",
+            "content": "ywtshuai handsome yyyy ywtshuai ywtshua"
+          }
+        }
+      }
+    },
+    {
+      "id": "text_processor_DcXWl",
+      "type": "text_processor",
+      "meta": {
+        "position": {
+          "x": 2964.3030716308886,
+          "y": 249.5160930647072
+        }
+      },
+      "data": {
+        "title": "Text Processor",
+        "mode": "wordFreq",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "ignoreCase",
+            "minLength"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input File",
+              "description": "Select the text file to process"
+            },
+            "ignoreCase": {
+              "type": "boolean",
+              "title": "Ignore Case",
+              "description": "Ignore case when counting words"
+            },
+            "minLength": {
+              "type": "integer",
+              "title": "Minimum Word Length",
+              "description": "Minimum length of words to count",
+              "default": 1
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "statistics": {
+              "type": "object",
+              "title": "Statistics",
+              "description": "Detailed word frequency statistics",
+              "properties": {
+                "totalWords": {
+                  "type": "number",
+                  "title": "Total Words",
+                  "description": "Total number of words in the file",
+                  "default": 0
+                },
+                "uniqueWords": {
+                  "type": "number",
+                  "title": "Unique Words",
+                  "description": "Number of unique words in the file",
+                  "default": 0
+                },
+                "frequencies": {
+                  "type": "object",
+                  "title": "Word Frequencies",
+                  "description": "Frequency count for each word",
+                  "properties": {
+                    "word": {
+                      "type": "string",
+                      "title": "Word"
+                    },
+                    "frequency": {
+                      "type": "number",
+                      "title": "Frequency",
+                      "default": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "inputsValues": {
+          "minLength": {
+            "type": "constant",
+            "content": 200
+          },
+          "inputFile": {
+            "type": "ref",
+            "content": [
+              "file_input_NZGZW",
+              "测试_txt"
+            ]
+          },
+          "ignoreCase": {
+            "type": "constant",
+            "content": true
+          }
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "sourceNodeID": "start_0",
+      "targetNodeID": "file_input_NZGZW"
+    },
+    {
+      "sourceNodeID": "text_processor_DcXWl",
+      "targetNodeID": "end_0"
+    },
+    {
+      "sourceNodeID": "file_input_NZGZW",
+      "targetNodeID": "text_processor_K7cud"
+    },
+    {
+      "sourceNodeID": "text_processor_K7cud",
+      "targetNodeID": "text_processor_Sl-pL"
+    },
+    {
+      "sourceNodeID": "text_processor_Sl-pL",
+      "targetNodeID": "text_processor_Ga7PQ"
+    },
+    {
+      "sourceNodeID": "text_processor_Ga7PQ",
+      "targetNodeID": "text_processor_DcXWl"
+    }
+  ]
+}

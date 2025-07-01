@@ -2,7 +2,9 @@ import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
-import iconFileUpload from '../../assets/icon-txt-processor.svg';
+import iconFileUpload from '../../assets/icon-txt-processor.png';
+
+let index = 0;
 
 export const TextProcessorNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.TextProcessor,
@@ -28,7 +30,7 @@ export const TextProcessorNodeRegistry: FlowNodeRegistry = {
       id: `text_processor_${nanoid(5)}`,
       type: WorkflowNodeType.TextProcessor,
       data: {
-        title: 'Text Processor',
+        title: `Text Processor_${++index}`,
         mode: 'append', // Default mode
         inputs: {
           type: 'object',
