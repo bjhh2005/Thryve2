@@ -3,14 +3,20 @@ import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
-import { IconUser, IconBolt, IconSetting, IconSend, IconSidebar, IconMenu } from '@douyinfe/semi-icons';
+import { IconUser, IconSetting, IconSend, IconSidebar, IconMenu } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
+import IconAIDeer from '../../../assets/icon-logo-v1.0.png';
 import './ChatView.less';
 
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => (
     <div className={`message-bubble ${message.role}`}>
-        <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
+        <div className="avatar">
+            {message.role === 'assistant' 
+                ? <img src={IconAIDeer} alt="AI" className="ai-avatar" />
+                : <IconUser />
+            }
+        </div>
         <div className="bubble-content">
             {message.content === 'Thinking...' ? (
                 <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>

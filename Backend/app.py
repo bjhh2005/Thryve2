@@ -3,6 +3,7 @@ import os
 import json
 import threading
 import logging
+import httpx
 
 from flask import Flask, request, Response
 from flask_socketio import SocketIO, emit
@@ -119,7 +120,10 @@ def chat():
 
     def stream_generator():
         try:
-            client = OpenAI(api_key=api_key, base_url=base_url)
+            client = OpenAI(
+                api_key=api_key,
+                base_url=base_url
+            )
             stream = client.chat.completions.create(
                 model=model_name,
                 messages=messages,
@@ -158,7 +162,10 @@ def generate_title():
         if not api_key:
              raise ValueError("Server API key (SILICONFLOW_API_KEY) is not configured.")
 
-        client = OpenAI(api_key=api_key, base_url=base_url)
+        client = OpenAI(
+            api_key=api_key,
+            base_url=base_url
+        )
         
         completion = client.chat.completions.create(
             model=model_name,

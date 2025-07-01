@@ -24,7 +24,6 @@ class MarkdownProcessor(Node):
         self.inputs = data.get("inputsValues", {})
         self.output = None
         self.MessageList = {}
-        pretty_print_dict(self.data)
 
     def _get_input_value(self, value, default=None):
         if isinstance(value, dict):

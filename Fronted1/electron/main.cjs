@@ -1,12 +1,54 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 const isDev = process.env.NODE_ENV === 'development';
+
+let backendProcess = null;
+
+function startBackend() {
+    if (isDev) {
+        // 开发环境下启动 Python 脚本
+        backendProcess = spawn('python', ['../Backend/app.py'], {
+            stdio: 'inherit'
+        });
+    } else {
+        // 生产环境下启动打包后的后端程序
+        const backendExePath = path.join(process.resourcesPath, 'backend', 'thryve_backend.exe');
+        
+        // 检查后端程序是否存在
+        if (!fs.existsSync(backendExePath)) {
+            console.error(`Backend executable not found at: ${backendExePath}`);
+            dialog.showErrorBox('启动错误', `找不到后端程序: ${backendExePath}`);
+            return;
+        }
+
+        console.log('Starting backend from:', backendExePath);
+        
+        backendProcess = spawn(backendExePath, [], {
+            stdio: 'inherit',
+            cwd: path.dirname(backendExePath) // 设置工作目录为后端程序所在目录
+        });
+    }
+
+    backendProcess.on('error', (err) => {
+        console.error('Failed to start backend:', err);
+        dialog.showErrorBox('后端启动错误', `启动失败: ${err.message}`);
+    });
+
+    backendProcess.on('close', (code) => {
+        console.log(`Backend process exited with code ${code}`);
+        if (code !== 0) {
+            dialog.showErrorBox('后端异常退出', `后端程序异常退出，退出码: ${code}`);
+        }
+    });
+}
 
 function createWindow() {
     const mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        icon: path.join(__dirname, '../public/icons/icon.ico'),
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: true,
@@ -46,6 +88,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    startBackend();
     createWindow();
 
     app.on('activate', () => {
@@ -57,29 +100,60 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
+        if (backendProcess) {
+            backendProcess.kill();
+        }
         app.quit();
     }
 });
 
 // 处理文件选择
 ipcMain.handle('select-file', async () => {
-    const result = await dialog.showOpenDialog({
-        properties: ['openFile']
-    });
+    try {
+        const result = await dialog.showOpenDialog({
+            properties: ['openFile']
+        });
 
-    if (!result.canceled && result.filePaths.length > 0) {
-        const filePath = result.filePaths[0];
-        const stats = fs.statSync(filePath);
-        return {
-            canceled: false,
-            filePath: filePath,
-            fileName: path.basename(filePath),
-            fileSize: stats.size,
-            mimeType: require('mime-types').lookup(filePath) || 'application/octet-stream'
-        };
+        if (!result.canceled && result.filePaths.length > 0) {
+            const filePath = result.filePaths[0];
+            const stats = fs.statSync(filePath);
+            let mimeType = 'application/octet-stream';
+
+            try {
+                // 尝试使用 mime-types 模块
+                const mimeTypes = require('mime-types');
+                mimeType = mimeTypes.lookup(filePath) || 'application/octet-stream';
+            } catch (error) {
+                console.warn('mime-types module not available, using default mime type');
+                // 基于文件扩展名的简单 MIME 类型检测
+                const ext = path.extname(filePath).toLowerCase();
+                const mimeMap = {
+                    '.txt': 'text/plain',
+                    '.json': 'application/json',
+                    '.csv': 'text/csv',
+                    '.md': 'text/markdown',
+                    '.jpg': 'image/jpeg',
+                    '.jpeg': 'image/jpeg',
+                    '.png': 'image/png',
+                    '.pdf': 'application/pdf'
+                };
+                mimeType = mimeMap[ext] || 'application/octet-stream';
+            }
+
+            return {
+                canceled: false,
+                filePath: filePath,
+                fileName: path.basename(filePath),
+                fileSize: stats.size,
+                mimeType: mimeType
+            };
+        }
+
+        return { canceled: true };
+    } catch (error) {
+        console.error('Error in select-file:', error);
+        throw error;
     }
-
-    return { canceled: true };
 });
 
 // 处理文件夹选择
