@@ -1,58 +1,27 @@
 import React from 'react';
 import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
-import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
+import { FormHeader, FormContent, FormInputs, FormOutputs, FormItem, Feedback } from '../../form-components';
+import { DynamicValueInput } from '@flowgram.ai/form-materials';
+import { JsonSchema } from '../../typings';
 
-type ProcessMode = 'parse' | 'write' | 'append' | 'convert' | 'frontMatter' | 'toc' | 'lint';
+interface ExtendedJsonSchema extends JsonSchema {
+  enumLabels?: string[];
+}
+
+type ProcessMode = 'write' | 'append' | 'convert' | 'frontMatter' | 'toc';
 
 // 定义处理模式
 const PROCESS_MODES = [
-  { label: 'Parse Markdown', value: 'parse' },
   { label: 'Write Content', value: 'write' },
   { label: 'Append Content', value: 'append' },
   { label: 'Convert Format', value: 'convert' },
   { label: 'Edit Front Matter', value: 'frontMatter' },
-  { label: 'Generate TOC', value: 'toc' },
-  { label: 'Lint Markdown', value: 'lint' }
+  { label: 'Generate TOC', value: 'toc' }
 ] as const;
 
 // 不同模式的输入配置
 const MODE_INPUTS = {
-  parse: {
-    inputFile: {
-      type: 'string',
-      title: 'Markdown File',
-      description: 'Select MD file'
-    },
-    parseOptions: {
-      type: 'object',
-      title: 'Parse Options',
-      properties: {
-        gfm: {
-          type: 'boolean',
-          title: 'GitHub Flavored',
-          description: 'Enable GFM syntax',
-          default: true
-        },
-        breaks: {
-          type: 'boolean',
-          title: 'Line Breaks',
-          description: 'Newlines as breaks',
-          default: false
-        }
-      }
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Save location'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'File name'
-    }
-  },
   write: {
     inputFile: {
       type: 'string',
@@ -107,26 +76,10 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Target Format',
       description: 'Output format',
-      enum: ['html', 'pdf', 'docx', 'latex'],
-      default: 'html'
-    },
-    options: {
-      type: 'object',
-      title: 'Conversion Options',
-      properties: {
-        includeStylesheet: {
-          type: 'boolean',
-          title: 'Include Stylesheet',
-          description: 'Add default styles',
-          default: true
-        },
-        highlightCode: {
-          type: 'boolean',
-          title: 'Highlight Code',
-          description: 'Enable highlighting',
-          default: true
-        }
-      }
+      enum: ['pdf', 'html'],
+      default: 'html',
+      widget: 'select',
+      enumLabels: ['PDF', 'HTML']
     },
     outputFolder: {
       type: 'string',
@@ -181,42 +134,10 @@ const MODE_INPUTS = {
           type: 'boolean',
           title: 'Numbered',
           description: 'Add numbers',
-          default: false
-        }
-      }
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Save location'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'File name'
-    }
-  },
-  lint: {
-    inputFile: {
-      type: 'string',
-      title: 'Markdown File',
-      description: 'Select MD file'
-    },
-    rules: {
-      type: 'object',
-      title: 'Lint Rules',
-      properties: {
-        checkSpelling: {
-          type: 'boolean',
-          title: 'Check Spelling',
-          description: 'Enable spell check',
-          default: true
-        },
-        checkLinks: {
-          type: 'boolean',
-          title: 'Check Links',
-          description: 'Validate links',
-          default: true
+          default: false,
+          widget: 'select',
+          enum: [true, false],
+          enumLabels: ['Yes', 'No']
         }
       }
     },
@@ -235,20 +156,20 @@ const MODE_INPUTS = {
 
 // 不同模式的输出配置
 const MODE_OUTPUTS = {
-  parse: {
-    html: {
+  write: {
+    outputFile: {
       type: 'string',
-      title: 'HTML Output',
-      description: 'Parsed HTML content'
-    },
-    ast: {
-      type: 'object',
-      title: 'AST',
-      description: 'Abstract Syntax Tree'
+      title: 'Output File',
+      description: 'Path to written markdown file'
     }
   },
-  write: {},
-  append: {},
+  append: {
+    outputFile: {
+      type: 'string',
+      title: 'Output File',
+      description: 'Path to appended markdown file'
+    }
+  },
   convert: {
     convertedFile: {
       type: 'string',
@@ -257,6 +178,11 @@ const MODE_OUTPUTS = {
     }
   },
   frontMatter: {
+    outputFile: {
+      type: 'string',
+      title: 'Output File',
+      description: 'Path to modified markdown file'
+    },
     metadata: {
       type: 'object',
       title: 'Metadata',
@@ -269,30 +195,6 @@ const MODE_OUTPUTS = {
       title: 'Table of Contents',
       description: 'Generated table of contents'
     }
-  },
-  lint: {
-    issues: {
-      type: 'array',
-      title: 'Issues',
-      description: 'List of detected issues',
-      items: {
-        type: 'object',
-        properties: {
-          type: {
-            type: 'string',
-            description: 'Issue type'
-          },
-          message: {
-            type: 'string',
-            description: 'Issue description'
-          },
-          line: {
-            type: 'number',
-            description: 'Line number'
-          }
-        }
-      }
-    }
   }
 };
 
@@ -303,21 +205,94 @@ export const MarkdownProcessorFormRender = (props: FormRenderProps<{ mode: Proce
   // 更新表单配置
   React.useEffect(() => {
     setKey(prev => prev + 1);
+    const currentMode = form.values?.mode || 'write';
+    const modeInputs = MODE_INPUTS[currentMode] || {};
+    
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode])],
-      properties: MODE_INPUTS[form.values.mode]
+      required: ['inputFile', ...Object.keys(modeInputs)],
+      properties: modeInputs
     });
 
     form.setValueIn('outputs', {
       type: 'object',
-      properties: MODE_OUTPUTS[form.values.mode]
+      properties: MODE_OUTPUTS[currentMode] || {}
     });
-  }, [form.values.mode, form]);
+  }, [form.values?.mode, form]);
 
   const handleModeChange = (mode: ProcessMode) => {
     form.setValueIn('mode', mode);
     setKey(prev => prev + 1);
+  };
+
+  const renderFormInputs = () => {
+    return (
+      <Field<JsonSchema> name="inputs">
+        {({ field: inputsField }) => {
+          const required = inputsField.value?.required || [];
+          const properties = inputsField.value?.properties;
+          if (!properties) {
+            return <></>;
+          }
+          const content = Object.keys(properties).map((key) => {
+            const property = properties[key] as ExtendedJsonSchema;
+            // 如果字段有 enum 属性，使用 Select 组件渲染
+            if (property.enum && Array.isArray(property.enum)) {
+              return (
+                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                  {({ field, fieldState }) => (
+                    <FormItem
+                      name={key}
+                      type={property.type as string}
+                      required={required.includes(key)}
+                      description={property.description}
+                    >
+                      <Select
+                        value={field.value?.content || property.default}
+                        onChange={(value) => field.onChange({ content: value })}
+                        style={{ width: '100%' }}
+                        placeholder={property.description || 'Please select...'}
+                        optionList={property.enum!.map(value => ({
+                          label: property.enumLabels?.[property.enum!.indexOf(value)] || ((value as string).charAt(0).toUpperCase() + (value as string).slice(1)),
+                          value: value
+                        }))}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  )}
+                </Field>
+              );
+            }
+            return (
+              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                {({ field, fieldState }) => (
+                  <FormItem
+                    name={key}
+                    type={property.type as string}
+                    required={required.includes(key)}
+                    description={property.description}
+                  >
+                    <DynamicValueInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={false}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
+                      constantProps={{
+                        placeholder: property.description || 'Please input...',
+                        style: { width: '100%' }
+                      }}
+                    />
+                    <Feedback errors={fieldState?.errors} />
+                  </FormItem>
+                )}
+              </Field>
+            );
+          });
+          return <>{content}</>;
+        }}
+      </Field>
+    );
   };
 
   return (
@@ -335,7 +310,7 @@ export const MarkdownProcessorFormRender = (props: FormRenderProps<{ mode: Proce
           )}
         </Field>
         <div key={key}>
-          <FormInputs />
+          {renderFormInputs()}
           <FormOutputs />
         </div>
       </FormContent>
