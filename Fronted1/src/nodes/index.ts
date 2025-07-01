@@ -16,6 +16,7 @@ import { PdfProcessorRegistry } from './pdf-processor';
 import { MarkdownProcessorRegistry } from './markdown-processor';
 import { ExportVariableRegistry } from './export-variable';
 import { ImgProcessorRegistry } from './img-processor';
+import { RelocationNodeRegistry } from './relocation';
 
 export { WorkflowNodeType } from './constants';
 
@@ -36,6 +37,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   MarkdownProcessorRegistry,
   ExportVariableRegistry,
   ImgProcessorRegistry,
+  RelocationNodeRegistry,
 ];
 
 /**

@@ -2,14 +2,14 @@ import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
-import iconFileUpload from '../../assets/icon-txt-processor.png';
+import iconTextProcessor from '../../assets/icon-txt-processor.png';
 
 let index = 0;
 
 export const TextProcessorNodeRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.TextProcessor,
   info: {
-    icon: iconFileUpload,
+    icon: iconTextProcessor,
     description: 'Process text files with various operations like append, write, replace, and analyze.',
   },
   meta: {
