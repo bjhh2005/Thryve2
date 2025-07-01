@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Tooltip, Typography, Button, Spin } from '@douyinfe/semi-ui';
 import { IconCopy, IconSend, IconUser, IconBolt, IconSetting } from '@douyinfe/semi-icons';
-import { useAIConfig } from '../../context/AIConfigContext';
+import { useAIConfig } from '../../../context/AIConfigContext';
 import { AISettingsModal } from './SettingsModal';
-import { MarkdownRenderer } from '../../components/markdown/MarkdownRenderer';
+import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 
 // Message 接口定义
 interface Message {
