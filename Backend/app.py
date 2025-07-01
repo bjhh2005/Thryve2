@@ -15,14 +15,10 @@ load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'
 
-CORS(app, resources={
-    r"/api/*": {"origins": "*"},      # 允许所有对 /api/ 路径下接口的跨域请求
-    r"/socket.io/*": {"origins": "*"} # 允许所有对 socket.io 握手路径的跨域请求
-})
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-# 创建SocketIO实例，支持/workflow命名空间
-# socketio = SocketIO(app, cors_allowed_origins="*")
-socketio = SocketIO(app)
+#    这是解决此问题的最直接、最可靠的方法
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 设置详细的日志记录
 logging.basicConfig(level=logging.DEBUG)
