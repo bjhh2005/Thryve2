@@ -289,7 +289,7 @@ const FolderInput: React.FC<{
 
 export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJSON>) => {
     const isSidebar = useIsSidebar();
-    const { readonly, node } = useNodeRenderContext();
+    const { readonly } = useNodeRenderContext();
     const [isDeleting, setIsDeleting] = useState<number | null>(null);
     const [isAdding, setIsAdding] = useState(false);
 
@@ -314,23 +314,28 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             const folderToRemove = (field.value || [])[index];
             
             // 删除同步变量
-            const variableData = node?.getData(FlowNodeVariableData);
+            const variableData = form.node?.getData(FlowNodeVariableData);
             if (variableData) {
-                // 清除变量
-                variableData.clearVar(folderToRemove.variableName);
-                variableData.clearVar(`${folderToRemove.variableName}_files`);
-
-                // 重新加载outputs
-                const currentOutputs = form.getValueIn('outputs');
-                if (currentOutputs) {
-                    form.setValueIn('outputs', {
-                        ...currentOutputs,
-                        properties: {
-                            ...currentOutputs.properties
-                        }
-                    });
-                }
+                // 删除文件夹路径变量
+                variableData.unregisterVariable(folderToRemove.variableName);
+                // 删除文件列表变量
+                variableData.unregisterVariable(`${folderToRemove.variableName}_files`);
             }
+
+            // 更新输出配置
+            const currentOutputs = form.values?.outputs || {
+                type: 'object',
+                properties: {}
+            };
+            
+            const newProperties = { ...currentOutputs.properties };
+            delete newProperties[folderToRemove.variableName];
+            delete newProperties[`${folderToRemove.variableName}_files`];
+            
+            form.setValueIn('outputs', {
+                ...currentOutputs,
+                properties: newProperties
+            });
 
             await field.remove(index);
 
@@ -351,7 +356,7 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
         } finally {
             setIsDeleting(null);
         }
-    }, [isDeleting, form, node]);
+    }, [isDeleting, form]);
 
     const handleAdd = useCallback(async (field: any) => {
         if (isAdding) return;

@@ -31,7 +31,7 @@ export const MarkdownProcessorRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.MarkdownProcessor,
       data: {
         title: `Markdown Processor_${++index}`,
-        mode: 'write', // 默认模式
+        mode: 'parse', // 默认模式
         inputs: {
           type: 'object',
           required: ['inputFile'],
