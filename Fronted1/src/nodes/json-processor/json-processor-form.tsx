@@ -3,12 +3,10 @@ import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
 import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
 
-type ProcessMode = 'parse' | 'stringify' | 'query' | 'update' | 'validate' | 'merge' | 'diff';
+type ProcessMode = 'query' | 'update' | 'validate' | 'merge' | 'diff';
 
 // Define processing modes
 const PROCESS_MODES = [
-  { label: 'Parse JSON', value: 'parse' },
-  { label: 'Stringify JSON', value: 'stringify' },
   { label: 'Query JSON', value: 'query' },
   { label: 'Update JSON', value: 'update' },
   { label: 'Validate JSON', value: 'validate' },
@@ -18,186 +16,139 @@ const PROCESS_MODES = [
 
 // Input configurations for different modes
 const MODE_INPUTS = {
-  parse: {
-    inputData: {
-      type: 'string',
-      title: 'JSON String',
-      description: 'Enter JSON string to parse',
-      format: 'json'
-    }
-  },
-  stringify: {
-    inputData: {
-      type: 'object',
-      title: 'JSON Object',
-      description: 'JSON object to stringify'
-    },
-    indent: {
-      type: 'number',
-      title: 'Indentation',
-      description: 'Number of spaces for indentation',
-      default: 2
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Select folder to save the JSON file'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'Name for the JSON file'
-    }
-  },
   query: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to query',
+      description: 'Data to query',
       format: 'json'
     },
     path: {
       type: 'string',
       title: 'JSON Path',
-      description: 'JSONPath expression (e.g., $.store.book[0].title)'
+      description: 'Query expression ($.path.to.field)'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the query result'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output file'
+      description: 'File name'
     }
   },
   update: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to update',
+      description: 'Data to update',
       format: 'json'
     },
     path: {
       type: 'string',
       title: 'JSON Path',
-      description: 'Path to update (e.g., $.store.book[0].title)'
+      description: 'Update path ($.path.to.field)'
     },
     newValue: {
       type: 'string',
       title: 'New Value',
-      description: 'New value to set at the specified path'
+      description: 'Value to set'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the updated JSON'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the updated JSON file'
+      description: 'File name'
     }
   },
   validate: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to validate',
+      description: 'Data to validate',
       format: 'json'
     },
     schema: {
       type: 'string',
       title: 'JSON Schema',
-      description: 'JSON Schema for validation',
+      description: 'Validation schema',
       format: 'json'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the validation report'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the validation report file'
+      description: 'File name'
     }
   },
   merge: {
     inputData: {
       type: 'string',
       title: 'Base JSON',
-      description: 'Base JSON object',
+      description: 'Base object',
       format: 'json'
     },
     sourceData: {
       type: 'string',
       title: 'Source JSON',
-      description: 'JSON to merge with base',
+      description: 'Object to merge',
       format: 'json'
     },
     deep: {
       type: 'boolean',
       title: 'Deep Merge',
-      description: 'Perform deep merge of objects',
+      description: 'Enable deep merge',
       default: true
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the merged JSON'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the merged JSON file'
+      description: 'File name'
     }
   },
   diff: {
     inputData: {
       type: 'string',
       title: 'Original JSON',
-      description: 'Original JSON data',
+      description: 'Original data',
       format: 'json'
     },
     compareData: {
       type: 'string',
       title: 'Compare JSON',
-      description: 'JSON to compare against',
+      description: 'Data to compare',
       format: 'json'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the comparison result'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the comparison result file'
+      description: 'File name'
     }
   }
 };
 
 // Output configurations for different modes
 const MODE_OUTPUTS = {
-  parse: {
-    result: {
-      type: 'object',
-      description: 'Parsed JSON object'
-    },
-    isValid: {
-      type: 'boolean',
-      description: 'Whether the JSON is valid'
-    }
-  },
-  stringify: {
-    result: {
-      type: 'string',
-      description: 'Stringified JSON'
-    }
-  },
   query: {
     result: {
       type: 'any',
@@ -250,18 +201,34 @@ export const JsonProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMo
   const { form } = props;
   const [key, setKey] = React.useState(0);
 
+  // Set default mode if not set
+  React.useEffect(() => {
+    if (!form.values.mode) {
+      form.setValueIn('mode', 'query');
+    }
+  }, [form]);
+
   // Update form configuration when mode changes
   React.useEffect(() => {
+    if (!form.values.mode) return;
+    
     setKey(prev => prev + 1);
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['inputData', ...Object.keys(MODE_INPUTS[form.values.mode])],
-      properties: MODE_INPUTS[form.values.mode]
+      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode] || {})],
+      properties: {
+        inputFile: {
+          type: 'string',
+          title: 'Input JSON File',
+          description: 'Select the JSON file to process'
+        },
+        ...(MODE_INPUTS[form.values.mode] || {})
+      }
     });
 
     form.setValueIn('outputs', {
       type: 'object',
-      properties: MODE_OUTPUTS[form.values.mode]
+      properties: MODE_OUTPUTS[form.values.mode] || {}
     });
   }, [form.values.mode, form]);
 

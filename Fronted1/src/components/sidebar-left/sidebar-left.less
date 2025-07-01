@@ -9,23 +9,28 @@
 @bg-color-light: #ffffff;
 @input-bg-light: #fff;
 @transition-curve: cubic-bezier(0.4, 0, 0.2, 1);
-@transition-speed: 0.25s;
+@transition-speed: 0.5s;
 
 .left-sidebar-container {
     position: fixed;
     left: 0;
     top: 0;
     height: 100vh;
-    width: @left-sidebar-width;
+
     z-index: 10;
     display: flex;
     flex-direction: row;
-    border-right: 1px solid #e8eaed;
+    border-right: 1px solid @border-color;
     background-color: @panel-bg-color;
+
     transition: width @transition-speed @transition-curve;
 
+    &.is-resizing {
+        transition: none;
+    }
+
     &.collapsed {
-        width: @left-sidebar-collapsed-width;
+        width: @left-sidebar-collapsed-width !important;
 
         .main-panel {
             opacity: 0;
@@ -67,7 +72,7 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    width: calc(@left-sidebar-width - @left-sidebar-collapsed-width);
+    min-width: 0; // ！允许flex子元素收缩，防止内容溢出
     transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
@@ -106,55 +111,90 @@
 }
 
 .sidebar-edge-button {
-    // --- 定位 ---
     position: absolute;
     top: 50%; // 先移动到垂直50%的位置
     right: -16px; // 向右偏移，让按钮一半在侧边栏外
     transform: translateY(-50%); // 通过向上偏移自身高度的50%来实现真正的垂直居中
-    z-index: 12; // 确保在最上层
+    z-index: 20;
 
-    // --- 外观 ---
     width: 32px;
     height: 32px;
-    border-radius: 50%; // 完美圆形
-    background-color: #ffffff; // 干净的白色背景
-    border: 1px solid #e8eaed; // 精致的浅灰色边框
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #e8eaed;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    padding: 0; // 移除默认padding
+    padding: 0;
 
-    // --- “高级感”来源：阴影和悬浮效果 ---
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s @transition-curve, box-shadow 0.2s @transition-curve;
 
     &:hover {
-        // 悬浮时轻微放大，并加深阴影，提供物理反馈
         transform: translateY(-50%) scale(1.1);
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     &:active {
-        // 点击时进一步放大
         transform: translateY(-50%) scale(1.05);
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        left: -5px;
+        right: -5px;
+        bottom: -5px;
+        border-radius: 50%;
     }
 }
 
 .sidebar-edge-button .icon-wrapper {
-    display: flex; // 确保图标居中
+    display: flex;
     align-items: center;
     justify-content: center;
-    color: #4a5568; // 图标颜色
+    color: #4a5568;
     transition: transform 0.8s @transition-curve;
 }
 
-// 当侧边栏展开时 (即：主容器没有 .collapsed 类时)
 .left-sidebar-container:not(.collapsed) {
     .sidebar-edge-button .icon-wrapper {
         transform: rotate(180deg);
     }
 }
+
+.sidebar-resizer-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 7px;
+    height: 100%;
+    z-index: 15;
+}
+
+.sidebar-resizer {
+    position: absolute;
+    width: 100%;
+    cursor: col-resize;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: rgba(var(--semi-color-primary-rgb), 0.2);
+    }
+
+    &.top {
+        top: 0;
+        height: calc(50% - 16px - 15px);
+    }
+
+    &.bottom {
+        bottom: 0;
+        height: calc(50% - 16px - 15px);
+    }
+}
+
 
 // --- AI 助手面板专属样式 ---
 .ai-assistant-panel {
@@ -198,7 +238,7 @@
     }
 
     &::-webkit-scrollbar-track {
-        margin: 140px 0;
+        margin: 100px 0;
         background: transparent;
     }
 
@@ -217,7 +257,8 @@
 .message-bubble {
     display: flex;
     gap: 12px;
-    max-width: 95%;
+    width: fit-content;
+    max-width: 100%;
 
     .avatar {
         flex-shrink: 0;
@@ -237,8 +278,8 @@
         border-radius: 12px;
         line-height: 1.6;
         word-break: break-word;
-        white-space: pre-wrap;
         font-size: 14px;
+        min-width: 0;
 
         p {
             margin: 0;
@@ -350,6 +391,7 @@
         }
     }
 }
+
 
 
 /* --- Console Panel Styles --- */

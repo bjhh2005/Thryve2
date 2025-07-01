@@ -18,23 +18,23 @@ type ExportFormat = typeof EXPORT_FORMATS[number]['value'];
 const INPUT_CONFIG = {
   selectedVariable: {
     type: 'object',
-    title: 'Variable to Export',
-    description: 'Select the variable you want to export'
+    title: 'Variable',
+    description: 'Select variable'
   },
   outputFolder: {
     type: 'string',
     title: 'Output Folder',
-    description: 'Select folder to save the exported file'
+    description: 'Save location'
   },
   outputName: {
     type: 'string',
     title: 'Output Name',
-    description: 'Name for the exported file'
+    description: 'File name'
   },
   exportFormat: {
     type: 'string',
     title: 'Export Format',
-    description: 'Select the format for the exported file',
+    description: 'Output format',
     enum: EXPORT_FORMATS.map(format => format.value),
     default: 'json'
   }
@@ -45,17 +45,17 @@ const OUTPUT_CONFIG = {
   exportedFile: {
     type: 'string',
     title: 'Exported File',
-    description: 'Path to the exported file'
+    description: 'Output file path'
   },
   success: {
     type: 'boolean',
     title: 'Success',
-    description: 'Whether the export was successful'
+    description: 'Export status'
   },
   error: {
     type: 'string',
     title: 'Error',
-    description: 'Error message if export failed'
+    description: 'Error message'
   }
 };
 

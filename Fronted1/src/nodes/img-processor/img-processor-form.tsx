@@ -1,7 +1,9 @@
 import React from 'react';
 import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
-import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
+import { FormHeader, FormContent, FormInputs, FormOutputs, FormItem, Feedback } from '../../form-components';
+import { DynamicValueInput } from '@flowgram.ai/form-materials';
+import { JsonSchema } from '../../typings';
 
 type ProcessMode = 'resize' | 'compress' | 'convert' | 'rotate' | 'crop' | 'filter' | 'watermark';
 
@@ -36,12 +38,12 @@ const FILTER_EFFECTS = [
 
 // 旋转角度选项
 const ROTATION_ANGLES = [
-  { label: '-270°', value: -270 },
-  { label: '-180°', value: -180 },
-  { label: '-90°', value: -90 },
-  { label: '90°', value: 90 },
-  { label: '180°', value: 180 },
-  { label: '270°', value: 270 }
+  { label: '-270°', value: '-270' },
+  { label: '-180°', value: '-180' },
+  { label: '-90°', value: '-90' },
+  { label: '90°', value: '90' },
+  { label: '180°', value: '180' },
+  { label: '270°', value: '270' }
 ] as const;
 
 // 不同模式的输入配置
@@ -50,47 +52,46 @@ const MODE_INPUTS = {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to resize'
+      description: 'Select image file'
     },
     width: {
       type: 'number',
       title: 'Width',
-      description: 'New width in pixels',
+      description: 'Width (px) > 0',
       minimum: 1
     },
     height: {
       type: 'number',
       title: 'Height',
-      description: 'New height in pixels',
+      description: 'Height (px) > 0',
       minimum: 1
     },
     maintainAspectRatio: {
       type: 'boolean',
-      title: 'Maintain Aspect Ratio',
-      description: 'Keep original aspect ratio',
-      default: true
+      title: 'Aspect Ratio',
+      description: 'Keep aspect ratio'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the processed image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the processed image file'
+      description: 'File name'
     }
   },
   compress: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to compress'
+      description: 'Select image file'
     },
     quality: {
       type: 'number',
       title: 'Quality',
-      description: 'Compression quality (1-100)',
+      description: 'Range: 1-100',
       minimum: 1,
       maximum: 100,
       default: 80
@@ -98,31 +99,31 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the compressed image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the compressed image file'
+      description: 'File name'
     }
   },
   convert: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to convert'
+      description: 'Select image file'
     },
     format: {
       type: 'string',
-      title: 'Output Format',
-      description: 'Select target format',
+      title: 'Format',
+      description: 'Target format',
       enum: IMAGE_FORMATS.map(format => format.value),
       default: 'jpeg'
     },
     quality: {
       type: 'number',
       title: 'Quality',
-      description: 'Output quality (1-100)',
+      description: 'Range: 1-100',
       minimum: 1,
       maximum: 100,
       default: 90
@@ -130,96 +131,96 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the converted image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the converted image file'
+      description: 'File name'
     }
   },
   rotate: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to rotate'
+      description: 'Select image file'
     },
     angle: {
-      type: 'number',
-      title: 'Rotation Angle',
-      description: 'Select rotation angle',
+      type: 'string',
+      title: 'Angle',
+      description: '±90°, ±180°, ±270°',
       enum: ROTATION_ANGLES.map(angle => angle.value),
-      default: 90
+      default: '90'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the rotated image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the rotated image file'
+      description: 'File name'
     }
   },
   crop: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to crop'
+      description: 'Select image file'
     },
     x: {
       type: 'number',
       title: 'X Position',
-      description: 'Starting X coordinate',
+      description: 'Start X (px) ≥ 0',
       minimum: 0
     },
     y: {
       type: 'number',
       title: 'Y Position',
-      description: 'Starting Y coordinate',
+      description: 'Start Y (px) ≥ 0',
       minimum: 0
     },
     width: {
       type: 'number',
       title: 'Width',
-      description: 'Crop width in pixels',
+      description: 'Width (px) > 0',
       minimum: 1
     },
     height: {
       type: 'number',
       title: 'Height',
-      description: 'Crop height in pixels',
+      description: 'Height (px) > 0',
       minimum: 1
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the cropped image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the cropped image file'
+      description: 'File name'
     }
   },
   filter: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to apply filter'
+      description: 'Select image file'
     },
     filterType: {
       type: 'string',
-      title: 'Filter Type',
-      description: 'Select filter effect',
+      title: 'Filter',
+      description: 'Effect type',
       enum: FILTER_EFFECTS.map(effect => effect.value),
       default: 'grayscale'
     },
     intensity: {
       type: 'number',
       title: 'Intensity',
-      description: 'Filter intensity (1-100)',
+      description: 'Range: 1-100',
       minimum: 1,
       maximum: 100,
       default: 50
@@ -227,36 +228,36 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the filtered image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the filtered image file'
+      description: 'File name'
     }
   },
   watermark: {
     inputFile: {
       type: 'string',
       title: 'Input Image',
-      description: 'Select image to watermark'
+      description: 'Select image file'
     },
     watermarkText: {
       type: 'string',
-      title: 'Watermark Text',
-      description: 'Text to use as watermark'
+      title: 'Text',
+      description: 'Watermark content'
     },
     fontSize: {
       type: 'number',
       title: 'Font Size',
-      description: 'Watermark font size in pixels',
+      description: 'Size (px) > 0',
       minimum: 1,
       default: 24
     },
     opacity: {
       type: 'number',
       title: 'Opacity',
-      description: 'Watermark opacity (1-100)',
+      description: 'Range: 1-100',
       minimum: 1,
       maximum: 100,
       default: 50
@@ -264,19 +265,19 @@ const MODE_INPUTS = {
     position: {
       type: 'string',
       title: 'Position',
-      description: 'Watermark position',
+      description: 'Watermark location',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'bottomRight'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the watermarked image'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the watermarked image file'
+      description: 'File name'
     }
   }
 };
@@ -285,28 +286,28 @@ const MODE_INPUTS = {
 const OUTPUT_CONFIG = {
   processedImage: {
     type: 'string',
-    title: 'Processed Image',
-    description: 'Path to the processed image'
+    title: 'Image',
+    description: 'Output path'
   },
   width: {
     type: 'number',
     title: 'Width',
-    description: 'Width of processed image'
+    description: 'Output width'
   },
   height: {
     type: 'number',
     title: 'Height',
-    description: 'Height of processed image'
+    description: 'Output height'
   },
   format: {
     type: 'string',
     title: 'Format',
-    description: 'Format of processed image'
+    description: 'Output format'
   },
   size: {
     type: 'number',
-    title: 'File Size',
-    description: 'Size of processed image in bytes'
+    title: 'Size',
+    description: 'File size (bytes)'
   }
 };
 
@@ -334,6 +335,75 @@ export const ImgProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
     setKey(prev => prev + 1);
   };
 
+  const renderFormInputs = () => {
+    return (
+      <Field<JsonSchema> name="inputs">
+        {({ field: inputsField }) => {
+          const required = inputsField.value?.required || [];
+          const properties = inputsField.value?.properties;
+          if (!properties) {
+            return <></>;
+          }
+          const content = Object.keys(properties).map((key) => {
+            const property = properties[key];
+            if (property.enum && Array.isArray(property.enum)) {
+              return (
+                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                  {({ field, fieldState }) => (
+                    <FormItem
+                      name={key}
+                      type={property.type as string}
+                      required={required.includes(key)}
+                      description={property.description}
+                    >
+                      <Select
+                        value={field.value?.content || property.default}
+                        onChange={(value) => field.onChange({ content: value })}
+                        style={{ width: '100%' }}
+                        placeholder={property.description || 'Please select...'}
+                        optionList={(property.enum || []).map(value => ({
+                          label: value.toString(),
+                          value: value
+                        }))}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  )}
+                </Field>
+              );
+            }
+            return (
+              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                {({ field, fieldState }) => (
+                  <FormItem
+                    name={key}
+                    type={property.type as string}
+                    required={required.includes(key)}
+                    description={property.description}
+                  >
+                    <DynamicValueInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={false}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
+                      constantProps={{
+                        placeholder: property.description || 'Please input...',
+                        style: { width: '100%' }
+                      }}
+                    />
+                    <Feedback errors={fieldState?.errors} />
+                  </FormItem>
+                )}
+              </Field>
+            );
+          });
+          return <>{content}</>;
+        }}
+      </Field>
+    );
+  };
+
   return (
     <>
       <FormHeader />
@@ -349,7 +419,7 @@ export const ImgProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
           )}
         </Field>
         <div key={key}>
-          <FormInputs />
+          {renderFormInputs()}
           <FormOutputs />
         </div>
       </FormContent>

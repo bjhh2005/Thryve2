@@ -31,7 +31,7 @@ export const CsvProcessorRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.CsvProcessor,
       data: {
         title: `CSV Processor_${++index}`,
-        mode: 'read', // 默认模式
+        mode: 'filter',
         inputs: {
           type: 'object',
           required: ['inputFile'],

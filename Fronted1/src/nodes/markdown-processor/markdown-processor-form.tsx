@@ -22,7 +22,7 @@ const MODE_INPUTS = {
     inputFile: {
       type: 'string',
       title: 'Markdown File',
-      description: 'Select Markdown file to parse'
+      description: 'Select MD file'
     },
     parseOptions: {
       type: 'object',
@@ -30,14 +30,14 @@ const MODE_INPUTS = {
       properties: {
         gfm: {
           type: 'boolean',
-          title: 'GitHub Flavored Markdown',
-          description: 'Enable GitHub Flavored Markdown syntax',
+          title: 'GitHub Flavored',
+          description: 'Enable GFM syntax',
           default: true
         },
         breaks: {
           type: 'boolean',
           title: 'Line Breaks',
-          description: 'Treat newlines as line breaks',
+          description: 'Newlines as breaks',
           default: false
         }
       }
@@ -45,68 +45,68 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the parsed HTML'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output HTML file'
+      description: 'File name'
     }
   },
   write: {
     inputFile: {
       type: 'string',
       title: 'Input File',
-      description: 'Select the file to write to'
+      description: 'Select MD file'
     },
     content: {
       type: 'string',
       title: 'Content',
-      description: 'Markdown content to write'
+      description: 'MD content'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the Markdown file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the Markdown file'
+      description: 'File name'
     }
   },
   append: {
     inputFile: {
       type: 'string',
       title: 'Input File',
-      description: 'Select the file to append to'
+      description: 'Select MD file'
     },
     content: {
       type: 'string',
       title: 'Content',
-      description: 'Markdown content to append'
+      description: 'Content to append'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the appended file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output file'
+      description: 'File name'
     }
   },
   convert: {
     inputFile: {
       type: 'string',
       title: 'Markdown File',
-      description: 'Select Markdown file to convert'
+      description: 'Select MD file'
     },
     targetFormat: {
       type: 'string',
       title: 'Target Format',
-      description: 'Select output format',
+      description: 'Output format',
       enum: ['html', 'pdf', 'docx', 'latex'],
       default: 'html'
     },
@@ -117,13 +117,13 @@ const MODE_INPUTS = {
         includeStylesheet: {
           type: 'boolean',
           title: 'Include Stylesheet',
-          description: 'Include default stylesheet',
+          description: 'Add default styles',
           default: true
         },
         highlightCode: {
           type: 'boolean',
           title: 'Highlight Code',
-          description: 'Enable syntax highlighting for code blocks',
+          description: 'Enable highlighting',
           default: true
         }
       }
@@ -131,41 +131,41 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the converted file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the converted file'
+      description: 'File name'
     }
   },
   frontMatter: {
     inputFile: {
       type: 'string',
       title: 'Markdown File',
-      description: 'Select Markdown file to edit front matter'
+      description: 'Select MD file'
     },
     frontMatter: {
       type: 'string',
       title: 'Front Matter',
-      description: 'Front matter content in JSON format'
+      description: 'JSON format'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the modified file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the modified file'
+      description: 'File name'
     }
   },
   toc: {
     inputFile: {
       type: 'string',
       title: 'Markdown File',
-      description: 'Select Markdown file to generate TOC'
+      description: 'Select MD file'
     },
     options: {
       type: 'object',
@@ -174,13 +174,13 @@ const MODE_INPUTS = {
         maxDepth: {
           type: 'number',
           title: 'Maximum Depth',
-          description: 'Maximum heading depth to include',
+          description: 'Max heading level',
           default: 3
         },
         numbered: {
           type: 'boolean',
           title: 'Numbered',
-          description: 'Add number prefix to headings',
+          description: 'Add numbers',
           default: false
         }
       }
@@ -188,19 +188,19 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the file with TOC'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output file'
+      description: 'File name'
     }
   },
   lint: {
     inputFile: {
       type: 'string',
       title: 'Markdown File',
-      description: 'Select Markdown file to lint'
+      description: 'Select MD file'
     },
     rules: {
       type: 'object',
@@ -209,7 +209,7 @@ const MODE_INPUTS = {
         checkSpelling: {
           type: 'boolean',
           title: 'Check Spelling',
-          description: 'Enable spell checking',
+          description: 'Enable spell check',
           default: true
         },
         checkLinks: {
@@ -223,12 +223,12 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the linting report'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the linting report file'
+      description: 'File name'
     }
   }
 };

@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { Field, FieldArray, FormRenderProps, FlowNodeJSON, FlowNodeVariableData, ASTFactory } from '@flowgram.ai/free-layout-editor';
-import { Button, Spin, Typography, Notification } from '@douyinfe/semi-ui';
+import { Button, Spin, Typography, Notification, Switch } from '@douyinfe/semi-ui';
 import { IconFolder, IconClear, IconPlus, IconDelete } from '@douyinfe/semi-icons';
 import { nanoid } from 'nanoid';
+import './styles.css';
 
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormHeader, FormContent, FormOutputs } from '../../form-components';
@@ -12,6 +13,7 @@ interface FolderReference {
     folderPath: string;
     folderName: string;
     files: string[];
+    deepSearch?: boolean;
 }
 
 interface FolderInputNodeJSON extends FlowNodeJSON {
@@ -22,6 +24,7 @@ interface FolderInputNodeJSON extends FlowNodeJSON {
         id: string;
         folder: FolderReference | null;
         variableName: string;
+        deepSearch: boolean;
     }>;
     outputs: {
         type: 'object';
@@ -31,7 +34,7 @@ interface FolderInputNodeJSON extends FlowNodeJSON {
 
 const FolderInput: React.FC<{
     field: any;
-    folderData: { id: string; folder: FolderReference | null; variableName: string };
+    folderData: { id: string; folder: FolderReference | null; variableName: string; deepSearch: boolean };
     index: number;
     onRemove?: () => void;
     readonly?: boolean;
@@ -80,6 +83,36 @@ const FolderInput: React.FC<{
                 properties: {}
             };
 
+            console.log('Current outputs before update:', currentOutputs);
+
+            // 先注册变量
+            const variableData = node.getData(FlowNodeVariableData);
+            if (!variableData) {
+                console.warn('Variable data manager is not initialized');
+                return;
+            }
+
+            if (!folderRef) {
+                console.warn('Folder reference is empty');
+                return;
+            }
+
+            if (!folderRef.files || !Array.isArray(folderRef.files) || folderRef.files.length === 0) {
+                console.warn('No files in folder or invalid file list format');
+                return;
+            }
+
+            if (!folderRef.folderName) {
+                console.warn('Folder name is empty');
+                return;
+            }
+
+            if (!variableName) {
+                console.warn('Variable name is not set');
+                return;
+            }
+
+            // 更新表单，这会触发同步插件
             form.setValueIn('outputs', {
                 ...currentOutputs,
                 properties: {
@@ -87,7 +120,7 @@ const FolderInput: React.FC<{
                     [variableName]: {
                         type: 'string',
                         title: folderRef.folderName,
-                        description: '文件夹路径',
+                        description: 'Folder path',
                         isOutput: true,
                         default: folderRef.folderPath
                     },
@@ -96,57 +129,24 @@ const FolderInput: React.FC<{
                         items: {
                             type: 'string'
                         },
-                        title: `${folderRef.folderName} 文件列表`,
-                        description: '文件夹中的文件列表',
+                        title: `${folderRef.folderName} File List`,
+                        description: 'File list in the folder',
                         isOutput: true,
                         default: folderRef.files
                     }
                 }
             });
 
-            // 注册变量到系统中
-            const variableData = node.getData(FlowNodeVariableData);
-            if (variableData) {
-                // 注册文件夹路径变量
-                variableData.setVar(
-                    ASTFactory.createVariableDeclaration({
-                        meta: {
-                            title: folderRef.folderName,
-                            icon: node.getNodeRegistry()?.info?.icon,
-                        },
-                        key: `${node.id}_${variableName}`,
-                        type: ASTFactory.createString(),
-                        initializer: {
-                            kind: 'String',
-                            value: folderRef.folderPath
-                        }
-                    })
-                );
+            console.log('Updated outputs:', form.values?.outputs);
 
-                // 注册文件列表变量
-                variableData.setVar(
-                    ASTFactory.createVariableDeclaration({
-                        meta: {
-                            title: `${folderRef.folderName} 文件列表`,
-                            icon: node.getNodeRegistry()?.info?.icon,
-                        },
-                        key: `${node.id}_${variableName}_files`,
-                        type: {
-                            kind: 'Array',
-                            items: {
-                                kind: 'String'
-                            }
-                        },
-                        initializer: {
-                            kind: 'Array',
-                            elements: folderRef.files.map(file => ({
-                                kind: 'String',
-                                value: file
-                            }))
-                        }
-                    })
-                );
-            }
+            // 确保表单更新完成后再触发一次同步
+            setTimeout(() => {
+                console.log('Triggering manual sync');
+                const outputs = form.getValueIn('outputs');
+                if (outputs) {
+                    form.setValueIn('outputs', outputs);
+                }
+            }, 0);
 
             onFolderSelect?.(folderRef);
             
@@ -156,7 +156,7 @@ const FolderInput: React.FC<{
             });
         } catch (error: any) {
             Notification.error({
-                title: '错误',
+                title: 'Error',
                 content: error.message
             });
         } finally {
@@ -165,39 +165,101 @@ const FolderInput: React.FC<{
     };
 
     return (
-        <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ 
+            position: 'relative', 
+            marginBottom: '16px',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div style={{ flexGrow: 1 }}>
-                    <div style={{ 
-                        padding: '12px',
+                    <div className="folder-card" style={{ 
+                        padding: '16px',
                         backgroundColor: 'var(--semi-color-fill-0)',
-                        borderRadius: '6px'
+                        borderRadius: '8px',
+                        border: '1px solid var(--semi-color-border)',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
                     }}>
                         <Spin spinning={isProcessing}>
                             {field.value?.folder ? (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <IconFolder />
-                                        <Typography.Text strong>{field.value.folder.folderName}</Typography.Text>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px', 
+                                        marginBottom: '12px',
+                                        padding: '8px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <IconFolder style={{ 
+                                            color: 'var(--semi-color-primary)',
+                                            fontSize: '20px'
+                                        }} />
+                                        <div style={{ flexGrow: 1 }}>
+                                            <Typography.Text strong style={{ fontSize: '15px' }}>
+                                                {field.value.folder.folderName}
+                                            </Typography.Text>
+                                            <Typography.Text type="tertiary" style={{ display: 'block', fontSize: '12px' }}>
+                                                {field.value.folder.folderPath}
+                                            </Typography.Text>
+                                        </div>
                                         {!readonly && (
                                             <Button
                                                 type="tertiary"
                                                 theme="borderless"
                                                 icon={<IconClear />}
                                                 onClick={() => field.onChange({ ...field.value, folder: null })}
+                                                style={{ padding: '4px' }}
                                             />
                                         )}
                                     </div>
-                                    <Typography.Text type="tertiary">
-                                        {field.value.folder.files.length} files
-                                    </Typography.Text>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px', 
+                                        marginBottom: '12px',
+                                        padding: '8px 12px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <Switch
+                                            checked={field.value.deepSearch}
+                                            onChange={(checked) => field.onChange({ ...field.value, deepSearch: checked })}
+                                            disabled={readonly}
+                                            size="small"
+                                        />
+                                        <Typography.Text>
+                                            Recursive search for subfolders
+                                        </Typography.Text>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '8px 12px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <Typography.Text type="tertiary" style={{ fontSize: '13px' }}>
+                                            {field.value.folder.files.length} files found
+                                        </Typography.Text>
+                                    </div>
                                 </div>
                             ) : (
                                 <Button
-                                    icon={<IconFolder />}
+                                    icon={<IconFolder style={{ fontSize: '16px' }} />}
                                     onClick={handleSelectFolder}
                                     disabled={readonly || isProcessing}
                                     block
+                                    style={{
+                                        height: '48px',
+                                        fontSize: '15px',
+                                        borderStyle: 'dashed',
+                                        backgroundColor: 'var(--semi-color-fill-1)'
+                                    }}
                                 >
                                     Select Folder
                                 </Button>
@@ -212,6 +274,12 @@ const FolderInput: React.FC<{
                         icon={<IconDelete />}
                         onClick={onRemove}
                         title="Remove this folder input"
+                        className="delete-button"
+                        style={{
+                            marginTop: '16px',
+                            opacity: 0.8,
+                            transition: 'opacity 0.3s ease'
+                        }}
                     />
                 )}
             </div>
@@ -245,6 +313,16 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
 
             const folderToRemove = (field.value || [])[index];
             
+            // 删除同步变量
+            const variableData = form.node?.getData(FlowNodeVariableData);
+            if (variableData) {
+                // 删除文件夹路径变量
+                variableData.unregisterVariable(folderToRemove.variableName);
+                // 删除文件列表变量
+                variableData.unregisterVariable(`${folderToRemove.variableName}_files`);
+            }
+
+            // 更新输出配置
             const currentOutputs = form.values?.outputs || {
                 type: 'object',
                 properties: {}
@@ -260,6 +338,14 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             });
 
             await field.remove(index);
+
+            // 确保表单更新完成后再触发一次同步
+            setTimeout(() => {
+                const outputs = form.getValueIn('outputs');
+                if (outputs) {
+                    form.setValueIn('outputs', outputs);
+                }
+            }, 0);
             
         } catch (error: any) {
             console.error('Failed to remove folder input:', error);
@@ -286,7 +372,8 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             await field.append({
                 id: `folder_${newFolderId}`,
                 folder: null,
-                variableName: `folder_${(field.value || []).length + 1}`
+                variableName: `folder_${(field.value || []).length + 1}`,
+                deepSearch: false
             });
             
         } catch (error: any) {
@@ -304,7 +391,7 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
         <>
             <FormHeader />
             <FormContent>
-                <FieldArray<{ id: string; folder: FolderReference | null; variableName: string }> name="folders">
+                <FieldArray<{ id: string; folder: FolderReference | null; variableName: string; deepSearch: boolean }> name="folders">
                     {({ field }) => (
                         <div>
                             {(field.value || []).map((folderData, index) => (

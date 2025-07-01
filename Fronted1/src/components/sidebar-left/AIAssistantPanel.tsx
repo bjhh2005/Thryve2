@@ -3,31 +3,34 @@ import { Tooltip, Typography, Button, Spin } from '@douyinfe/semi-ui';
 import { IconCopy, IconSend, IconUser, IconBolt, IconSetting } from '@douyinfe/semi-icons';
 import { useAIConfig } from '../../context/AIConfigContext';
 import { AISettingsModal } from './SettingsModal';
+import { MarkdownRenderer } from '../../components/markdown/MarkdownRenderer';
 
-// Message 接口 (保持不变)
+// Message 接口定义
 interface Message {
     id: number;
     role: 'user' | 'assistant';
     content: string;
 }
 
-// 初始对话数据 (保持不变)
+// 初始对话数据
 const initialMessages: Message[] = [
     { id: 1, role: 'assistant', content: '您好！我是您的工作流AI助手，有什么可以帮助您的吗？请点击右上角的设置图标配置您的AI模型。' },
 ];
 
-// MessageBubble 组件 (保持不变)
+// 消息气泡组件
 const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
     const handleCopy = (code: string) => {
         navigator.clipboard.writeText(code);
     };
     const renderContent = (content: string) => {
+        // 在占位符消息中显示加载动画   
         if (content === 'Thinking...') {
             return <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>
         }
+        // 分割代码块和普通文本
         const parts = content.split(/```(json|typescript|javascript|bash|)\n([\s\S]*?)\n```/);
         return parts.map((part, index) => {
-            if (index % 3 === 2) {
+            if (index % 3 === 2) { // 代码部分
                 return (
                     <div className="code-block" key={index}>
                         <pre><code>{part}</code></pre>
@@ -39,7 +42,7 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                     </div>
                 );
             }
-            return <p key={index}>{part}</p>;
+            return <p key={index}>{part}</p>; // 普通文本
         });
     };
     return (
@@ -48,7 +51,17 @@ const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                 {message.role === 'assistant' ? <IconBolt /> : <IconUser />}
             </div>
             <div className="bubble-content">
-                {renderContent(message.content)}
+                {message.role === 'user' ? (
+                    <p>{message.content}</p>
+                ) : (
+                    message.content === 'Thinking...' ? (
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
+                        </div>
+                    ) : (
+                        <MarkdownRenderer content={message.content} />
+                    )
+                )}
             </div>
         </div>
     );
@@ -60,7 +73,9 @@ export const AIAssistantPanel = () => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsVisible, setSettingsVisible] = useState(false);
-    const { config } = useAIConfig();
+
+    // --- 核心修改 1: 从 Context 获取新的辅助函数 ---
+    const { config, getActiveModelName, getActiveProviderConfig } = useAIConfig();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -84,19 +99,27 @@ export const AIAssistantPanel = () => {
         const aiResponsePlaceholder: Message = {
             id: Date.now() + 1,
             role: 'assistant',
-            content: 'Thinking...', // 特殊内容，用于显示Spin动画
+            content: 'Thinking...',
         };
         setMessages(prev => [...prev, aiResponsePlaceholder]);
 
         try {
-            const apiBaseUrl = 'http://localhost:4000';
+            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+
+            // --- 核心修改 2: 获取当前激活服务商的配置 ---
+            const activeProviderConfig = getActiveProviderConfig();
+
             const response = await fetch(`${apiBaseUrl}/api/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+
+                // --- 核心修改 3: 发送一个扁平化的、干净的数据结构给后端 ---
                 body: JSON.stringify({
-                    model: config.modelName,
+                    apiHost: activeProviderConfig.apiHost,
+                    apiKey: activeProviderConfig.apiKey,
+                    model: activeProviderConfig.model,
+                    temperature: config.temperature, // temperature 是全局配置
                     messages: updatedMessages.map(({ role, content }) => ({ role, content })),
-                    temperature: config.temperature,
                 }),
             });
 
@@ -105,6 +128,7 @@ export const AIAssistantPanel = () => {
                 throw new Error(`API request failed with status ${response.status}: ${errorText}`);
             }
 
+            // 流式响应处理逻辑保持不变
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let aiFullResponse = '';
@@ -121,19 +145,11 @@ export const AIAssistantPanel = () => {
                         const data = line.substring(6);
                         try {
                             const parsed = JSON.parse(data);
-
-                            // 增强错误处理：检查从流中返回的错误
-                            if (parsed.error) {
-                                throw new Error(parsed.error);
-                            }
-
+                            if (parsed.error) { throw new Error(parsed.error); }
                             if (parsed.end) {
-                                if (aiFullResponse === '') { // 如果模型没返回任何内容
-                                    aiFullResponse = '我暂时无法回答这个问题。';
-                                }
+                                if (aiFullResponse === '') { aiFullResponse = '我暂时无法回答这个问题。'; }
                                 break;
                             }
-
                             aiFullResponse += parsed.content || '';
                             setMessages(prev => prev.map(msg =>
                                 msg.id === aiResponsePlaceholder.id
@@ -157,13 +173,14 @@ export const AIAssistantPanel = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [input, isLoading, messages, config]);
+    }, [input, isLoading, messages, config, getActiveProviderConfig]); // 依赖项更新
 
     return (
         <div className="ai-assistant-panel">
             <div className="ai-panel-header">
                 <Typography.Text strong>
-                    当前模型: {config.modelName || '未配置'}
+                    {/* --- 核心修改 4: 使用新的辅助函数显示模型名 --- */}
+                    当前模型: {getActiveModelName()}
                 </Typography.Text>
                 <Tooltip content="配置AI模型">
                     <Button
@@ -176,7 +193,6 @@ export const AIAssistantPanel = () => {
             </div>
 
             <div className="messages-list">
-                {/* 不再需要独立的加载中提示，因为它被合并到了消息气泡里 */}
                 {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
                 <div ref={messagesEndRef} />
             </div>
