@@ -93,16 +93,23 @@ ipcMain.handle('select-folder', async () => {
             const folderPath = result.filePaths[0];
             const stats = fs.statSync(folderPath);
             
-            // 读取文件夹中的文件列表
+            // 读取文件夹中的所有内容（包括文件和文件夹）
             const files = fs.readdirSync(folderPath)
-                .filter(file => {
+                .map(entry => {
                     try {
-                        return fs.statSync(path.join(folderPath, file)).isFile();
+                        const fullPath = path.join(folderPath, entry);
+                        const stats = fs.statSync(fullPath);
+                        return {
+                            path: fullPath,
+                            name: entry,
+                            isDirectory: stats.isDirectory()
+                        };
                     } catch (err) {
-                        return false;
+                        console.warn(`Skip file ${entry}:`, err);
+                        return null;
                     }
                 })
-                .map(file => path.join(folderPath, file));
+                .filter(item => item !== null);
 
             return {
                 canceled: false,

@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { Field, FieldArray, FormRenderProps, FlowNodeJSON, FlowNodeVariableData, ASTFactory } from '@flowgram.ai/free-layout-editor';
-import { Button, Spin, Typography, Notification } from '@douyinfe/semi-ui';
+import { Button, Spin, Typography, Notification, Switch } from '@douyinfe/semi-ui';
 import { IconFolder, IconClear, IconPlus, IconDelete } from '@douyinfe/semi-icons';
 import { nanoid } from 'nanoid';
+import './styles.css';
 
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormHeader, FormContent, FormOutputs } from '../../form-components';
@@ -12,6 +13,7 @@ interface FolderReference {
     folderPath: string;
     folderName: string;
     files: string[];
+    deepSearch?: boolean;
 }
 
 interface FolderInputNodeJSON extends FlowNodeJSON {
@@ -22,6 +24,7 @@ interface FolderInputNodeJSON extends FlowNodeJSON {
         id: string;
         folder: FolderReference | null;
         variableName: string;
+        deepSearch: boolean;
     }>;
     outputs: {
         type: 'object';
@@ -31,7 +34,7 @@ interface FolderInputNodeJSON extends FlowNodeJSON {
 
 const FolderInput: React.FC<{
     field: any;
-    folderData: { id: string; folder: FolderReference | null; variableName: string };
+    folderData: { id: string; folder: FolderReference | null; variableName: string; deepSearch: boolean };
     index: number;
     onRemove?: () => void;
     readonly?: boolean;
@@ -162,39 +165,101 @@ const FolderInput: React.FC<{
     };
 
     return (
-        <div style={{ position: 'relative', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ 
+            position: 'relative', 
+            marginBottom: '16px',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                 <div style={{ flexGrow: 1 }}>
-                    <div style={{ 
-                        padding: '12px',
+                    <div className="folder-card" style={{ 
+                        padding: '16px',
                         backgroundColor: 'var(--semi-color-fill-0)',
-                        borderRadius: '6px'
+                        borderRadius: '8px',
+                        border: '1px solid var(--semi-color-border)',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)'
                     }}>
                         <Spin spinning={isProcessing}>
                             {field.value?.folder ? (
                                 <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <IconFolder />
-                                        <Typography.Text strong>{field.value.folder.folderName}</Typography.Text>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px', 
+                                        marginBottom: '12px',
+                                        padding: '8px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <IconFolder style={{ 
+                                            color: 'var(--semi-color-primary)',
+                                            fontSize: '20px'
+                                        }} />
+                                        <div style={{ flexGrow: 1 }}>
+                                            <Typography.Text strong style={{ fontSize: '15px' }}>
+                                                {field.value.folder.folderName}
+                                            </Typography.Text>
+                                            <Typography.Text type="tertiary" style={{ display: 'block', fontSize: '12px' }}>
+                                                {field.value.folder.folderPath}
+                                            </Typography.Text>
+                                        </div>
                                         {!readonly && (
                                             <Button
                                                 type="tertiary"
                                                 theme="borderless"
                                                 icon={<IconClear />}
                                                 onClick={() => field.onChange({ ...field.value, folder: null })}
+                                                style={{ padding: '4px' }}
                                             />
                                         )}
                                     </div>
-                                    <Typography.Text type="tertiary">
-                                        {field.value.folder.files.length} files
-                                    </Typography.Text>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '12px', 
+                                        marginBottom: '12px',
+                                        padding: '8px 12px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <Switch
+                                            checked={field.value.deepSearch}
+                                            onChange={(checked) => field.onChange({ ...field.value, deepSearch: checked })}
+                                            disabled={readonly}
+                                            size="small"
+                                        />
+                                        <Typography.Text>
+                                            Recursive search for subfolders
+                                        </Typography.Text>
+                                    </div>
+                                    <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        padding: '8px 12px',
+                                        backgroundColor: 'var(--semi-color-fill-1)',
+                                        borderRadius: '6px'
+                                    }}>
+                                        <Typography.Text type="tertiary" style={{ fontSize: '13px' }}>
+                                            {field.value.folder.files.length} files found
+                                        </Typography.Text>
+                                    </div>
                                 </div>
                             ) : (
                                 <Button
-                                    icon={<IconFolder />}
+                                    icon={<IconFolder style={{ fontSize: '16px' }} />}
                                     onClick={handleSelectFolder}
                                     disabled={readonly || isProcessing}
                                     block
+                                    style={{
+                                        height: '48px',
+                                        fontSize: '15px',
+                                        borderStyle: 'dashed',
+                                        backgroundColor: 'var(--semi-color-fill-1)'
+                                    }}
                                 >
                                     Select Folder
                                 </Button>
@@ -209,6 +274,12 @@ const FolderInput: React.FC<{
                         icon={<IconDelete />}
                         onClick={onRemove}
                         title="Remove this folder input"
+                        className="delete-button"
+                        style={{
+                            marginTop: '16px',
+                            opacity: 0.8,
+                            transition: 'opacity 0.3s ease'
+                        }}
                     />
                 )}
             </div>
@@ -283,7 +354,8 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             await field.append({
                 id: `folder_${newFolderId}`,
                 folder: null,
-                variableName: `folder_${(field.value || []).length + 1}`
+                variableName: `folder_${(field.value || []).length + 1}`,
+                deepSearch: false
             });
             
         } catch (error: any) {
@@ -301,7 +373,7 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
         <>
             <FormHeader />
             <FormContent>
-                <FieldArray<{ id: string; folder: FolderReference | null; variableName: string }> name="folders">
+                <FieldArray<{ id: string; folder: FolderReference | null; variableName: string; deepSearch: boolean }> name="folders">
                     {({ field }) => (
                         <div>
                             {(field.value || []).map((folderData, index) => (
