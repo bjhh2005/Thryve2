@@ -1,45 +1,65 @@
+import os
+import markdown
+import frontmatter
+import yaml
 from .Node import Node
-
 from ..dict_viewer import pretty_print_dict
+from pygments.formatters import HtmlFormatter
 
 class MarkdownProcessorError(Exception):
     """MarkdownProcessor 节点执行时的异常"""
     pass
 
+def generate_output_path(output_folder: str, output_name: str, ext: str = ".md") -> str:
+    if not output_name.endswith(ext):
+        output_name += ext
+    print(output_folder, output_name)
+    return os.path.join(output_folder, output_name)
+
 class MarkdownProcessor(Node):
     def __init__(self, id, type, nextNodes, eventBus, data):
         super().__init__(id, type, nextNodes, eventBus)
         self.data = data
-        self.mode = data.get("inputsValues", {}).get("mode")
+        self.mode = data.get("mode", "")
         self.inputs = data.get("inputsValues", {})
         self.output = None
+        self.MessageList = {}
         pretty_print_dict(self.data)
+
+    def _get_input_value(self, value, default=None):
+        if isinstance(value, dict):
+            if value.get("type") == "ref":
+                content = value.get("content", [])
+                if len(content) >= 2:
+                    node_id = content[0]
+                    param_name = content[1]
+                    result = self._eventBus.emit("askMessage", node_id, param_name)
+                    self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
+                    return str(result) if result is not None else default
+            elif value.get("type") == "constant":
+                return str(value.get("content", default))
+        return str(value) if value is not None else default
 
     def run(self):
         try:
+            result = None
             if self.mode == "parse":
-                # 解析 markdown 文件为 HTML
                 result = self.handle_parse()
             elif self.mode == "write":
-                # 写入内容到 markdown 文件
                 result = self.handle_write()
             elif self.mode == "append":
-                # 追加内容到 markdown 文件
                 result = self.handle_append()
             elif self.mode == "convert":
-                # 转换 markdown 格式
                 result = self.handle_convert()
             elif self.mode == "frontMatter":
-                # 编辑 front matter
                 result = self.handle_front_matter()
             elif self.mode == "toc":
-                # 生成目录
                 result = self.handle_toc()
             elif self.mode == "lint":
-                # markdown 规范检查
                 result = self.handle_lint()
             else:
                 raise MarkdownProcessorError(f"未知的处理模式: {self.mode}")
+            self.MessageList.update(result)
             self.output = result
             self._eventBus.emit("nodes_output", self._id, str(result))
         except Exception as e:
@@ -48,34 +68,118 @@ class MarkdownProcessor(Node):
         return True
 
     def handle_parse(self):
-        # TODO: 实现 markdown 解析为 HTML
-        return "[parse] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
+        output_name = self._get_input_value(self.inputs.get("outputName"), "output.html") or "output.html"
+        if not output_name.endswith('.html'):
+            output_name += '.html'
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        with open(input_file, "r", encoding="utf-8") as f:
+            md_text = f.read()
+        html_body = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'codehilite'])
+        html = self._get_html_with_style(html_body)
+        os.makedirs(output_folder, exist_ok=True)
+        output_path = os.path.join(output_folder, output_name)
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        self._eventBus.emit("message", "info", self._id, f"已解析并保存HTML到: {output_path}")
+        return {"htmlFile": output_path, "html": html}
 
     def handle_write(self):
-        # TODO: 实现写入内容到 markdown 文件
-        return "[write] 未实现"
+        content = self._get_input_value(self.inputs.get("content"), "") or ""
+        output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
+        output_name = self._get_input_value(self.inputs.get("outputName"), "output.md") or "output.md"
+        os.makedirs(output_folder, exist_ok=True)
+        output_file = generate_output_path(output_folder, output_name, ".md")
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(content)
+        self._eventBus.emit("message", "info", self._id, f"已写入Markdown文件: {output_file}")
+        return {"filePath": output_file}
 
     def handle_append(self):
-        # TODO: 实现追加内容到 markdown 文件
-        return "[append] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        content = self._get_input_value(self.inputs.get("content"), "") or ""
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        with open(input_file, "a", encoding="utf-8") as f:
+            f.write("\n" + content)
+        self._eventBus.emit("message", "info", self._id, f"已追加内容到: {input_file}")
+        return {"filePath": input_file}
 
     def handle_convert(self):
-        # TODO: 实现 markdown 格式转换
-        return "[convert] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        target_format = self._get_input_value(self.inputs.get("targetFormat"), "html") or "html"
+        output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
+        output_name = self._get_input_value(self.inputs.get("outputName"), f"output.{target_format}") or f"output.{target_format}"
+        if target_format == "html" and not output_name.endswith('.html'):
+            output_name += '.html'
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        with open(input_file, "r", encoding="utf-8") as f:
+            md_text = f.read()
+        if target_format == "html":
+            html_body = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'codehilite'])
+            html = self._get_html_with_style(html_body)
+            os.makedirs(output_folder, exist_ok=True)
+            output_file = generate_output_path(output_folder, output_name, ".html")
+            with open(output_file, "w", encoding="utf-8") as f:
+                f.write(html)
+            self._eventBus.emit("message", "info", self._id, f"已转换为HTML: {output_file}")
+            return {"filePath": output_file, "html": html}
+        else:
+            raise MarkdownProcessorError(f"暂不支持的目标格式: {target_format}")
 
     def handle_front_matter(self):
-        # TODO: 实现 front matter 编辑
-        return "[frontMatter] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        front_matter = self._get_input_value(self.inputs.get("frontMatter"), "")
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        post = frontmatter.load(input_file)
+        if front_matter:
+            fm_dict = yaml.safe_load(front_matter)
+            post.metadata.update(fm_dict)
+            frontmatter.dump(post, input_file)
+        self._eventBus.emit("message", "info", self._id, f"已更新front matter: {input_file}")
+        return {"filePath": input_file, "frontMatter": post.metadata}
 
     def handle_toc(self):
-        # TODO: 实现目录生成
-        return "[toc] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        with open(input_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        toc = [line.strip() for line in lines if line.strip().startswith("#")]
+        self._eventBus.emit("message", "info", self._id, f"已生成目录，共{len(toc)}项")
+        return {"toc": toc}
 
     def handle_lint(self):
-        # TODO: 实现 markdown 规范检查
-        return "[lint] 未实现"
+        input_file = self._get_input_value(self.inputs.get("inputFile"), "")
+        if not input_file or not os.path.exists(input_file):
+            raise MarkdownProcessorError("未指定或找不到输入文件")
+        with open(input_file, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        issues = []
+        for i, line in enumerate(lines):
+            if line.startswith("#") and line.strip() == "#":
+                issues.append(f"Line {i+1}: 空标题")
+        self._eventBus.emit("message", "info", self._id, f"lint完成，发现{len(issues)}个问题")
+        return {"lintIssues": issues}
 
     def updateNext(self):
         if not self._nextNodes and not self._is_loop_internal:
             raise MarkdownProcessorError(f"节点 {self._id}: 缺少后续节点配置",7)
-        self._next = self._nextNodes[0][1] 
+        self._next = self._nextNodes[0][1]
+
+    def _get_html_with_style(self, html_body: str) -> str:
+        pygments_css = HtmlFormatter().get_style_defs('.codehilite')
+        table_css = '''
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 6px 12px; }
+        th { background: #f8f8f8; }
+        '''
+        style_block = f"<style>{pygments_css}\n{table_css}</style>"
+        mathjax_script = (
+            '<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>'
+        )
+        return f"<!DOCTYPE html><html><head>{style_block}{mathjax_script}</head><body>{html_body}</body></html>" 
