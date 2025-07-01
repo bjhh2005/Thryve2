@@ -68,7 +68,7 @@ class FolderInput(MessageNode):
             raise FolderInputError(f"节点 {self._id} 没有指定下一个节点",11)
             
         try:
-            self._eventBus.emit("message", "info", self._id, "Folder input success!")
+            #self._eventBus.emit("message", "info", self._id, "Folder input success!")
             self.updateNext()
             return True
         except Exception as e:

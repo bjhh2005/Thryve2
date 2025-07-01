@@ -41,6 +41,8 @@ class ImageProcessor(MessageNode):
             content = value_data.get("content", [])
             if len(content) >= 2:
                 node_id = content[0]
+                if node_id.endswith("_locals"):
+                    node_id = node_id[:-7]
                 param_name = content[1]
                 return self._eventBus.emit("askMessage", node_id, param_name)
         return None
@@ -95,7 +97,7 @@ class ImageProcessor(MessageNode):
         try:
             width = self._get_input_value(self.data, 'width')
             height = self._get_input_value(self.data, 'height')
-            maintain_aspect_ratio = self._get_input_value(self.data, 'maintainAspectRatio')
+            maintain_aspect_ratio = self._get_input_value(self.data, 'maintainAspectRatio')or False
 
             # 打开图像
             image = Image.open(self.input_file)

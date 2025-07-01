@@ -172,8 +172,12 @@ class ConditionNode(Node):
             content = value_ref.get("content", [])
             if len(content) >= 2:
                 node_id = content[0]
+                if node_id.endswith("_locals"):
+                    node_id = node_id[:-7]
                 param_name = content[1]
                 return self._eventBus.emit("askMessage", node_id, param_name)
+            else:
+                return None
         
         # 如果是常量类型，直接返回内容
         return value_ref.get("content")
@@ -202,7 +206,7 @@ class ConditionNode(Node):
         更新下一个节点
         根据当前选择的分支设置下一个节点
         """
-        if self.current_branch is None and not self._is_loop_internal:
+        if self.current_branch is None:
             self._next = None
             self._eventBus.emit("message", "warning", self._id, "No branch selected")
             return
