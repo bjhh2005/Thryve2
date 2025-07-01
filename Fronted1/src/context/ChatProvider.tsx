@@ -8,11 +8,13 @@ interface ChatContextType {
     activeConversationId: string | null;
     messages: ChatMessage[];
     isHistoryLoading: boolean;
+    isConversationListCollapsed: boolean;
+    toggleConversationList: () => void;
     createNewConversation: () => Promise<void>;
     switchConversation: (id: string) => Promise<void>;
     // 返回值改为Promise<ChatMessage>，以便获取新消息的ID
     addMessageToActiveConversation: (message: Omit<ChatMessage, 'id' | 'conversationId' | 'createdAt'>) => Promise<ChatMessage>;
-    // 新增：用于更新消息内容的函数
+    // 用于更新消息内容的函数
     updateMessageContent: (messageId: string, newContent: string) => Promise<void>;
 }
 
@@ -29,6 +31,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+    const [isConversationListCollapsed, setIsConversationListCollapsed] = useState(false);
 
     const createNewConversation = async () => {
         const newConvo: Conversation = {
@@ -101,12 +104,18 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     };
 
+    const toggleConversationList = () => {
+        setIsConversationListCollapsed(prev => !prev);
+    };
+
 
     const value = {
         conversations,
         activeConversationId,
         messages,
         isHistoryLoading,
+        isConversationListCollapsed,
+        toggleConversationList,
         createNewConversation,
         switchConversation,
         addMessageToActiveConversation,

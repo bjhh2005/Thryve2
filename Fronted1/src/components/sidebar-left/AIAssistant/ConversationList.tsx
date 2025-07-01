@@ -1,19 +1,28 @@
 import React from 'react';
-import { Button, List } from '@douyinfe/semi-ui';
-import { IconPlus, IconImage } from '@douyinfe/semi-icons';
+import { List, Typography } from '@douyinfe/semi-ui';
+import { IconPlus, IconSidebar } from '@douyinfe/semi-icons';
 import { useChat } from '../../../context/ChatProvider';
 import './ConversationList.less';
 
+import IconNewChat from '../../../assets/icon-newchat.svg';
+
 export const ConversationList = () => {
-    const { conversations, activeConversationId, createNewConversation, switchConversation } = useChat();
+    const { conversations, activeConversationId, createNewConversation, switchConversation, toggleConversationList } = useChat();
+
 
     return (
         <div className="conversation-list-panel">
-            <div className="list-header">
-                <Button icon={<IconPlus />} block onClick={createNewConversation}>
-                    新的对话
-                </Button>
+            <div className="new-chat-item" onClick={createNewConversation}>
+                <span className="item-icon">
+                    <img src={IconNewChat} alt="New Chat" />
+                </span>
+                <span className="item-title">发起新对话</span>
             </div>
+
+            <div className="recent-chats-label">
+                <Typography.Text type="tertiary" size="small">近期对话</Typography.Text>
+            </div>
+
             <List
                 className="list-body"
                 dataSource={conversations}
@@ -22,7 +31,6 @@ export const ConversationList = () => {
                         className={`convo-item ${item.id === activeConversationId ? 'active' : ''}`}
                         onClick={() => switchConversation(item.id)}
                     >
-                        <IconImage style={{ marginRight: 8, color: 'var(--semi-color-text-2)' }} />
                         <span className="convo-title">{item.title}</span>
                     </List.Item>
                 )}

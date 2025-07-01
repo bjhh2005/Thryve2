@@ -2,7 +2,6 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    // width: 100%; // 占满右侧区域
     flex-grow: 1;
     min-width: 0;
     background-color: #ffffff;
@@ -13,9 +12,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 8px 8px 20px;
+    padding: 8px 12px;
     border-bottom: 1px solid #e8eaed;
     flex-shrink: 0;
+
+    .model-name-display {
+        flex-grow: 1;
+        text-align: center;
+        font-weight: 500;
+        color: #5f6368;
+        padding: 0 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .expand-button,
+    .header-actions {
+        flex-shrink: 0;
+    }
 
     .semi-typography {
         font-weight: 500;

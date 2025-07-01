@@ -9,12 +9,10 @@ import {
 } from '@douyinfe/semi-icons';
 import { useLeftSidebar } from './SidebarProvider';
 
-// 1. 确认组件的导入路径是否与您的文件结构匹配
 import { AIAssistantPanel } from './AIAssistant/AIAssistantPanel';
 import { ConsolePanel } from './ConsolePanel/ConsolePanel';
 import './sidebar-left.less';
 
-// 2. 导入我们需要的两个 Provider
 import { AIConfigProvider } from '../../context/AIConfigContext';
 import { ChatProvider } from '../../context/ChatProvider';
 

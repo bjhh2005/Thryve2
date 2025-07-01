@@ -3,7 +3,7 @@ import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
-import { IconUser, IconBolt, IconSetting, IconSend } from '@douyinfe/semi-icons';
+import { IconUser, IconBolt, IconSetting, IconSend, IconSidebar, IconMenu } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
 import './ChatView.less';
@@ -26,7 +26,7 @@ export const ChatView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsVisible, setSettingsVisible] = useState(false);
 
-    const { messages, addMessageToActiveConversation, updateMessageContent } = useChat();
+    const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList } = useChat();
     const { config, getActiveModelName, getActiveProviderConfig } = useAIConfig();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +117,17 @@ export const ChatView = () => {
     return (
         <div className="chat-view-panel">
             <div className="ai-panel-header">
+                <div className="header-actions-left">
+                    <Tooltip content={isConversationListCollapsed ? "展开会话列表" : "折叠会话列表"} position="right">
+                        <Button
+                            icon={<IconMenu />}
+                            type="tertiary"
+                            theme="borderless"
+                            onClick={toggleConversationList}
+                            className="collapse-button"
+                        />
+                    </Tooltip>
+                </div>
                 <Typography.Text strong>当前模型: {getActiveModelName()}</Typography.Text>
                 <Tooltip content="配置AI模型"><Button icon={<IconSetting />} type="tertiary" theme="borderless" onClick={() => setSettingsVisible(true)} /></Tooltip>
             </div>
