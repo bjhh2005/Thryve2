@@ -56,6 +56,8 @@ class JSONProcessor(Node):
                 content = value.get("content", [])
                 if len(content) >= 2:
                     node_id = content[0]
+                    if node_id.endswith("_locals"):
+                        node_id = node_id[:-7]
                     param_name = content[1]
                     result = self._eventBus.emit("askMessage", node_id, param_name)
                     self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
