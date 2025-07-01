@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { WorkflowNodeType } from '../constants';
-import { formMeta } from './form-meta';
+import { CsvProcessorFormRender } from './csv-processor-form.tsx';
 import iconCsvProcessor from '../../assets/icon-csv-processor.png';
 
 let index = 0;
@@ -21,25 +21,51 @@ export const CsvProcessorRegistry: FlowNodeRegistry = {
     expandable: true,
     size: {
       width: 360,
-      height: 300,
+      height: 400,
     },
   },
-  formMeta,
+  formComponent: CsvProcessorFormRender,
   onAdd() {
     return {
       id: `csv_processor_${nanoid(5)}`,
       type: WorkflowNodeType.CsvProcessor,
       data: {
         title: `CSV Processor_${++index}`,
-        mode: 'filter',
         inputs: {
           type: 'object',
-          required: ['inputFile'],
+          required: ['inputFile', 'column', 'condition', 'value', 'outputFolder', 'outputName'],
           properties: {
             inputFile: {
               type: 'string',
               title: 'Input CSV File',
               description: 'Select the CSV file to process'
+            },
+            column: {
+              type: 'string',
+              title: 'Column',
+              description: 'Target column name'
+            },
+            condition: {
+              type: 'string',
+              title: 'Condition',
+              description: 'Filter condition',
+              enum: ['equals', 'contains', 'greater_than', 'less_than'],
+              default: 'equals'
+            },
+            value: {
+              type: 'string',
+              title: 'Value',
+              description: 'Filter value'
+            },
+            outputFolder: {
+              type: 'string',
+              title: 'Output Folder',
+              description: 'Save location'
+            },
+            outputName: {
+              type: 'string',
+              title: 'Output Name',
+              description: 'File name'
             }
           }
         },
@@ -48,15 +74,11 @@ export const CsvProcessorRegistry: FlowNodeRegistry = {
           properties: {
             data: {
               type: 'array',
-              description: 'Processed CSV data'
+              description: 'Filtered CSV data'
             },
             rowCount: {
               type: 'number',
-              description: 'Number of rows in the CSV'
-            },
-            columnNames: {
-              type: 'array',
-              description: 'List of column names'
+              description: 'Number of rows after filtering'
             }
           }
         }
