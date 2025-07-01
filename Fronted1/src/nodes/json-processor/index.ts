@@ -4,8 +4,6 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta.ts';
 import iconJsonProcessor from '../../assets/icon-json-processor.png';
 
-let index = 0;
-
 export const JsonProcessorRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.JsonProcessor,
   info: {
@@ -30,8 +28,8 @@ export const JsonProcessorRegistry: FlowNodeRegistry = {
       id: `json_processor_${nanoid(5)}`,
       type: WorkflowNodeType.JsonProcessor,
       data: {
-        title: `JSON Processor_${++index}`,
-        mode: 'query',
+        title: 'JSON Processor',
+        mode: 'parse', // 默认模式
         inputs: {
           type: 'object',
           required: ['inputData'],

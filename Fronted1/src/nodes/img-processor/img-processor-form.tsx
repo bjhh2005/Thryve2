@@ -1,9 +1,7 @@
 import React from 'react';
 import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
-import { FormHeader, FormContent, FormInputs, FormOutputs, FormItem, Feedback } from '../../form-components';
-import { DynamicValueInput } from '@flowgram.ai/form-materials';
-import { JsonSchema } from '../../typings';
+import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
 
 type ProcessMode = 'resize' | 'compress' | 'convert' | 'rotate' | 'crop' | 'filter' | 'watermark';
 
@@ -38,12 +36,12 @@ const FILTER_EFFECTS = [
 
 // 旋转角度选项
 const ROTATION_ANGLES = [
-  { label: '-270°', value: '-270' },
-  { label: '-180°', value: '-180' },
-  { label: '-90°', value: '-90' },
-  { label: '90°', value: '90' },
-  { label: '180°', value: '180' },
-  { label: '270°', value: '270' }
+  { label: '-270°', value: -270 },
+  { label: '-180°', value: -180 },
+  { label: '-90°', value: -90 },
+  { label: '90°', value: 90 },
+  { label: '180°', value: 180 },
+  { label: '270°', value: 270 }
 ] as const;
 
 // 不同模式的输入配置
@@ -146,11 +144,11 @@ const MODE_INPUTS = {
       description: 'Select image file'
     },
     angle: {
-      type: 'string',
+      type: 'number',
       title: 'Angle',
       description: '±90°, ±180°, ±270°',
       enum: ROTATION_ANGLES.map(angle => angle.value),
-      default: '90'
+      default: 90
     },
     outputFolder: {
       type: 'string',
@@ -335,75 +333,6 @@ export const ImgProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
     setKey(prev => prev + 1);
   };
 
-  const renderFormInputs = () => {
-    return (
-      <Field<JsonSchema> name="inputs">
-        {({ field: inputsField }) => {
-          const required = inputsField.value?.required || [];
-          const properties = inputsField.value?.properties;
-          if (!properties) {
-            return <></>;
-          }
-          const content = Object.keys(properties).map((key) => {
-            const property = properties[key];
-            if (property.enum && Array.isArray(property.enum)) {
-              return (
-                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
-                  {({ field, fieldState }) => (
-                    <FormItem
-                      name={key}
-                      type={property.type as string}
-                      required={required.includes(key)}
-                      description={property.description}
-                    >
-                      <Select
-                        value={field.value?.content || property.default}
-                        onChange={(value) => field.onChange({ content: value })}
-                        style={{ width: '100%' }}
-                        placeholder={property.description || 'Please select...'}
-                        optionList={(property.enum || []).map(value => ({
-                          label: value.toString(),
-                          value: value
-                        }))}
-                      />
-                      <Feedback errors={fieldState?.errors} />
-                    </FormItem>
-                  )}
-                </Field>
-              );
-            }
-            return (
-              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
-                {({ field, fieldState }) => (
-                  <FormItem
-                    name={key}
-                    type={property.type as string}
-                    required={required.includes(key)}
-                    description={property.description}
-                  >
-                    <DynamicValueInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      readonly={false}
-                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
-                      schema={property}
-                      constantProps={{
-                        placeholder: property.description || 'Please input...',
-                        style: { width: '100%' }
-                      }}
-                    />
-                    <Feedback errors={fieldState?.errors} />
-                  </FormItem>
-                )}
-              </Field>
-            );
-          });
-          return <>{content}</>;
-        }}
-      </Field>
-    );
-  };
-
   return (
     <>
       <FormHeader />
@@ -419,7 +348,7 @@ export const ImgProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
           )}
         </Field>
         <div key={key}>
-          {renderFormInputs()}
+          <FormInputs />
           <FormOutputs />
         </div>
       </FormContent>
