@@ -149,6 +149,8 @@ class Loop(MessageNode):
             raise LoopError(f"节点 {self._id} 的数组引用路径无效")
             
         ref_node_id = array_path[0]
+        if ref_node_id.endswith("_locals"):
+            ref_node_id = ref_node_id[:-7]
         ref_node_property = array_path[1]
         
         try:
