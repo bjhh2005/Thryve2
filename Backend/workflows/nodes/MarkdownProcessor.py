@@ -115,10 +115,11 @@ class MarkdownProcessor(Node):
                     to='latex',
                     outputfile=output_file,
                     format='md',
-                    extra_args=[
-                        '--pdf-engine=xelatex',
-                        '-V', 'mainfont=Noto Sans CJK SC'
-                    ]
+                    # extra_args=[
+                    #     '--pdf-engine=xelatex',
+                    #     '-V', 'mainfont=Noto Sans CJK SC'
+                    # ]
+                    extra_args=['--pdf-engine=xelatex']
                 )
             except Exception as e:
                 raise MarkdownProcessorError(f"PDF 生成失败: {str(e)}。请确保 pandoc、xelatex 及中文字体已安装。")
