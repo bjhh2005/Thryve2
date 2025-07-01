@@ -27,6 +27,7 @@
     "@flowgram.ai/free-snap-plugin": "^0.2.14",
     "@flowgram.ai/runtime-interface": "^0.2.14",
     "@flowgram.ai/runtime-js": "^0.2.14",
+    "idb": "^8.0.3",
     "fuzzysort": "^3.1.0",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",

@@ -1,0 +1,201 @@
+// --- 主面板布局 ---
+.console-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: #ffffff;
+    font-family: 'Consolas', 'SFMono-Regular', Menlo, Courier, monospace; // 统一字体
+}
+
+// --- 日志内容区域 (包含滚动条逻辑) ---
+.left-sidebar-panel-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0; // 解决flex布局下 overflow 不生效的问题
+    padding: 8px;
+
+    // 美化滚动条样式
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #d1d5db;
+        border-radius: 5px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+
+        &:hover {
+            background-color: #a7abb0;
+        }
+    }
+
+    // 兼容 Firefox
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db transparent;
+}
+
+
+// --- 页脚样式 ---
+.left-sidebar-panel-footer {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    border-top: 1px solid #e8eaed;
+    text-align: right;
+
+    .sidebar-button {
+        // 您可以为按钮添加更具体的样式，例如
+        padding: 4px 12px;
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        cursor: pointer;
+        background-color: #f9fafb;
+
+        &:hover {
+            background-color: #f3f4f6;
+        }
+    }
+}
+
+
+// --- 日志条目细节样式 (来自您提供的 console.css) ---
+
+// 空状态占位符
+.console-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #9e9e9e;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+
+    .semi-icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+}
+
+// 单条日志的基础样式
+.console-log {
+    padding: 6px 12px;
+    margin-bottom: 2px; // 使用 margin-bottom 代替 margin
+    border-radius: 6px;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    gap: 12px; // 统一各项之间的间距
+    font-size: 13px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background-color: #f0f0f0;
+    }
+}
+
+// 时间戳
+.console-timestamp {
+    color: #9E9E9E;
+    font-size: 0.9em;
+}
+
+// 日志级别标签
+.console-type {
+    font-weight: 500;
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    width: 75px; // 固定宽度以对齐
+    text-align: center;
+    color: white;
+}
+
+// 消息内容
+.log-message {
+    flex-grow: 1;
+    word-break: break-all; // 使用 break-all 强制换行
+    white-space: pre-wrap;
+    color: #333;
+}
+
+// 节点ID
+.console-node-id {
+    color: #b0b0b0;
+    font-size: 0.9em;
+    margin-left: auto; // 将其推到最右边
+    padding-left: 16px;
+    flex-shrink: 0;
+}
+
+// --- 不同日志级别的颜色定义 ---
+
+.console-log-INFO {
+    .console-type {
+        background-color: #2196F3;
+    }
+
+    .log-message {
+        color: #0D47A1;
+    }
+}
+
+.console-log-WARN {
+    .console-type {
+        background-color: #FF9800;
+    }
+
+    .log-message {
+        color: #E65100;
+    }
+}
+
+.console-log-ERROR {
+    background-color: rgba(244, 67, 54, 0.05); // 给错误日志一个淡淡的背景色
+
+    .console-type {
+        background-color: #F44336;
+    }
+
+    .log-message {
+        color: #B71C1C;
+        font-weight: 500;
+    }
+}
+
+.console-log-SUCCESS {
+    .console-type {
+        background-color: #8BC34A;
+    }
+
+    .log-message {
+        color: #1B5E20;
+    }
+}
+
+.console-log-SYSTEM {
+    .console-type {
+        background-color: #673AB7;
+    }
+
+    .log-message {
+        color: #4A148C;
+    }
+}
+
+.console-log-OUTPUT {
+    background-color: #f5f5f5;
+
+    .console-type {
+        background-color: #607D8B;
+    }
+
+    .log-message {
+        color: #37474F;
+    }
+}

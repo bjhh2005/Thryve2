@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form, Input, Tag, Tooltip, Typography } from '@douyinfe/semi-ui';
 import { IconSetting, IconPlus, IconBolt } from '@douyinfe/semi-icons';
-import { useAIConfig, PRESET_PROVIDERS, ProviderConfig, ProviderId } from '../../context/AIConfigContext';
+import { useAIConfig, PRESET_PROVIDERS, ProviderConfig, ProviderId } from '../../../context/AIConfigContext';
 import './SettingsModal.less';
 
-import IconDeepSeek from '../../assets/deepseek.svg';
-import IconOpenAI from '../../assets/openai.svg';
+import IconDeepSeek from '../../../assets/deepseek.svg';
+import IconOpenAI from '../../../assets/openai.svg';
 
 // 服务商的显示信息
 const PROVIDER_DISPLAY_INFO = {
