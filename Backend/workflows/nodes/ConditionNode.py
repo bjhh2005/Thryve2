@@ -61,7 +61,7 @@ class ConditionNode(Node):
             
         Raises:
             ConditionError: 当操作数类型不合法时
-        """
+        
         if operator in NUMERIC_OPS:
             if not (isinstance(left_value, (int, float)) and isinstance(right_value, (int, float))):
                 raise ConditionError(f"数值比较操作符 '{operator}' 的操作数必须是数字类型")
@@ -75,7 +75,7 @@ class ConditionNode(Node):
                 iter(right_value)
             except TypeError:
                 raise ConditionError(f"集合操作符 '{operator}' 的右操作数必须是可迭代对象")
-
+"""
     def _evaluate_condition(self, condition: dict) -> bool:
         """
         评估单个条件表达式

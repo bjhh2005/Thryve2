@@ -47,6 +47,30 @@ class ImageProcessor(MessageNode):
                 return self._eventBus.emit("askMessage", node_id, param_name)
         return None
 
+    def _get_unique_filename(self, filepath: str) -> str:
+        """
+        生成不重复的文件名。如果文件已存在，在文件名后添加序号。
+        
+        Args:
+            filepath (str): 原始文件路径
+            
+        Returns:
+            str: 不重复的文件路径
+        """
+        if not os.path.exists(filepath):
+            return filepath
+            
+        directory = os.path.dirname(filepath)
+        filename = os.path.basename(filepath)
+        name, ext = os.path.splitext(filename)
+        
+        counter = 1
+        while True:
+            new_filepath = os.path.join(directory, f"{name}_{counter}{ext}")
+            if not os.path.exists(new_filepath):
+                return new_filepath
+            counter += 1
+
     def run(self) -> bool:
         """
         执行图像处理节点
@@ -116,7 +140,7 @@ class ImageProcessor(MessageNode):
             resized_image = image.resize((new_width, new_height), Image.LANCZOS)
 
             # 保存结果
-            output_file = os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}"))
             resized_image.save(output_file)
 
             # 获取处理后的图像信息
@@ -154,7 +178,7 @@ class ImageProcessor(MessageNode):
                 image = image.convert('RGB')
 
             # 保存压缩后的图像
-            output_file = os.path.join(self.output_folder, f"{self.output_name}.jpg")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}.jpg"))
             image.save(output_file, 'JPEG', quality=quality, optimize=True)
 
             # 获取处理后的图像信息
@@ -191,7 +215,7 @@ class ImageProcessor(MessageNode):
                 image = background
 
             # 保存转换后的图像
-            output_file = os.path.join(self.output_folder, f"{self.output_name}.{format}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}.{format}"))
             image.save(output_file, format.upper(), quality=quality)
 
             # 获取处理后的图像信息
@@ -221,7 +245,7 @@ class ImageProcessor(MessageNode):
             rotated_image = image.rotate(angle, expand=True)
 
             # 保存旋转后的图像
-            output_file = os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}"))
             rotated_image.save(output_file)
 
             # 获取处理后的图像信息
@@ -254,7 +278,7 @@ class ImageProcessor(MessageNode):
             cropped_image = image.crop((x, y, x + width, y + height))
 
             # 保存裁剪后的图像
-            output_file = os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}"))
             cropped_image.save(output_file)
 
             # 获取处理后的图像信息
@@ -310,7 +334,7 @@ class ImageProcessor(MessageNode):
                 raise ValueError(f"不支持的滤镜类型: {filter_type}")
 
             # 保存处理后的图像
-            output_file = os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}"))
             filtered_image.save(output_file)
 
             # 获取处理后的图像信息
@@ -400,7 +424,7 @@ class ImageProcessor(MessageNode):
             watermarked = Image.alpha_composite(image, watermark)
 
             # 保存结果
-            output_file = os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}")
+            output_file = self._get_unique_filename(os.path.join(self.output_folder, f"{self.output_name}{os.path.splitext(self.input_file)[1]}"))
             # 转换为RGB模式并保存
             if watermarked.mode == 'RGBA':
                 rgb_image = Image.new('RGB', watermarked.size, (255, 255, 255))

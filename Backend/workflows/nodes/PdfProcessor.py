@@ -139,6 +139,7 @@ class PdfProcessor(MessageNode):
                         # 保存图片到指定目录
                         image_filename = f"page_{page_num + 1}_img_{img_index + 1}.png"
                         image_path = os.path.join(self.output_dir, image_filename)
+                        image_path = self._get_unique_filename(image_path)
                         with open(image_path, "wb") as img_file:
                             img_file.write(image_data)
                         images.append(image_path)
@@ -146,6 +147,7 @@ class PdfProcessor(MessageNode):
             # 保存提取的文本到指定目录
             text_content_str = "\n".join(text_content)
             text_output_file = os.path.join(self.output_dir, "extracted_text.txt")
+            text_output_file = self._get_unique_filename(text_output_file)
             with open(text_output_file, "w", encoding="utf-8") as f:
                 f.write(text_content_str)
 
@@ -176,6 +178,7 @@ class PdfProcessor(MessageNode):
             
             # 使用指定的输出路径
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             merger.write(output_file)
             merger.close()
             
@@ -214,6 +217,7 @@ class PdfProcessor(MessageNode):
                         writer.add_page(reader.pages[page_num])
                     
                     output_file = os.path.join(self.output_dir, f"{self.output_name}_{i + 1}.pdf")
+                    output_file = self._get_unique_filename(output_file)
                     with open(output_file, "wb") as output:
                         writer.write(output)
                     output_files.append(output_file)
@@ -317,6 +321,7 @@ class PdfProcessor(MessageNode):
                     pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
                     image_filename = f"{self.output_name}_page_{page_num + 1}.{output_format}"
                     image_path = os.path.join(self.output_dir, image_filename)
+                    image_path = self._get_unique_filename(image_path)
                     pix.save(image_path)
                     output_files.append(image_path)
                     conversion_log.append(f"Page {page_num + 1} converted to {output_format}")
@@ -325,6 +330,7 @@ class PdfProcessor(MessageNode):
                     text = page.get_text()
                     text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
                     text_path = os.path.join(self.output_dir, text_filename)
+                    text_path = self._get_unique_filename(text_path)
                     with open(text_path, 'w', encoding='utf-8') as f:
                         f.write(text)
                     output_files.append(text_path)
@@ -334,6 +340,7 @@ class PdfProcessor(MessageNode):
                     html = page.get_text("html")
                     html_filename = f"{self.output_name}_page_{page_num + 1}.html"
                     html_path = os.path.join(self.output_dir, html_filename)
+                    html_path = self._get_unique_filename(html_path)
                     with open(html_path, 'w', encoding='utf-8') as f:
                         f.write(html)
                     output_files.append(html_path)
@@ -363,6 +370,7 @@ class PdfProcessor(MessageNode):
             
             doc = fitz.open(self.input_file)
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             
             for page in doc:
                 # 压缩页面上的图片
@@ -466,6 +474,7 @@ class PdfProcessor(MessageNode):
                          permissions_flag=permissions_bits)
             
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             with open(output_file, "wb") as output:
                 writer.write(output)
             
@@ -493,6 +502,7 @@ class PdfProcessor(MessageNode):
                 writer.add_page(page)
             
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             with open(output_file, "wb") as output:
                 writer.write(output)
             
@@ -579,6 +589,7 @@ class PdfProcessor(MessageNode):
                 page.clean_contents()
             
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             doc.save(output_file)
             doc.close()
             
@@ -614,6 +625,7 @@ class PdfProcessor(MessageNode):
             writer.add_metadata(metadata)
             
             output_file = os.path.join(self.output_dir, f"{self.output_name}.pdf")
+            output_file = self._get_unique_filename(output_file)
             with open(output_file, "wb") as output:
                 writer.write(output)
             
@@ -641,3 +653,27 @@ class PdfProcessor(MessageNode):
                 if 1 <= page <= total_pages:
                     pages.add(page - 1)
         return sorted(list(pages))
+
+    def _get_unique_filename(self, filepath: str) -> str:
+        """
+        生成不重复的文件名。如果文件已存在，在文件名后添加序号。
+        
+        Args:
+            filepath (str): 原始文件路径
+            
+        Returns:
+            str: 不重复的文件路径
+        """
+        if not os.path.exists(filepath):
+            return filepath
+            
+        directory = os.path.dirname(filepath)
+        filename = os.path.basename(filepath)
+        name, ext = os.path.splitext(filename)
+        
+        counter = 1
+        while True:
+            new_filepath = os.path.join(directory, f"{name}_{counter}{ext}")
+            if not os.path.exists(new_filepath):
+                return new_filepath
+            counter += 1

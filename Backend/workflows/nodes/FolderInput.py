@@ -25,7 +25,7 @@ class FolderInput(MessageNode):
         
         self.MessageList = {}
         
-       # 验证folders配置
+        # 验证folders配置
         folders = data.get('folders')
         if not folders or not isinstance(folders, list):
             raise FolderInputError(f"节点 {id} 缺少有效的folders配置",11)
@@ -47,8 +47,13 @@ class FolderInput(MessageNode):
                     
                 # 处理文件夹路径和文件列表
                 if propName.endswith('_files'):
-                    # 文件列表属性
-                    self.MessageList[propName] = propInfo.get('default', [])
+                    # 文件列表属性 - 只存储非目录文件的路径
+                    file_list = []
+                    default_files = propInfo.get('default', [])
+                    for file_info in default_files:
+                        if isinstance(file_info, dict) and not file_info.get('isDirectory', False):
+                            file_list.append(file_info['path'])
+                    self.MessageList[propName] = file_list
                 else:
                     # 文件夹路径属性
                     self.MessageList[propName] = propInfo.get('default', '')
