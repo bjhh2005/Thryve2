@@ -8,8 +8,8 @@ import {
     IconFolderStroked,
 } from '@douyinfe/semi-icons';
 import { useLeftSidebar } from './SidebarProvider';
-import { AIAssistantPanel } from './AIAssistantPanel';
-import { ConsolePanel } from './ConsolePanel';
+import { AIAssistantPanel } from './AIAssistant/AIAssistantPanel';
+import { ConsolePanel } from './ConsolePanel/ConsolePanel';
 import './sidebar-left.less';
 import { AIConfigProvider } from '../../context/AIConfigContext';
 

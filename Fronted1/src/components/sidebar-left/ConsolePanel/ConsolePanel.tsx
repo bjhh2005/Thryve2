@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { useConsole, LogEntry } from '../../context/ConsoleProvider';
+import { useConsole, LogEntry } from '../../../context/ConsoleProvider';
 import { IconTriangleDown } from '@douyinfe/semi-icons';
 import '../../context/console.css';
 
