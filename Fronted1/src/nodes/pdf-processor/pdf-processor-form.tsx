@@ -24,89 +24,89 @@ const MODE_INPUTS = {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to extract content from'
+      description: 'Select PDF file'
     },
     pageRange: {
       type: 'string',
       title: 'Page Range',
-      description: 'Page range to extract (e.g., 1-5)',
+      description: 'Pages to extract (e.g., 1-5)',
       default: ''
     },
     extractImages: {
       type: 'boolean',
       title: 'Extract Images',
-      description: 'Also extract images from PDF',
+      description: 'Include images',
       default: false
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the extracted content'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output file'
+      description: 'File name'
     }
   },
   merge: {
     inputFiles: {
       type: 'array',
       title: 'PDF Files',
-      description: 'Select multiple PDF files to merge'
+      description: 'Files to merge'
     },
     sortBy: {
       type: 'string',
       title: 'Sort By',
-      description: 'Sort files by name or date',
+      description: 'Sort method',
       enum: ['name', 'date'],
       default: 'name'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the merged PDF'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the merged PDF file'
+      description: 'File name'
     }
   },
   split: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to split'
+      description: 'Select PDF file'
     },
     splitMethod: {
       type: 'string',
       title: 'Split Method',
-      description: 'How to split the PDF',
+      description: 'Split by: page/size/bookmark',
       enum: ['byPage', 'bySize', 'byBookmark'],
       default: 'byPage'
     },
     value: {
       type: 'string',
       title: 'Split Value',
-      description: 'Pages per file or size in MB'
+      description: 'Pages/size (MB)'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the split PDFs'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Base name for the split PDF files'
+      description: 'File name'
     }
   },
   convert: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to convert'
+      description: 'Select PDF file'
     },
     outputFormat: {
       type: 'string',
@@ -118,59 +118,59 @@ const MODE_INPUTS = {
     dpi: {
       type: 'number',
       title: 'DPI',
-      description: 'Resolution for image output',
+      description: 'Resolution (72-600)',
       default: 300
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the converted file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the converted file'
+      description: 'File name'
     }
   },
   compress: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to compress'
+      description: 'Select PDF file'
     },
     quality: {
       type: 'string',
       title: 'Quality',
-      description: 'Compression quality',
+      description: 'Compression level',
       enum: ['high', 'medium', 'low'],
       default: 'medium'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the compressed PDF'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the compressed PDF file'
+      description: 'File name'
     }
   },
   encrypt: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to encrypt'
+      description: 'Select PDF file'
     },
     password: {
       type: 'string',
       title: 'Password',
-      description: 'Encryption password'
+      description: 'Encryption key'
     },
     permissions: {
       type: 'array',
       title: 'Permissions',
-      description: 'Set allowed operations',
+      description: 'Allowed actions',
       items: {
         type: 'string',
         enum: ['print', 'copy', 'modify', 'annotate']
@@ -179,76 +179,76 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the encrypted PDF'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the encrypted PDF file'
+      description: 'File name'
     }
   },
   decrypt: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select encrypted PDF file'
+      description: 'Select encrypted PDF'
     },
     password: {
       type: 'string',
       title: 'Password',
-      description: 'Decryption password'
+      description: 'Decryption key'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the decrypted PDF'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the decrypted PDF file'
+      description: 'File name'
     }
   },
   watermark: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to watermark'
+      description: 'Select PDF file'
     },
     watermarkText: {
       type: 'string',
       title: 'Watermark Text',
-      description: 'Text to use as watermark'
+      description: 'Text content'
     },
     opacity: {
       type: 'number',
       title: 'Opacity',
-      description: 'Watermark opacity (0-100)',
+      description: 'Range: 0-100',
       default: 30
     },
     position: {
       type: 'string',
       title: 'Position',
-      description: 'Watermark position',
+      description: 'Watermark location',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'center'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the watermarked PDF'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the watermarked PDF file'
+      description: 'File name'
     }
   },
   metadata: {
     inputFile: {
       type: 'string',
       title: 'PDF File',
-      description: 'Select PDF file to edit metadata'
+      description: 'Select PDF file'
     },
     title: {
       type: 'string',
@@ -273,12 +273,12 @@ const MODE_INPUTS = {
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the PDF with updated metadata'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output PDF file'
+      description: 'File name'
     }
   }
 };

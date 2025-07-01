@@ -20,19 +20,19 @@ const MODE_INPUTS = {
     delimiter: {
       type: 'string',
       title: 'Delimiter',
-      description: 'CSV field delimiter (e.g., comma, semicolon)',
+      description: 'Field separator (,;|)',
       default: ','
     },
     encoding: {
       type: 'string',
       title: 'File Encoding',
-      description: 'File encoding (e.g., UTF-8, ASCII)',
+      description: '(e.g., UTF-8, ASCII)',
       default: 'UTF-8'
     },
     hasHeader: {
       type: 'boolean',
       title: 'Has Header',
-      description: 'First row contains column names',
+      description: 'First row is header',
       default: true
     }
   },
@@ -40,101 +40,101 @@ const MODE_INPUTS = {
     delimiter: {
       type: 'string',
       title: 'Delimiter',
-      description: 'CSV field delimiter',
+      description: 'Field separator',
       default: ','
     },
     includeHeader: {
       type: 'boolean',
       title: 'Include Header',
-      description: 'Include column names in the first row',
+      description: 'Add header row',
       default: true
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the CSV file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the CSV file'
+      description: 'File name'
     }
   },
   filter: {
     column: {
       type: 'string',
       title: 'Column',
-      description: 'Column to filter on'
+      description: 'Target column'
     },
     condition: {
       type: 'string',
       title: 'Condition',
-      description: 'Filter condition (e.g., equals, contains, greater than)'
+      description: '(e.g., equals, contains, greater than)'
     },
     value: {
       type: 'string',
       title: 'Value',
-      description: 'Value to filter by'
+      description: 'Filter value'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the filtered CSV'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the filtered CSV file'
+      description: 'File name'
     }
   },
   sort: {
     column: {
       type: 'string',
       title: 'Sort Column',
-      description: 'Column to sort by'
+      description: 'Column to sort'
     },
     ascending: {
       type: 'boolean',
       title: 'Ascending Order',
-      description: 'Sort in ascending order',
+      description: 'Sort ascending',
       default: true
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the sorted CSV'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the sorted CSV file'
+      description: 'File name'
     }
   },
   aggregate: {
     groupBy: {
       type: 'string',
       title: 'Group By Column',
-      description: 'Column to group by'
+      description: 'Group by field'
     },
     operation: {
       type: 'string',
       title: 'Operation',
-      description: 'Aggregation operation (e.g., sum, average, count)'
+      description: 'sum, avg, count, min, max'
     },
     targetColumn: {
       type: 'string',
       title: 'Target Column',
-      description: 'Column to perform operation on'
+      description: 'Column for operation'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the aggregated CSV'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the aggregated CSV file'
+      description: 'File name'
     }
   }
 };

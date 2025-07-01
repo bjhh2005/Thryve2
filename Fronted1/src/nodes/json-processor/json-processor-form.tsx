@@ -22,7 +22,7 @@ const MODE_INPUTS = {
     inputData: {
       type: 'string',
       title: 'JSON String',
-      description: 'Enter JSON string to parse',
+      description: 'Input JSON string',
       format: 'json'
     }
   },
@@ -30,152 +30,152 @@ const MODE_INPUTS = {
     inputData: {
       type: 'object',
       title: 'JSON Object',
-      description: 'JSON object to stringify'
+      description: 'Object to stringify'
     },
     indent: {
       type: 'number',
       title: 'Indentation',
-      description: 'Number of spaces for indentation',
+      description: 'Space count (≥ 0)',
       default: 2
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the JSON file'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the JSON file'
+      description: 'File name'
     }
   },
   query: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to query',
+      description: 'Data to query',
       format: 'json'
     },
     path: {
       type: 'string',
       title: 'JSON Path',
-      description: 'JSONPath expression (e.g., $.store.book[0].title)'
+      description: 'Query expression ($.path.to.field)'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the query result'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the output file'
+      description: 'File name'
     }
   },
   update: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to update',
+      description: 'Data to update',
       format: 'json'
     },
     path: {
       type: 'string',
       title: 'JSON Path',
-      description: 'Path to update (e.g., $.store.book[0].title)'
+      description: 'Update path ($.path.to.field)'
     },
     newValue: {
       type: 'string',
       title: 'New Value',
-      description: 'New value to set at the specified path'
+      description: 'Value to set'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the updated JSON'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the updated JSON file'
+      description: 'File name'
     }
   },
   validate: {
     inputData: {
       type: 'string',
       title: 'JSON Data',
-      description: 'JSON data to validate',
+      description: 'Data to validate',
       format: 'json'
     },
     schema: {
       type: 'string',
       title: 'JSON Schema',
-      description: 'JSON Schema for validation',
+      description: 'Validation schema',
       format: 'json'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the validation report'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the validation report file'
+      description: 'File name'
     }
   },
   merge: {
     inputData: {
       type: 'string',
       title: 'Base JSON',
-      description: 'Base JSON object',
+      description: 'Base object',
       format: 'json'
     },
     sourceData: {
       type: 'string',
       title: 'Source JSON',
-      description: 'JSON to merge with base',
+      description: 'Object to merge',
       format: 'json'
     },
     deep: {
       type: 'boolean',
       title: 'Deep Merge',
-      description: 'Perform deep merge of objects',
+      description: 'Enable deep merge',
       default: true
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the merged JSON'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the merged JSON file'
+      description: 'File name'
     }
   },
   diff: {
     inputData: {
       type: 'string',
       title: 'Original JSON',
-      description: 'Original JSON data',
+      description: 'Original data',
       format: 'json'
     },
     compareData: {
       type: 'string',
       title: 'Compare JSON',
-      description: 'JSON to compare against',
+      description: 'Data to compare',
       format: 'json'
     },
     outputFolder: {
       type: 'string',
       title: 'Output Folder',
-      description: 'Select folder to save the comparison result'
+      description: 'Save location'
     },
     outputName: {
       type: 'string',
       title: 'Output Name',
-      description: 'Name for the comparison result file'
+      description: 'File name'
     }
   }
 };
