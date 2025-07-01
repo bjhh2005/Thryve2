@@ -1,15 +1,11 @@
 import os
 import markdown
-import frontmatter
+import frontmatter as fm
 import yaml
 from .Node import Node
 from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
-try:
-    import pdfkit
-    PDFKIT_AVAILABLE = True
-except ImportError:
-    PDFKIT_AVAILABLE = False
+import pypandoc
 
 class MarkdownProcessorError(Exception):
     """MarkdownProcessor 节点执行时的异常"""
@@ -44,6 +40,9 @@ class MarkdownProcessor(Node):
                     self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
                     return str(result) if result is not None else default
             elif value.get("type") == "constant":
+                return str(value.get("content", default))
+            elif "content" in value:
+                # 兼容没有 type 字段但有 content 的情况（如 targetFormat）
                 return str(value.get("content", default))
         return str(value) if value is not None else default
 
@@ -82,14 +81,23 @@ class MarkdownProcessor(Node):
         target_format = self._get_input_value(self.inputs.get("targetFormat"), "html") or "html"
         output_folder = self._get_input_value(self.inputs.get("outputFolder"), "output") or "output"
         output_name = self._get_input_value(self.inputs.get("outputName"), f"output.{target_format}") or f"output.{target_format}"
+        
         if target_format == "html" and not output_name.endswith('.html'):
             output_name += '.html'
+        
         if target_format == "pdf" and not output_name.endswith('.pdf'):
             output_name += '.pdf'
+        
         if not input_file or not os.path.exists(input_file):
             raise MarkdownProcessorError("未指定或找不到输入文件")
+        
+        
         with open(input_file, "r", encoding="utf-8") as f:
             md_text = f.read()
+        
+        
+
+        
         html_body = markdown.markdown(md_text, extensions=['tables', 'fenced_code', 'codehilite'])
         html = self._get_html_with_style(html_body)
         os.makedirs(output_folder, exist_ok=True)
@@ -100,12 +108,20 @@ class MarkdownProcessor(Node):
             self._eventBus.emit("message", "info", self._id, f"已转换为HTML: {output_file}")
             return {"filePath": output_file, "html": html}
         elif target_format == "pdf":
-            if not PDFKIT_AVAILABLE:
-                raise MarkdownProcessorError("pdfkit 未安装，请先运行 pip install pdfkit")
             try:
-                pdfkit.from_string(html, output_file)
+                # 使用 pypandoc 调用 pandoc，指定 pdf-engine 和中文字体
+                pypandoc.convert_file(
+                    input_file,
+                    to='latex',
+                    outputfile=output_file,
+                    format='md',
+                    extra_args=[
+                        '--pdf-engine=xelatex',
+                        '-V', 'mainfont=Noto Sans CJK SC'
+                    ]
+                )
             except Exception as e:
-                raise MarkdownProcessorError(f"PDF 生成失败: {str(e)}。请确保已安装 wkhtmltopdf 并在 PATH 中。")
+                raise MarkdownProcessorError(f"PDF 生成失败: {str(e)}。请确保 pandoc、xelatex 及中文字体已安装。")
             self._eventBus.emit("message", "info", self._id, f"已转换为PDF: {output_file}")
             return {"filePath": output_file}
         else:
@@ -137,11 +153,13 @@ class MarkdownProcessor(Node):
         front_matter = self._get_input_value(self.inputs.get("frontMatter"), "")
         if not input_file or not os.path.exists(input_file):
             raise MarkdownProcessorError("未指定或找不到输入文件")
-        post = frontmatter.load(input_file)
+        with open(input_file, "r", encoding="utf-8") as f:
+            post = fm.load(f)
         if front_matter:
             fm_dict = yaml.safe_load(front_matter)
             post.metadata.update(fm_dict)
-            frontmatter.dump(post, input_file)
+            with open(input_file, "w", encoding="utf-8") as f:
+                f.write(fm.dumps(post))
         self._eventBus.emit("message", "info", self._id, f"已更新front matter: {input_file}")
         return {"filePath": input_file, "frontMatter": post.metadata}
 
@@ -151,7 +169,8 @@ class MarkdownProcessor(Node):
             raise MarkdownProcessorError("未指定或找不到输入文件")
         with open(input_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        toc = [line.strip() for line in lines if line.strip().startswith("#")]
+        # 只识别以 # 开头且后面有空格的 Markdown 标题
+        toc = [line.strip() for line in lines if line.lstrip().startswith('#') and len(line.lstrip()) > 1 and line.lstrip()[1] == ' ']
         self._eventBus.emit("message", "info", self._id, f"已生成目录，共{len(toc)}项")
         return {"toc": toc}
 

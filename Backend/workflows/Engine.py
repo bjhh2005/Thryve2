@@ -119,7 +119,6 @@ class WorkflowEngine :
           """
           Find the node with type 'start' in the node list and return its ID
           """
-          print(self.nodes)
           for nodeId, nodeData in self.nodes.items():
                if nodeData.get('type') == 'start':
                     return nodeId
