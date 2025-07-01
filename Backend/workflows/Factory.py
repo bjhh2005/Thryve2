@@ -1,6 +1,6 @@
 import logging
 
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, MarkdownProcessor, PdfProcessor, FolderInput, ImageProcessor
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, MarkdownProcessor, PdfProcessor, FolderInput, ImageProcessor, LLMProcessor
 
 
 logger = logging.getLogger(__name__)
@@ -49,6 +49,8 @@ class NodeFactory:
                 return ImageProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "markdown-processor":
                 return MarkdownProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "llm":
+                return LLMProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
