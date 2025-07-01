@@ -1,7 +1,9 @@
 import React from 'react';
 import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
-import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
+import { FormHeader, FormContent, FormInputs, FormOutputs, FormItem, Feedback } from '../../form-components';
+import { DynamicValueInput } from '@flowgram.ai/form-materials';
+import { JsonSchema } from '../../typings';
 
 type ProcessMode = 'extract' | 'merge' | 'split' | 'convert' | 'compress' | 'encrypt' | 'decrypt' | 'watermark' | 'metadata';
 
@@ -60,7 +62,9 @@ const MODE_INPUTS = {
       title: 'Sort By',
       description: 'Sort method',
       enum: ['name', 'date'],
-      default: 'name'
+      default: 'name',
+      widget: 'select',
+      enumLabels: ['Name', 'Date']
     },
     outputFolder: {
       type: 'string',
@@ -166,15 +170,6 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Password',
       description: 'Encryption key'
-    },
-    permissions: {
-      type: 'array',
-      title: 'Permissions',
-      description: 'Allowed actions',
-      items: {
-        type: 'string',
-        enum: ['print', 'copy', 'modify', 'annotate']
-      }
     },
     outputFolder: {
       type: 'string',
@@ -397,6 +392,76 @@ export const PdfProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
     setKey(prev => prev + 1);
   };
 
+  const renderFormInputs = () => {
+    return (
+      <Field<JsonSchema> name="inputs">
+        {({ field: inputsField }) => {
+          const required = inputsField.value?.required || [];
+          const properties = inputsField.value?.properties;
+          if (!properties) {
+            return <></>;
+          }
+          const content = Object.keys(properties).map((key) => {
+            const property = properties[key];
+            // 如果字段有 enum 属性，使用 Select 组件渲染
+            if (property.enum && Array.isArray(property.enum)) {
+              return (
+                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                  {({ field, fieldState }) => (
+                    <FormItem
+                      name={key}
+                      type={property.type as string}
+                      required={required.includes(key)}
+                      description={property.description}
+                    >
+                      <Select
+                        value={field.value?.content || property.default}
+                        onChange={(value) => field.onChange({ content: value })}
+                        style={{ width: '100%' }}
+                        placeholder={property.description || 'Please select...'}
+                        optionList={(property.enum as string[]).map(value => ({
+                          label: value.charAt(0).toUpperCase() + value.slice(1),
+                          value: value
+                        }))}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  )}
+                </Field>
+              );
+            }
+            return (
+              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                {({ field, fieldState }) => (
+                  <FormItem
+                    name={key}
+                    type={property.type as string}
+                    required={required.includes(key)}
+                    description={property.description}
+                  >
+                    <DynamicValueInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={false}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
+                      constantProps={{
+                        placeholder: property.description || 'Please input...',
+                        style: { width: '100%' }
+                      }}
+                    />
+                    <Feedback errors={fieldState?.errors} />
+                  </FormItem>
+                )}
+              </Field>
+            );
+          });
+          return <>{content}</>;
+        }}
+      </Field>
+    );
+  };
+
   return (
     <>
       <FormHeader />
@@ -412,7 +477,7 @@ export const PdfProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
           )}
         </Field>
         <div key={key}>
-          <FormInputs />
+          {renderFormInputs()}
           <FormOutputs />
         </div>
       </FormContent>

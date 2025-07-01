@@ -1,14 +1,14 @@
 import React from 'react';
 import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
-import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
+import { FormHeader, FormContent, FormInputs, FormOutputs, FormItem, Feedback } from '../../form-components';
+import { DynamicValueInput } from '@flowgram.ai/form-materials';
+import { JsonSchema } from '../../typings';
 
-type ProcessMode = 'read' | 'write' | 'filter' | 'sort' | 'aggregate';
+type ProcessMode = 'filter' | 'sort' | 'aggregate';
 
 // Define processing modes
 const PROCESS_MODES = [
-  { label: 'Read CSV', value: 'read' },
-  { label: 'Write CSV', value: 'write' },
   { label: 'Filter Data', value: 'filter' },
   { label: 'Sort Data', value: 'sort' },
   { label: 'Aggregate Data', value: 'aggregate' }
@@ -16,50 +16,6 @@ const PROCESS_MODES = [
 
 // Input configurations for different modes
 const MODE_INPUTS = {
-  read: {
-    delimiter: {
-      type: 'string',
-      title: 'Delimiter',
-      description: 'Field separator (,;|)',
-      default: ','
-    },
-    encoding: {
-      type: 'string',
-      title: 'File Encoding',
-      description: '(e.g., UTF-8, ASCII)',
-      default: 'UTF-8'
-    },
-    hasHeader: {
-      type: 'boolean',
-      title: 'Has Header',
-      description: 'First row is header',
-      default: true
-    }
-  },
-  write: {
-    delimiter: {
-      type: 'string',
-      title: 'Delimiter',
-      description: 'Field separator',
-      default: ','
-    },
-    includeHeader: {
-      type: 'boolean',
-      title: 'Include Header',
-      description: 'Add header row',
-      default: true
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Save location'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'File name'
-    }
-  },
   filter: {
     column: {
       type: 'string',
@@ -69,7 +25,9 @@ const MODE_INPUTS = {
     condition: {
       type: 'string',
       title: 'Condition',
-      description: '(e.g., equals, contains, greater than)'
+      description: 'Filter condition',
+      enum: ['equals', 'contains', 'greater_than', 'less_than'],
+      default: 'equals'
     },
     value: {
       type: 'string',
@@ -119,7 +77,9 @@ const MODE_INPUTS = {
     operation: {
       type: 'string',
       title: 'Operation',
-      description: 'sum, avg, count, min, max'
+      description: 'Aggregation operation',
+      enum: ['sum', 'avg', 'count', 'min', 'max'],
+      default: 'count'
     },
     targetColumn: {
       type: 'string',
@@ -141,26 +101,6 @@ const MODE_INPUTS = {
 
 // Output configurations for different modes
 const MODE_OUTPUTS = {
-  read: {
-    data: {
-      type: 'array',
-      description: 'CSV data as array'
-    },
-    columnNames: {
-      type: 'array',
-      description: 'List of column names'
-    }
-  },
-  write: {
-    success: {
-      type: 'boolean',
-      description: 'Whether the write operation was successful'
-    },
-    filePath: {
-      type: 'string',
-      description: 'Path to the written file'
-    }
-  },
   filter: {
     filteredData: {
       type: 'array',
@@ -189,31 +129,109 @@ export const CsvProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
   const { form } = props;
   const [key, setKey] = React.useState(0);
 
+  // Set default mode if not set
+  React.useEffect(() => {
+    if (!form.values.mode) {
+      form.setValueIn('mode', 'filter');
+    }
+  }, [form]);
+
   // Update form configuration when mode changes
   React.useEffect(() => {
+    if (!form.values.mode) return;
+    
     setKey(prev => prev + 1);
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode])],
+      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode] || {})],
       properties: {
         inputFile: {
           type: 'string',
           title: 'Input CSV File',
           description: 'Select the CSV file to process'
         },
-        ...MODE_INPUTS[form.values.mode]
+        ...(MODE_INPUTS[form.values.mode] || {})
       }
     });
 
     form.setValueIn('outputs', {
       type: 'object',
-      properties: MODE_OUTPUTS[form.values.mode]
+      properties: MODE_OUTPUTS[form.values.mode] || {}
     });
   }, [form.values.mode, form]);
 
   const handleModeChange = (mode: ProcessMode) => {
     form.setValueIn('mode', mode);
     setKey(prev => prev + 1);
+  };
+
+  const renderFormInputs = () => {
+    return (
+      <Field<JsonSchema> name="inputs">
+        {({ field: inputsField }) => {
+          const required = inputsField.value?.required || [];
+          const properties = inputsField.value?.properties;
+          if (!properties) {
+            return <></>;
+          }
+          const content = Object.keys(properties).map((key) => {
+            const property = properties[key];
+            if (property.enum && Array.isArray(property.enum)) {
+              return (
+                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                  {({ field, fieldState }) => (
+                    <FormItem
+                      name={key}
+                      type={property.type as string}
+                      required={required.includes(key)}
+                      description={property.description}
+                    >
+                      <Select
+                        value={field.value?.content || property.default}
+                        onChange={(value) => field.onChange({ content: value })}
+                        style={{ width: '100%' }}
+                        placeholder={property.description || 'Please select...'}
+                        optionList={(property.enum as string[]).map(value => ({
+                          label: value.charAt(0).toUpperCase() + value.slice(1),
+                          value: value
+                        }))}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  )}
+                </Field>
+              );
+            }
+            return (
+              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                {({ field, fieldState }) => (
+                  <FormItem
+                    name={key}
+                    type={property.type as string}
+                    required={required.includes(key)}
+                    description={property.description}
+                  >
+                    <DynamicValueInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={false}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
+                      constantProps={{
+                        placeholder: property.description || 'Please input...',
+                        style: { width: '100%' }
+                      }}
+                    />
+                    <Feedback errors={fieldState?.errors} />
+                  </FormItem>
+                )}
+              </Field>
+            );
+          });
+          return <>{content}</>;
+        }}
+      </Field>
+    );
   };
 
   return (
@@ -231,7 +249,7 @@ export const CsvProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMod
           )}
         </Field>
         <div key={key}>
-          <FormInputs />
+          {renderFormInputs()}
           <FormOutputs />
         </div>
       </FormContent>

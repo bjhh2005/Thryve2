@@ -94,7 +94,7 @@ class WorkflowEngine :
           
           # Check if workflow ended properly (last node is end node)
           if last_node_type != 'end':
-               return False, "Workflow did not end with End node"
+               return False, "Workflow did nd with End node"
           
           return True, "Workflow executed successfully"
 
