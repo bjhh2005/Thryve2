@@ -45,6 +45,8 @@ class Print(Node):
             if not isinstance(content, list) or len(content) != 2:
                 raise PrintNodeError(f"节点 {self._id}: 引用值格式错误",7)
             ref_node_id = content[0]
+            if ref_node_id.endswith("_locals"):
+                ref_node_id = ref_node_id[:-7]
             ref_property = content[1]
             value = self._eventBus.emit("askMessage", ref_node_id, ref_property)
             if value is None:
