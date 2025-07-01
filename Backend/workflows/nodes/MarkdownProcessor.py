@@ -3,7 +3,6 @@ import markdown
 import frontmatter as fm
 import yaml
 from .Node import Node
-from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
 import pypandoc
 
