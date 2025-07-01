@@ -92,6 +92,13 @@
 
 .convo-item {
     color: var(--semi-color-text-1);
+    position: relative;
+
+    .item-actions-button {
+        visibility: hidden;
+        position: absolute;
+        right: 8px;
+    }
 
     &:hover {
         background-color: #f4f3f37f;
@@ -103,6 +110,30 @@
         .convo-title {
             color: #151515;
         }
+    }
+
+    &:hover,
+    &.active {
+        .item-actions-button {
+            visibility: visible;
+        }
+    }
+
+    &.renaming {
+        background-color: var(--semi-color-fill-2) !important;
+    }
+}
+
+.rename-input.semi-input-wrapper {
+    height: auto;
+    padding: 0;
+    background-color: transparent;
+    border: none !important;
+
+    .semi-input {
+        font-size: 14px;
+        height: auto;
+        padding: 0;
     }
 }
 

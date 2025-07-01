@@ -1,7 +1,8 @@
 // src/context/ChatProvider.tsx
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getAllConversations, getMessagesForConversation, addConversation, addMessage, updateMessage, Conversation, ChatMessage } from '../utils/db'; import { v4 as uuidv4 } from 'uuid';
+import { getAllConversations, getMessagesForConversation, addConversation, addMessage, updateMessage, renameConversation, deleteConversation, Conversation, ChatMessage } from '../utils/db';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ChatContextType {
     conversations: Conversation[];
@@ -16,6 +17,8 @@ interface ChatContextType {
     addMessageToActiveConversation: (message: Omit<ChatMessage, 'id' | 'conversationId' | 'createdAt'>) => Promise<ChatMessage>;
     // 用于更新消息内容的函数
     updateMessageContent: (messageId: string, newContent: string) => Promise<void>;
+    renameConversation: (id: string, newTitle: string) => Promise<void>;
+    deleteConversation: (id: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -108,6 +111,30 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setIsConversationListCollapsed(prev => !prev);
     };
 
+    const handleRenameConversation = async (id: string, newTitle: string) => {
+        console.log(`✅ [ChatProvider] 接收到重命名请求, ID: ${id}, 新标题: ${newTitle}`);
+
+        await renameConversation(id, newTitle);
+        // 更新UI state
+        setConversations(prev =>
+            prev.map(c => c.id === id ? { ...c, title: newTitle } : c)
+        );
+    };
+
+    const handleDeleteConversation = async (id: string) => {
+        await deleteConversation(id);
+        const remainingConvos = conversations.filter(c => c.id !== id);
+        setConversations(remainingConvos);
+
+        // 如果删除的是当前激活的对话，则切换到另一个或新建一个
+        if (activeConversationId === id) {
+            if (remainingConvos.length > 0) {
+                await switchConversation(remainingConvos[0].id);
+            } else {
+                await createNewConversation();
+            }
+        }
+    };
 
     const value = {
         conversations,
@@ -120,6 +147,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         switchConversation,
         addMessageToActiveConversation,
         updateMessageContent,
+        renameConversation: handleRenameConversation,
+        deleteConversation: handleDeleteConversation,
     };
 
     return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

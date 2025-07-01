@@ -82,3 +82,32 @@ export async function updateMessage(message: ChatMessage) {
     // put 方法会智能地判断：如果主键已存在，则更新；如果不存在，则新增。
     return db.put('messages', message);
 }
+
+export async function renameConversation(id: string, newTitle: string) {
+    const db = await dbPromise;
+    const conversation = await db.get('conversations', id);
+    if (conversation) {
+        conversation.title = newTitle;
+        return db.put('conversations', conversation);
+    }
+}
+
+export async function deleteConversation(id: string) {
+    const db = await dbPromise;
+    // 使用事务来确保原子性：同时删除对话和其所有消息
+    const tx = db.transaction(['conversations', 'messages'], 'readwrite');
+    const conversationStore = tx.objectStore('conversations');
+    const messageStore = tx.objectStore('messages');
+
+    // 1. 删除对话本身
+    await conversationStore.delete(id);
+
+    // 2. 删除该对话的所有消息
+    let cursor = await messageStore.index('conversationId').openCursor(id);
+    while (cursor) {
+        await cursor.delete();
+        cursor = await cursor.continue();
+    }
+
+    return tx.done;
+}

@@ -14,10 +14,15 @@ from workflows.Engine import WorkflowEngine
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'
-CORS(app)
+
+CORS(app, resources={
+    r"/api/*": {"origins": "*"},      # 允许所有对 /api/ 路径下接口的跨域请求
+    r"/socket.io/*": {"origins": "*"} # 允许所有对 socket.io 握手路径的跨域请求
+})
 
 # 创建SocketIO实例，支持/workflow命名空间
-socketio = SocketIO(app, cors_allowed_origins="*")
+# socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app)
 
 # 设置详细的日志记录
 logging.basicConfig(level=logging.DEBUG)
@@ -136,7 +141,54 @@ def chat():
 
     return Response(stream_generator(), mimetype="text/event-stream")
 
+# -------------------------------------------------------------------
+#  新增：生成对话标题API路由
+# -------------------------------------------------------------------
+@app.route("/api/generate-title", methods=["POST"])
+def generate_title():
+    try:
+        data = request.get_json()
+        if not data:
+            raise ValueError("Request body is not a valid JSON.")
 
+        user_message = data.get("message")
+        if not user_message:
+            raise ValueError("Missing 'message' field in request body.")
+
+        api_key = os.getenv("SILICONFLOW_API_KEY")
+        base_url = "https://api.siliconflow.cn/v1"
+        model_name = "Qwen/Qwen2-7B-Instruct" 
+
+        if not api_key:
+             raise ValueError("Server API key (SILICONFLOW_API_KEY) is not configured.")
+
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "你是一个文本摘要专家，请根据用户输入，为这段对话生成一个非常简短、不超过8个字的精炼标题。请不要添加任何多余的解释或标点符号，直接输出标题本身。"
+                },
+                {
+                    "role": "user", 
+                    "content": user_message
+                }
+            ],
+            temperature=0.2,
+            stream=False
+        )
+        
+        title = completion.choices[0].message.content.strip().replace("\"", "").replace("“", "").replace("”", "")
+        
+        logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
+        return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
+
+    except Exception as e:
+        logger.error(f"An error occurred in /api/generate-title: {e}")
+        return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
+    
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server...")
     socketio.run(app, debug=True, port=4000)

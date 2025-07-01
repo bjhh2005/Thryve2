@@ -26,7 +26,7 @@ export const ChatView = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsVisible, setSettingsVisible] = useState(false);
 
-    const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList } = useChat();
+    const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList, activeConversationId, renameConversation } = useChat();
     const { config, getActiveModelName, getActiveProviderConfig } = useAIConfig();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +41,9 @@ export const ChatView = () => {
         setInput('');
         setIsLoading(true);
 
+        // 在添加新消息之前，判断这是否是新会话的第一条用户消息
+        const isFirstUserMessage = messages.filter(m => m.role === 'user').length === 0;
+
         // 1. 先将用户消息添加到Context和数据库
         const userMessage = await addMessageToActiveConversation({ role: 'user', content: userMessageContent });
 
@@ -50,8 +53,36 @@ export const ChatView = () => {
         // 3. 添加一个AI占位消息，并获取其ID
         const aiPlaceholder = await addMessageToActiveConversation({ role: 'assistant', content: 'Thinking...' });
 
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+
+        // --- 在此处异步地、非阻塞地生成标题 ---
+        // 我们只对新会话的第一条用户消息执行此操作
+        if (isFirstUserMessage && activeConversationId) {
+            // 注意：这里没有使用 await，所以它不会阻塞下面的代码执行
+
+            console.log('✅ [ChatView] 触发了标题生成，用户消息:', userMessageContent);
+            fetch(`${apiBaseUrl}/api/generate-title`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: userMessageContent }),
+            })
+                .then(res => {
+                    if (res.ok) return res.json();
+                    // 如果API返回错误，则不继续执行
+                    return Promise.reject('Failed to generate title');
+                })
+                .then(data => {
+                    console.log('✅ [ChatView] 收到后端生成的标题:', data);
+                    if (data.title) {
+                        console.log(`✅ [ChatView] 正在调用 renameConversation，ID: ${activeConversationId}, 新标题: ${data.title}`);
+                        // 调用 renameConversation 更新UI和数据库中的标题
+                        renameConversation(activeConversationId, data.title);
+                    }
+                })
+                .catch(err => console.error("Title generation error:", err)); // 只在控制台打印错误，不影响主流程
+        }
+
         try {
-            const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
             const activeProviderConfig = getActiveProviderConfig();
 
             const response = await fetch(`${apiBaseUrl}/api/chat`, {
@@ -91,18 +122,15 @@ export const ChatView = () => {
                             if (parsed.end) break;
 
                             aiFullResponse += parsed.content || '';
-                            // 实时更新UI，但不频繁写入数据库
-                            updateMessageContent(aiPlaceholder.id, aiFullResponse);
+                            await updateMessageContent(aiPlaceholder.id, aiFullResponse);
 
                         } catch (e) { console.error("Failed to parse stream data:", data, e); }
                     }
                 }
             }
 
-            // 确保流结束后，如果内容为空，则填充默认回复
             if (aiFullResponse === '') {
-                aiFullResponse = '我暂时无法回答这个问题。';
-                await updateMessageContent(aiPlaceholder.id, aiFullResponse);
+                await updateMessageContent(aiPlaceholder.id, '我暂时无法回答这个问题。');
             }
 
         } catch (error) {
@@ -112,7 +140,8 @@ export const ChatView = () => {
             setIsLoading(false);
         }
 
-    }, [input, isLoading, messages, config, addMessageToActiveConversation, updateMessageContent, getActiveProviderConfig]);
+    }, [input, isLoading, messages, config, addMessageToActiveConversation, updateMessageContent, getActiveProviderConfig, activeConversationId, renameConversation]);
+
 
     return (
         <div className="chat-view-panel">
