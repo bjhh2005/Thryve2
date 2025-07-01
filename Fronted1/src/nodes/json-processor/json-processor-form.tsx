@@ -3,12 +3,10 @@ import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
 import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
 
-type ProcessMode = 'parse' | 'stringify' | 'query' | 'update' | 'validate' | 'merge' | 'diff';
+type ProcessMode = 'query' | 'update' | 'validate' | 'merge' | 'diff';
 
 // Define processing modes
 const PROCESS_MODES = [
-  { label: 'Parse JSON', value: 'parse' },
-  { label: 'Stringify JSON', value: 'stringify' },
   { label: 'Query JSON', value: 'query' },
   { label: 'Update JSON', value: 'update' },
   { label: 'Validate JSON', value: 'validate' },
@@ -18,39 +16,8 @@ const PROCESS_MODES = [
 
 // Input configurations for different modes
 const MODE_INPUTS = {
-  parse: {
-    inputData: {
-      type: 'string',
-      title: 'JSON String',
-      description: 'Input JSON string',
-      format: 'json'
-    }
-  },
-  stringify: {
-    inputData: {
-      type: 'object',
-      title: 'JSON Object',
-      description: 'Object to stringify'
-    },
-    indent: {
-      type: 'number',
-      title: 'Indentation',
-      description: 'Space count (≥ 0)',
-      default: 2
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Save location'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'File name'
-    }
-  },
   query: {
-    inputData: {
+    inputFile: {
       type: 'string',
       title: 'JSON Data',
       description: 'Data to query',
@@ -73,7 +40,7 @@ const MODE_INPUTS = {
     }
   },
   update: {
-    inputData: {
+    inputFile: {
       type: 'string',
       title: 'JSON Data',
       description: 'Data to update',
@@ -101,7 +68,7 @@ const MODE_INPUTS = {
     }
   },
   validate: {
-    inputData: {
+    inputFile: {
       type: 'string',
       title: 'JSON Data',
       description: 'Data to validate',
@@ -125,7 +92,7 @@ const MODE_INPUTS = {
     }
   },
   merge: {
-    inputData: {
+    inputFile: {
       type: 'string',
       title: 'Base JSON',
       description: 'Base object',
@@ -155,7 +122,7 @@ const MODE_INPUTS = {
     }
   },
   diff: {
-    inputData: {
+    inputFile: {
       type: 'string',
       title: 'Original JSON',
       description: 'Original data',
@@ -252,16 +219,19 @@ export const JsonProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMo
 
   // Update form configuration when mode changes
   React.useEffect(() => {
+    const currentMode = form.values.mode || 'query';
+    const modeInputs = MODE_INPUTS[currentMode] || MODE_INPUTS.query;
+    
     setKey(prev => prev + 1);
     form.setValueIn('inputs', {
       type: 'object',
-      required: ['inputData', ...Object.keys(MODE_INPUTS[form.values.mode])],
-      properties: MODE_INPUTS[form.values.mode]
+      required: ['inputFile', ...Object.keys(modeInputs)],
+      properties: modeInputs
     });
 
     form.setValueIn('outputs', {
       type: 'object',
-      properties: MODE_OUTPUTS[form.values.mode]
+      properties: MODE_OUTPUTS[currentMode] || MODE_OUTPUTS.query
     });
   }, [form.values.mode, form]);
 

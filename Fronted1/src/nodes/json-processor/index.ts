@@ -29,7 +29,7 @@ export const JsonProcessorRegistry: FlowNodeRegistry = {
       type: WorkflowNodeType.JsonProcessor,
       data: {
         title: 'JSON Processor',
-        mode: 'parse', // 默认模式
+        mode: 'query', // 默认模式
         inputs: {
           type: 'object',
           required: ['inputData'],

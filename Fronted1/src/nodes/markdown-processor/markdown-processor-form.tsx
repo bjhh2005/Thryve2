@@ -3,11 +3,10 @@ import { FormRenderProps, Field } from '@flowgram.ai/free-layout-editor';
 import { Select } from '@douyinfe/semi-ui';
 import { FormHeader, FormContent, FormInputs, FormOutputs } from '../../form-components';
 
-type ProcessMode = 'parse' | 'write' | 'append' | 'convert' | 'frontMatter' | 'toc' | 'lint';
+type ProcessMode = 'write' | 'append' | 'convert' | 'frontMatter' | 'toc' | 'lint';
 
 // 定义处理模式
 const PROCESS_MODES = [
-  { label: 'Parse Markdown', value: 'parse' },
   { label: 'Write Content', value: 'write' },
   { label: 'Append Content', value: 'append' },
   { label: 'Convert Format', value: 'convert' },
@@ -18,41 +17,6 @@ const PROCESS_MODES = [
 
 // 不同模式的输入配置
 const MODE_INPUTS = {
-  parse: {
-    inputFile: {
-      type: 'string',
-      title: 'Markdown File',
-      description: 'Select MD file'
-    },
-    parseOptions: {
-      type: 'object',
-      title: 'Parse Options',
-      properties: {
-        gfm: {
-          type: 'boolean',
-          title: 'GitHub Flavored',
-          description: 'Enable GFM syntax',
-          default: true
-        },
-        breaks: {
-          type: 'boolean',
-          title: 'Line Breaks',
-          description: 'Newlines as breaks',
-          default: false
-        }
-      }
-    },
-    outputFolder: {
-      type: 'string',
-      title: 'Output Folder',
-      description: 'Save location'
-    },
-    outputName: {
-      type: 'string',
-      title: 'Output Name',
-      description: 'File name'
-    }
-  },
   write: {
     inputFile: {
       type: 'string',
@@ -106,8 +70,8 @@ const MODE_INPUTS = {
     targetFormat: {
       type: 'string',
       title: 'Target Format',
-      description: 'Output format',
-      enum: ['html', 'pdf', 'docx', 'latex'],
+      description: 'html/pdf',
+      enum: ['html', 'pdf'],
       default: 'html'
     },
     options: {
@@ -235,20 +199,18 @@ const MODE_INPUTS = {
 
 // 不同模式的输出配置
 const MODE_OUTPUTS = {
-  parse: {
-    html: {
+  write: {
+    outputFile: {
       type: 'string',
-      title: 'HTML Output',
-      description: 'Parsed HTML content'
-    },
-    ast: {
-      type: 'object',
-      title: 'AST',
-      description: 'Abstract Syntax Tree'
+      description: 'Path to output file'
     }
   },
-  write: {},
-  append: {},
+  append: {
+    outputFile: {
+      type: 'string',
+      description: 'Path to output file'
+    }
+  },
   convert: {
     convertedFile: {
       type: 'string',

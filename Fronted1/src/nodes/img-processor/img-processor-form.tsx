@@ -114,7 +114,7 @@ const MODE_INPUTS = {
     format: {
       type: 'string',
       title: 'Format',
-      description: 'Target format',
+      description: 'jpeg/png/webp/gif',
       enum: IMAGE_FORMATS.map(format => format.value),
       default: 'jpeg'
     },
@@ -146,7 +146,7 @@ const MODE_INPUTS = {
     angle: {
       type: 'number',
       title: 'Angle',
-      description: '±90°, ±180°, ±270°',
+      description: '±90°/±180°/±270°',
       enum: ROTATION_ANGLES.map(angle => angle.value),
       default: 90
     },
@@ -211,7 +211,7 @@ const MODE_INPUTS = {
     filterType: {
       type: 'string',
       title: 'Filter',
-      description: 'Effect type',
+      description: 'grayscale/sepia/blur/sharpen/brightness/contrast',
       enum: FILTER_EFFECTS.map(effect => effect.value),
       default: 'grayscale'
     },
@@ -263,7 +263,7 @@ const MODE_INPUTS = {
     position: {
       type: 'string',
       title: 'Position',
-      description: 'Watermark location',
+      description: 'center/topLeft/topRight/bottomLeft/bottomRight',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'bottomRight'
     },

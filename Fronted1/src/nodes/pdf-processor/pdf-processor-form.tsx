@@ -58,7 +58,7 @@ const MODE_INPUTS = {
     sortBy: {
       type: 'string',
       title: 'Sort By',
-      description: 'Sort method',
+      description: 'name or date',
       enum: ['name', 'date'],
       default: 'name'
     },
@@ -82,7 +82,7 @@ const MODE_INPUTS = {
     splitMethod: {
       type: 'string',
       title: 'Split Method',
-      description: 'Split by: page/size/bookmark',
+      description: 'byPage/bySize/byBookmark',
       enum: ['byPage', 'bySize', 'byBookmark'],
       default: 'byPage'
     },
@@ -111,7 +111,7 @@ const MODE_INPUTS = {
     outputFormat: {
       type: 'string',
       title: 'Output Format',
-      description: 'Target format',
+      description: 'png/jpg/text/html',
       enum: ['png', 'jpg', 'text', 'html'],
       default: 'png'
     },
@@ -141,7 +141,7 @@ const MODE_INPUTS = {
     quality: {
       type: 'string',
       title: 'Quality',
-      description: 'Compression level',
+      description: 'high/medium/low',
       enum: ['high', 'medium', 'low'],
       default: 'medium'
     },
@@ -166,15 +166,6 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Password',
       description: 'Encryption key'
-    },
-    permissions: {
-      type: 'array',
-      title: 'Permissions',
-      description: 'Allowed actions',
-      items: {
-        type: 'string',
-        enum: ['print', 'copy', 'modify', 'annotate']
-      }
     },
     outputFolder: {
       type: 'string',
@@ -229,7 +220,7 @@ const MODE_INPUTS = {
     position: {
       type: 'string',
       title: 'Position',
-      description: 'Watermark location',
+      description: 'center/topLeft/topRight/bottomLeft/bottomRight',
       enum: ['center', 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'],
       default: 'center'
     },
