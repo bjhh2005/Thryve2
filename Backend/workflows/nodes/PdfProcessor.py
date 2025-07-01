@@ -52,6 +52,8 @@ class PdfProcessor(MessageNode):
             content = value_data.get("content", [])
             if len(content) >= 2:
                 node_id = content[0]
+                if node_id.endswith("_locals"):
+                    node_id = node_id[:-7]
                 param_name = content[1]
                 return self._eventBus.emit("askMessage", node_id, param_name)
         return None
@@ -67,6 +69,7 @@ class PdfProcessor(MessageNode):
             # 从data中获取输入文件
             self.input_file = self._get_input_value(self.data, 'inputFile')
             
+
             # 根据不同模式执行相应操作
             if self.mode == 'extract':
                 result = self._extract_pdf()
