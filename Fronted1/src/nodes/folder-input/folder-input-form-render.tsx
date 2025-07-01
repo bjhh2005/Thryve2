@@ -313,6 +313,16 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
 
             const folderToRemove = (field.value || [])[index];
             
+            // 删除同步变量
+            const variableData = form.node?.getData(FlowNodeVariableData);
+            if (variableData) {
+                // 删除文件夹路径变量
+                variableData.unregisterVariable(folderToRemove.variableName);
+                // 删除文件列表变量
+                variableData.unregisterVariable(`${folderToRemove.variableName}_files`);
+            }
+
+            // 更新输出配置
             const currentOutputs = form.values?.outputs || {
                 type: 'object',
                 properties: {}
@@ -328,6 +338,14 @@ export const FolderInputFormRender = ({ form }: FormRenderProps<FolderInputNodeJ
             });
 
             await field.remove(index);
+
+            // 确保表单更新完成后再触发一次同步
+            setTimeout(() => {
+                const outputs = form.getValueIn('outputs');
+                if (outputs) {
+                    form.setValueIn('outputs', outputs);
+                }
+            }, 0);
             
         } catch (error: any) {
             console.error('Failed to remove folder input:', error);
