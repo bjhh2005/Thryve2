@@ -47,88 +47,6 @@ class CSVProcessor(Node):
                 return str(value.get("content", ""))
         return str(value) if value is not None else ""
 
-    def read_csv(self) -> Dict[str, Any]:
-        """读取CSV文件"""
-        try:
-            # 获取并记录输入参数
-            input_file = self._get_input_value(self.inputs.get("inputFile"))
-            self._eventBus.emit("message", "info", self._id, f"准备读取文件: {input_file}")
-            
-            delimiter = self.inputs.get("delimiter", ",")
-            encoding = self.inputs.get("encoding", "UTF-8")
-            has_header = self._get_input_value(self.inputs.get("hasHeader", True))
-
-            if not input_file:
-                raise CSVProcessError("未指定输入文件")
-
-            # 读取CSV文件
-            self._eventBus.emit("message", "info", self._id, f"开始读取CSV文件，使用分隔符: {delimiter}, 编码: {encoding}, 包含表头: {has_header}")
-            df = pd.read_csv(
-                input_file,
-                delimiter=delimiter,
-                encoding=encoding,
-                header=0 if has_header else None
-            )
-
-            # 准备输出数据
-            data = df.values.tolist()
-            column_names = df.columns.tolist() if has_header else [f"Column{i}" for i in range(len(df.columns))]
-            
-            self._eventBus.emit("message", "info", self._id, f"成功读取CSV文件，共{len(data)}行，{len(column_names)}列")
-
-            return {
-                "data": data,
-                "columnNames": column_names
-            }
-        except Exception as e:
-            self._eventBus.emit("message", "error", self._id, f"读取CSV文件失败: {str(e)}")
-            raise CSVProcessError(f"读取CSV文件失败: {str(e)}")
-
-    def write_csv(self) -> Dict[str, Any]:
-        """写入CSV文件"""
-        try:
-            # 获取并记录输入参数
-            input_file = self._get_input_value(self.inputs.get("inputFile"))
-            self._eventBus.emit("message", "info", self._id, f"准备读取源文件: {input_file}")
-            
-            output_folder = self._get_input_value(self.inputs.get("outputFolder"))
-            output_name = self._get_input_value(self.inputs.get("outputName"))
-            output_file = generate_output_path(output_folder, output_name)
-            
-            self._eventBus.emit("message", "info", self._id, f"准备写入目标文件: {output_file}")
-            
-            delimiter = self.inputs.get("delimiter", ",")
-            include_header = self._get_input_value(self.inputs.get("includeHeader", True))
-
-            if not input_file or not output_folder or not output_name:
-                raise CSVProcessError("未指定输入文件或输出路径")
-
-            # 确保输出目录存在
-            os.makedirs(output_folder, exist_ok=True)
-
-            # 读取输入文件
-            self._eventBus.emit("message", "info", self._id, f"开始读取源CSV文件")
-            df = pd.read_csv(input_file)
-            
-            # 写入输出文件
-            self._eventBus.emit("message", "info", self._id, f"开始写入CSV文件，使用分隔符: {delimiter}, 包含表头: {include_header}")
-            df.to_csv(
-                output_file,
-                sep=delimiter,
-                index=False,
-                header=(include_header == "True" or include_header is True)
-            )
-            
-            self._eventBus.emit("message", "info", self._id, f"成功写入CSV文件: {output_file}")
-
-            return {
-                "success": True,
-                "filePath": output_file
-            }
-        except Exception as e:
-            self._eventBus.emit("message", "error", self._id, f"写入CSV文件失败: {str(e)}")
-            raise CSVProcessError(f"写入CSV文件失败: {str(e)}")
-
     def filter_csv(self) -> Dict[str, Any]:
         """过滤CSV数据"""
         try:
@@ -312,10 +230,6 @@ class CSVProcessor(Node):
             # 根据模式执行相应操作
             result = None
             match self.mode:
-                case "read":
-                    result = self.read_csv()
-                case "write":
-                    result = self.write_csv()
                 case "filter":
                     result = self.filter_csv()
                 case "sort":
