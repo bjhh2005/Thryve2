@@ -368,15 +368,118 @@ const MODE_OUTPUTS = {
   }
 };
 
-export const PdfProcessorFormRender: React.FC<{
-  properties: Record<string, any>;
-  onChange: (properties: Record<string, any>) => void;
-}> = () => {
+export const PdfProcessorFormRender = (props: FormRenderProps<{ mode: ProcessMode }>) => {
+  const { form } = props;
+  const [key, setKey] = React.useState(0);
+
+  // Update form configuration when mode changes
+  React.useEffect(() => {
+    setKey(prev => prev + 1);
+    form.setValueIn('inputs', {
+      type: 'object',
+      required: ['inputFile', ...Object.keys(MODE_INPUTS[form.values.mode])],
+      properties: MODE_INPUTS[form.values.mode]
+    });
+
+    form.setValueIn('outputs', {
+      type: 'object',
+      properties: MODE_OUTPUTS[form.values.mode]
+    });
+  }, [form.values.mode, form]);
+
+  const handleModeChange = (mode: ProcessMode) => {
+    form.setValueIn('mode', mode);
+    setKey(prev => prev + 1);
+  };
+
+  const renderFormInputs = () => {
+    return (
+      <Field<JsonSchema> name="inputs">
+        {({ field: inputsField }) => {
+          const required = inputsField.value?.required || [];
+          const properties = inputsField.value?.properties;
+          if (!properties) {
+            return <></>;
+          }
+          const content = Object.keys(properties).map((key) => {
+            const property = properties[key];
+            // 如果字段有 enum 属性，使用 Select 组件渲染
+            if (property.enum && Array.isArray(property.enum)) {
+              return (
+                <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                  {({ field, fieldState }) => (
+                    <FormItem
+                      name={key}
+                      type={property.type as string}
+                      required={required.includes(key)}
+                      description={property.description}
+                    >
+                      <Select
+                        value={field.value?.content || property.default}
+                        onChange={(value) => field.onChange({ content: value })}
+                        style={{ width: '100%' }}
+                        placeholder={property.description || 'Please select...'}
+                        optionList={(property.enum as string[]).map(value => ({
+                          label: value.charAt(0).toUpperCase() + value.slice(1),
+                          value: value
+                        }))}
+                      />
+                      <Feedback errors={fieldState?.errors} />
+                    </FormItem>
+                  )}
+                </Field>
+              );
+            }
+            return (
+              <Field key={key} name={`inputsValues.${key}`} defaultValue={property.default}>
+                {({ field, fieldState }) => (
+                  <FormItem
+                    name={key}
+                    type={property.type as string}
+                    required={required.includes(key)}
+                    description={property.description}
+                  >
+                    <DynamicValueInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      readonly={false}
+                      hasError={Object.keys(fieldState?.errors || {}).length > 0}
+                      schema={property}
+                      constantProps={{
+                        placeholder: property.description || 'Please input...',
+                        style: { width: '100%' }
+                      }}
+                    />
+                    <Feedback errors={fieldState?.errors} />
+                  </FormItem>
+                )}
+              </Field>
+            );
+          });
+          return <>{content}</>;
+        }}
+      </Field>
+    );
+  };
+
   return (
     <>
       <FormHeader />
       <FormContent>
-        <FormInputs />
+        <Field name="mode">
+          {({ field }) => (
+            <Select
+              value={field.value as string}
+              onChange={(value) => handleModeChange(value as ProcessMode)}
+              style={{ width: '100%', marginBottom: 16 }}
+              optionList={PROCESS_MODES as any}
+            />
+          )}
+        </Field>
+        <div key={key}>
+          {renderFormInputs()}
+          <FormOutputs />
+        </div>
       </FormContent>
     </>
   );

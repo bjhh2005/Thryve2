@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { WorkflowNodeType } from '../constants';
-import { PdfProcessorFormRender } from './pdf-processor-form.tsx';
+import { formMeta } from './form-meta.ts';
 import iconPdfProcessor from '../../assets/icon-pdf-processor.png';
 
 let index = 0;
@@ -24,41 +24,22 @@ export const PdfProcessorRegistry: FlowNodeRegistry = {
       height: 400,
     },
   },
-  formComponent: PdfProcessorFormRender,
+  formMeta,
   onAdd() {
     return {
       id: `pdf_processor_${nanoid(5)}`,
       type: WorkflowNodeType.PdfProcessor,
       data: {
         title: `PDF Processor_${++index}`,
+        mode: 'extract', // 默认模式
         inputs: {
           type: 'object',
-          required: ['inputFile', 'pageRange', 'extractImages', 'outputFolder', 'outputName'],
+          required: ['inputFile'],
           properties: {
             inputFile: {
               type: 'string',
               title: 'Input PDF',
               description: 'Select PDF file to process'
-            },
-            pageRange: {
-              type: 'string',
-              title: 'Page Range',
-              description: 'Pages to extract (e.g., 1-5)'
-            },
-            extractImages: {
-              type: 'boolean',
-              title: 'Extract Images',
-              description: 'Whether to extract images'
-            },
-            outputFolder: {
-              type: 'string',
-              title: 'Output Folder',
-              description: 'Save location'
-            },
-            outputName: {
-              type: 'string',
-              title: 'Output Name',
-              description: 'File name'
             }
           }
         },
@@ -69,9 +50,13 @@ export const PdfProcessorRegistry: FlowNodeRegistry = {
               type: 'string',
               description: 'Extracted text content'
             },
-            images: {
-              type: 'array',
-              description: 'Extracted images'
+            pageCount: {
+              type: 'number',
+              description: 'Total number of pages'
+            },
+            success: {
+              type: 'boolean',
+              description: 'Operation success status'
             }
           }
         }

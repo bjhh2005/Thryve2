@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { FlowNodeRegistry } from '../../typings';
 import { WorkflowNodeType } from '../constants';
-import { ImgProcessorFormRender } from './img-processor-form.tsx';
+import { formMeta } from './form-meta';
 import iconImgProcessor from '../../assets/icon-image-processor.png';
 
 let index = 0;
@@ -24,48 +24,22 @@ export const ImgProcessorRegistry: FlowNodeRegistry = {
       height: 400,
     },
   },
-  formComponent: ImgProcessorFormRender,
+  formMeta,
   onAdd() {
     return {
       id: `img_processor_${nanoid(5)}`,
       type: WorkflowNodeType.ImgProcessor,
       data: {
         title: `Image Processor_${++index}`,
+        mode: 'resize', // 默认模式
         inputs: {
           type: 'object',
-          required: ['inputFile', 'width', 'height', 'maintainAspectRatio', 'outputFolder', 'outputName'],
+          required: ['inputFile'],
           properties: {
             inputFile: {
               type: 'string',
               title: 'Input Image',
               description: 'Select image to process'
-            },
-            width: {
-              type: 'number',
-              title: 'Width',
-              description: 'Width in pixels',
-              minimum: 1
-            },
-            height: {
-              type: 'number',
-              title: 'Height',
-              description: 'Height in pixels',
-              minimum: 1
-            },
-            maintainAspectRatio: {
-              type: 'boolean',
-              title: 'Maintain Aspect Ratio',
-              description: 'Keep original aspect ratio'
-            },
-            outputFolder: {
-              type: 'string',
-              title: 'Output Folder',
-              description: 'Save location'
-            },
-            outputName: {
-              type: 'string',
-              title: 'Output Name',
-              description: 'File name'
             }
           }
         },
@@ -83,6 +57,14 @@ export const ImgProcessorRegistry: FlowNodeRegistry = {
             height: {
               type: 'number',
               description: 'Height of processed image'
+            },
+            format: {
+              type: 'string',
+              description: 'Format of processed image'
+            },
+            size: {
+              type: 'number',
+              description: 'Size of processed image in bytes'
             }
           }
         }

@@ -25,10 +25,6 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
       data: {
         title: `LLM_${++index}`,
         inputsValues: {
-          inputFile: {
-            type: 'template',
-            value: '',
-          },
           modelName: {
             type: 'constant',
             content: 'gpt-3.5-turbo',
@@ -56,11 +52,8 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
         },
         inputs: {
           type: 'object',
-          required: ['inputFile', 'modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
+          required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
           properties: {
-            inputFile: {
-              type: 'string',
-            },
             modelName: {
               type: 'string',
             },
