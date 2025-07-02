@@ -6,7 +6,6 @@ blinker==1.9.0
 certifi==2025.6.15
 charset-normalizer==3.4.2
 click==8.2.1
-distro==1.9.0
 Flask==3.0.2
 Flask-Cors==4.0.0
 Flask-SocketIO==5.3.6
@@ -17,11 +16,11 @@ httpx==0.28.1
 idna==3.10
 itsdangerous==2.2.0
 Jinja2==3.1.6
+jsonpath-ng==1.6.1
+jsonschema==4.21.1
 Markdown==3.5.2
 MarkupSafe==3.0.2
-numpy==1.26.4
 openai==1.35.7
-pandas==2.2.1
 pdfkit==1.0.0
 pillow==10.2.0
 ply==3.11
@@ -31,11 +30,11 @@ Pygments==2.17.2
 PyMuPDF==1.21.1
 pypandoc==1.15
 PyPDF2==3.0.1
-python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python-engineio==4.9.0
 python-frontmatter==1.1.0
 python-socketio==5.11.1
+PyYAML==5.1
 requests==2.31.0
 simple-websocket==1.1.0
 six==1.17.0
