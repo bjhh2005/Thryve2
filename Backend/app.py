@@ -5,6 +5,7 @@ import json
 import threading
 import logging
 import locale
+import codecs
 
 from flask import Flask, request, Response
 from flask_socketio import SocketIO, emit
@@ -45,7 +46,34 @@ def setup_encoding():
     except Exception as e:
         logger.warning(f"Error setting up encoding: {e}")
 
-load_dotenv()
+# 设置详细的日志记录
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# 初始化时设置编码
+setup_encoding()
+
+# 尝试加载.env文件，处理可能的编码问题
+try:
+    # 首先尝试UTF-8编码
+    load_dotenv(encoding='utf-8')
+    logger.info(".env file loaded with UTF-8 encoding")
+except UnicodeDecodeError:
+    try:
+        # 如果UTF-8失败，尝试使用系统默认编码
+        load_dotenv(encoding=locale.getpreferredencoding())
+        logger.info(f".env file loaded with {locale.getpreferredencoding()} encoding")
+    except Exception as e:
+        logger.warning(f"Failed to load .env file: {e}")
+        # 创建一个空的.env文件以避免进一步的错误
+        try:
+            with open('.env', 'w', encoding='utf-8') as f:
+                f.write("# Environment variables\n")
+            logger.info("Created empty .env file with UTF-8 encoding")
+            load_dotenv(encoding='utf-8')
+        except Exception as create_err:
+            logger.error(f"Failed to create .env file: {create_err}")
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'
 
@@ -53,13 +81,6 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 #    这是解决此问题的最直接、最可靠的方法
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-# 设置详细的日志记录
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# 初始化时设置编码
-setup_encoding()
 
 # 执行中连接
 def engineConnect(engine : WorkflowEngine):
