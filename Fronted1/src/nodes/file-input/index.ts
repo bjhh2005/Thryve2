@@ -6,6 +6,8 @@ import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 import iconUpload from '../../assets/icon-file-upload.svg';
 
+let index = 0;
+
 export const FileInputNodeRegistry: FlowNodeRegistry = {
     type: WorkflowNodeType.FileInput,
     info: {
@@ -30,7 +32,7 @@ export const FileInputNodeRegistry: FlowNodeRegistry = {
             id: `file_input_${nanoid(5)}`,
             type: WorkflowNodeType.FileInput,
             data: {
-                title: 'File Input'
+                title: `File Input_${++index}`
             },
             files: [],
             outputs: {

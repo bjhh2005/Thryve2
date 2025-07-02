@@ -6,9 +6,15 @@ from .Print import Print
 from .Loop import Loop
 from .End import End
 from .TextProcessor import TextProcessor
+from .PdfProcessor import PdfProcessor
+from .CSV import CSVProcessor
+from .JSON import JSONProcessor
+from .FolderInput import FolderInput
+from .ImageProcessor import ImageProcessor
+from .MarkdownProcessor import MarkdownProcessor
+from .LLM import LLMProcessor
 
-# 重命名导出的类，避免与模块名冲突
 
 __version__ = "1.0.0"
 
-__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor"]
+__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor","MarkdownProcessor" ,"CSVProcessor", "JSONProcessor", "FolderInput", "ImageProcessor", "LLMProcessor"]

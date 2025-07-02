@@ -61,7 +61,7 @@ class ConditionNode(Node):
             
         Raises:
             ConditionError: 当操作数类型不合法时
-        """
+        
         if operator in NUMERIC_OPS:
             if not (isinstance(left_value, (int, float)) and isinstance(right_value, (int, float))):
                 raise ConditionError(f"数值比较操作符 '{operator}' 的操作数必须是数字类型")
@@ -75,7 +75,7 @@ class ConditionNode(Node):
                 iter(right_value)
             except TypeError:
                 raise ConditionError(f"集合操作符 '{operator}' 的右操作数必须是可迭代对象")
-
+"""
     def _evaluate_condition(self, condition: dict) -> bool:
         """
         评估单个条件表达式
@@ -172,8 +172,12 @@ class ConditionNode(Node):
             content = value_ref.get("content", [])
             if len(content) >= 2:
                 node_id = content[0]
+                if node_id.endswith("_locals"):
+                    node_id = node_id[:-7]
                 param_name = content[1]
                 return self._eventBus.emit("askMessage", node_id, param_name)
+            else:
+                return None
         
         # 如果是常量类型，直接返回内容
         return value_ref.get("content")
@@ -202,7 +206,7 @@ class ConditionNode(Node):
         更新下一个节点
         根据当前选择的分支设置下一个节点
         """
-        if self.current_branch is None and not self._is_loop_internal:
+        if self.current_branch is None:
             self._next = None
             self._eventBus.emit("message", "warning", self._id, "No branch selected")
             return

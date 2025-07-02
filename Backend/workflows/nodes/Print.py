@@ -16,17 +16,14 @@ class Print(Node):
         """
         super().__init__(id, type, nextNodes, eventBus)
         self.data = data
-        self.input_value = None
-        self.output = None
-
-        # 检查必要的配置
+        # self.input_value 直接保存 inputsValues.input
         if not isinstance(data, dict):
             raise PrintNodeError(f"节点 {id}: 数据格式错误",7)
-            
-        if "inputsValues" not in data:
-            raise PrintNodeError(f'节点 {self._id}: 节点json形式出错',7)
+        if "inputsValues" not in data or "input" not in data["inputsValues"]:
+            self.input_value = None
         else:
-            self.input_value = self.data['inputsValues']['input']
+            self.input_value = data["inputsValues"]["input"]
+        self.output = None
         # ref类型的值会在运行时获取
 
     def run(self):
@@ -35,30 +32,35 @@ class Print(Node):
         打印指定的消息，并更新节点状态
         """
         self._eventBus.emit("workflow", self._id)
-        
 
-        # 处理引用类型的输入
-        if self.input_value['type'] == "ref":
-            content = self.input_value["content"]
+        # 处理输入值
+        input_config = self.input_value
+        value = None
+        if input_config is None:
+            value = ""
+        elif input_config["type"] == "constant":
+            value = input_config.get("content", "")
+        elif input_config["type"] == "ref":
+            content = input_config.get("content", None)
             if not isinstance(content, list) or len(content) != 2:
                 raise PrintNodeError(f"节点 {self._id}: 引用值格式错误",7)
-                
             ref_node_id = content[0]
+            if ref_node_id.endswith("_locals"):
+                ref_node_id = ref_node_id[:-7]
             ref_property = content[1]
-            
-            self.output = self._eventBus.emit("askMessage", ref_node_id, ref_property)
-            if self.output is None:
+            value = self._eventBus.emit("askMessage", ref_node_id, ref_property)
+            if value is None:
                 raise PrintNodeError(f"节点 {self._id}: 无法获取引用节点 {ref_node_id} 的值",7)
-        elif self.input_value['type'] =='constant':
-            self.output = self.input_value['content']
-        
+        else:
+            value = ""
 
-        # 检查输入值
-        if len(self.output) == 0:
+        self.output = value
+
+        # 检查输出值
+        if not value:
             self._eventBus.emit("message", "warning", self._id, "input value is empty")
+        self._eventBus.emit("nodes_output", self._id, str(value))
 
-        self._eventBus.emit("nodes_output", self._id, str(self.output))
-        
         # 更新下一个节点
         self.updateNext()        
         return True

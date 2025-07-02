@@ -52,6 +52,7 @@ class WorkflowEngine :
           self.bus.on("putStack", self.putStack)
           self.bus.on("createNode", self.createNode)
           self.bus.on("getNodeInfo", self.getNodeInfo)
+          self.bus.on("cleanupNode", self.cleanupNode)
 
 
     
@@ -118,7 +119,6 @@ class WorkflowEngine :
           """
           Find the node with type 'start' in the node list and return its ID
           """
-          print(self.nodes)
           for nodeId, nodeData in self.nodes.items():
                if nodeData.get('type') == 'start':
                     return nodeId
@@ -135,5 +135,10 @@ class WorkflowEngine :
      def getNodeInfo(self, nodeId):
           """Get node information"""
           return self.nodes.get(nodeId, {})
+
+     def cleanupNode(self, nodeId):
+          """清理节点实例"""
+          if nodeId in self.instance:
+               del self.instance[nodeId]
 
                

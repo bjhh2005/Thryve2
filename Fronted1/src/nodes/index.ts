@@ -8,10 +8,14 @@ import { ConditionNodeRegistry } from './condition';
 import { CommentNodeRegistry } from './comment';
 import { PrintNodeRegistry } from './print';
 import { FileInputNodeRegistry } from './file-input';
+import { FolderInputRegistry } from './folder-input';
 import { TextProcessorNodeRegistry } from './text-processor';
 import { CsvProcessorRegistry } from './csv-processor';
 import { JsonProcessorRegistry } from './json-processor';
 import { PdfProcessorRegistry } from './pdf-processor';
+import { MarkdownProcessorRegistry } from './markdown-processor';
+import { ExportVariableRegistry } from './export-variable';
+import { ImgProcessorRegistry } from './img-processor';
 
 export { WorkflowNodeType } from './constants';
 
@@ -19,6 +23,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   ConditionNodeRegistry,
   StartNodeRegistry,
   FileInputNodeRegistry,
+  FolderInputRegistry,
   EndNodeRegistry,
   LLMNodeRegistry,
   LoopNodeRegistry,
@@ -28,6 +33,9 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   CsvProcessorRegistry,
   JsonProcessorRegistry,
   PdfProcessorRegistry,
+  MarkdownProcessorRegistry,
+  ExportVariableRegistry,
+  ImgProcessorRegistry,
 ];
 
 /**
@@ -37,3 +45,6 @@ export const nodeRegistries: FlowNodeRegistry[] = [
 export const visibleNodeRegistries = nodeRegistries.filter(
   (r) => r.type !== WorkflowNodeType.Comment
 );
+
+export { FileInputNodeRegistry as fileInput } from './file-input';
+export { FolderInputRegistry as folderInput } from './folder-input';

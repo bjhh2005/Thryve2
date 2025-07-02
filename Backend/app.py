@@ -15,9 +15,10 @@ from workflows.Engine import WorkflowEngine
 load_dotenv()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'
-CORS(app)
 
-# 创建SocketIO实例，支持/workflow命名空间
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+#    这是解决此问题的最直接、最可靠的方法
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 设置详细的日志记录
@@ -59,7 +60,7 @@ def execute_workflow_task(workflow_data):
         else:
             socketio.emit('over', {
                 'message': f'Workflow execution failed: {message}',
-                'data': ['workflow_incomplete'],
+                'data': -1,
                 'status': 'error'
             }, namespace='/workflow')
             
@@ -138,22 +139,53 @@ def chat():
     return Response(stream_generator(), mimetype="text/event-stream")
 
 # -------------------------------------------------------------------
-#  新增：工作流自动生成 API
+#  新增：生成对话标题API路由
 # -------------------------------------------------------------------
-@app.route("/api/agent/generate", methods=["POST"])
-def generate_workflow():
-    """根据自然语言需求生成工作流 JSON"""
-    data = request.get_json()
-    if not data or "requirement" not in data:
-        return Response(json.dumps({"error": "Missing 'requirement' field."}), status=400, mimetype="application/json")
-
+@app.route("/api/generate-title", methods=["POST"])
+def generate_title():
     try:
-        result = wf_agent.invoke({"requirement": data["requirement"]})
-        return Response(json.dumps(result["workflow_json"], ensure_ascii=False), mimetype="application/json")
-    except Exception as e:
-        logger.error(f"Generate workflow error: {e}")
-        return Response(json.dumps({"error": str(e)}), status=500, mimetype="application/json")
+        data = request.get_json()
+        if not data:
+            raise ValueError("Request body is not a valid JSON.")
 
+        user_message = data.get("message")
+        if not user_message:
+            raise ValueError("Missing 'message' field in request body.")
+
+        api_key = os.getenv("SILICONFLOW_API_KEY")
+        base_url = "https://api.siliconflow.cn/v1"
+        model_name = "Qwen/Qwen2-7B-Instruct" 
+
+        if not api_key:
+             raise ValueError("Server API key (SILICONFLOW_API_KEY) is not configured.")
+
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "你是一个文本摘要专家，请根据用户输入，为这段对话生成一个非常简短、不超过8个字的精炼标题。请不要添加任何多余的解释或标点符号，直接输出标题本身。"
+                },
+                {
+                    "role": "user", 
+                    "content": user_message
+                }
+            ],
+            temperature=0.2,
+            stream=False
+        )
+        
+        title = completion.choices[0].message.content.strip().replace("\"", "").replace("“", "").replace("”", "")
+        
+        logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
+        return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
+
+    except Exception as e:
+        logger.error(f"An error occurred in /api/generate-title: {e}")
+        return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
+    
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server...")
     socketio.run(app, debug=True, port=4000)

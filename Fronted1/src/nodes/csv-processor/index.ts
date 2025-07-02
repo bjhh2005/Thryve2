@@ -4,6 +4,8 @@ import { WorkflowNodeType } from '../constants';
 import { formMeta } from './form-meta';
 import iconCsvProcessor from '../../assets/icon-csv-processor.png';
 
+let index = 0;
+
 export const CsvProcessorRegistry: FlowNodeRegistry = {
   type: WorkflowNodeType.CsvProcessor,
   info: {
@@ -28,8 +30,8 @@ export const CsvProcessorRegistry: FlowNodeRegistry = {
       id: `csv_processor_${nanoid(5)}`,
       type: WorkflowNodeType.CsvProcessor,
       data: {
-        title: 'CSV Processor',
-        mode: 'read', // 默认模式
+        title: `CSV Processor_${++index}`,
+        mode: 'filter', // 默认模式
         inputs: {
           type: 'object',
           required: ['inputFile'],

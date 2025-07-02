@@ -64,6 +64,90 @@ export const createSyncVariablePlugin: PluginCreator<SyncVariablePluginOptions> 
             return;
           }
 
+          // Handle folder input node
+          if (node.type === WorkflowNodeType.FolderInput) {
+            console.log('Syncing folder input node:', node.id);
+            
+            // Clear existing variables
+            variableData.clearVar();
+            
+            // Get outputs from form
+            const outputs = form?.getValueIn('outputs');
+            console.log('Folder node outputs:', outputs);
+            
+            if (!outputs?.properties) {
+                console.warn('No outputs properties found');
+                return;
+            }
+
+            // Iterate through all properties
+            Object.entries(outputs.properties).forEach(([key, property]: [string, any]) => {
+                console.log('Processing property:', { key, property });
+                
+                if (!property.isOutput) {
+                    console.log('Skipping non-output property:', key);
+                    return;
+                }
+
+                if (property.type === 'string') {
+                    console.log('Registering string variable:', {
+                        key: `${node.id}_${key}`,
+                        title: property.title,
+                        value: property.default
+                    });
+                    
+                    // Register folder path variable
+                    variableData.setVar(
+                        ASTFactory.createVariableDeclaration({
+                            meta: {
+                                title: property.title,
+                                icon: node.getNodeRegistry()?.info?.icon,
+                            },
+                            key: `${node.id}_${key}`,
+                            type: ASTFactory.createString(),
+                            initializer: {
+                                kind: 'String',
+                                value: property.default
+                            }
+                        })
+                    );
+                } else if (property.type === 'array' && property.items?.type === 'string') {
+                    console.log('Registering array variable:', {
+                        key: `${node.id}_${key}`,
+                        title: property.title,
+                        elements: property.default
+                    });
+                    
+                    // Register files list variable
+                    variableData.setVar(
+                        ASTFactory.createVariableDeclaration({
+                            meta: {
+                                title: property.title,
+                                icon: node.getNodeRegistry()?.info?.icon,
+                            },
+                            key: `${node.id}_${key}`,
+                            type: {
+                                kind: 'Array',
+                                items: {
+                                    kind: 'String'
+                                }
+                            },
+                            initializer: {
+                                kind: 'Array',
+                                elements: (property.default || []).map((file: string) => ({
+                                    kind: 'String',
+                                    value: file
+                                }))
+                            }
+                        })
+                    );
+                }
+            });
+
+            console.log('Finished syncing folder input node');
+            return;
+          }
+
           // 处理其他类型节点
           const typeAST = JsonSchemaUtils.schemaToAST(value);
 

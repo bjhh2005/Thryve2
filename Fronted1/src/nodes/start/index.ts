@@ -4,6 +4,8 @@ import iconStart from '../../assets/icon-start.jpg';
 import { formMeta } from './form-meta';
 import { WorkflowNodeType } from '../constants';
 
+let index = 0;
+
 export const StartNodeRegistry: FlowNodeRegistry = {
   // 定义结点类型
   type: WorkflowNodeType.Start,
@@ -37,7 +39,7 @@ export const StartNodeRegistry: FlowNodeRegistry = {
       id: `start_${nanoid(5)}`,
       type: 'start',
       data: {
-        title: 'Start',
+        title: `Start_${++index}`,
         outputs: {
           type: 'object',
           properties: {

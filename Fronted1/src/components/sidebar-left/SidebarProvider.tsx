@@ -3,7 +3,7 @@ import React, { useState, useCallback, useContext, createContext, useRef, useEff
 // 初始宽度和最小/最大宽度限制
 const INITIAL_WIDTH = 400;
 const MIN_WIDTH = 300;
-const MAX_WIDTH = 800;
+const MAX_WIDTH = 1000;
 
 interface LeftSidebarContextType {
   isCollapsed: boolean;
