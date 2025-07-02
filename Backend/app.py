@@ -29,7 +29,11 @@ logger = logging.getLogger(__name__)
 def engineConnect(engine : WorkflowEngine):
 
     # 这里的所有的message的传递应该都是str类型的
-    engine.bus.on('workflow', lambda nodeId:socketio.emit('workflow', {"nodeId" : nodeId}, namespace='/workflow'))
+    engine.bus.on('workflow', lambda nodeId, status, data=None:socketio.emit('workflow', {
+        "nodeId": nodeId,
+        "status": status,
+        "data": data
+    }, namespace='/workflow'))
 
     # 选择从 info , warning , error
     engine.bus.on('message', lambda event,nodeId,message:socketio.emit(event, {"data":nodeId, "message" : message},namespace='/workflow'))

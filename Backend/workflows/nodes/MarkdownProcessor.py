@@ -74,7 +74,7 @@ class MarkdownProcessor(MessageNode):
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, str(e))
         self.updateNext()
-        return True
+        return self.MessageList
 
     def handle_convert(self):
         input_file = self._get_input_value(self.inputs.get("inputFile"), "")

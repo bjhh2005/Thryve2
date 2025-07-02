@@ -75,7 +75,7 @@ class FolderInput(MessageNode):
         try:
             #self._eventBus.emit("message", "info", self._id, "Folder input success!")
             self.updateNext()
-            return True
+            return self.MessageList
         except Exception as e:
             raise FolderInputError(f"节点 {self._id} 执行失败: {str(e)}",11)
 

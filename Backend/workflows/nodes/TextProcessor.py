@@ -84,7 +84,7 @@ class TextProcessor(MessageNode):
             
             # 更新下一个节点
             self.updateNext()
-            return True
+            return self.MessageList
             
         except Exception as e:
             raise Exception(f"文本处理节点 {self._id} 执行错误: {str(e)}", 9)

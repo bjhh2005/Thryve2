@@ -24,8 +24,9 @@ class Start(MessageNode):
 
     def run(self):
         self._eventBus.emit("workflow", self._id)
-        print(self._nextNodes)
+        
         self.updateNext()
+        return self.MessageList
 
     def updateNext(self):
         if not self._nextNodes:
