@@ -78,17 +78,38 @@ class WorkflowEngine :
           last_node_type = None  # Track the last executed node type
           
           while curNodeID != None:
-               self.bus.emit("workflow", curNodeID)
+               try:
+                    #这里节点开始running，向前端发送消息
+                    self.bus.emit("workflow", curNodeID, "running")
                               
-               if curNodeID not in self.instance:
-                    self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
-                    if self.instance[curNodeID] is None:
-                         raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
+                    if curNodeID not in self.instance:
+                         self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
+                         if self.instance[curNodeID] is None:
+                              raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
                     
-               workNode = self.instance[curNodeID]
-               last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
+                    workNode = self.instance[curNodeID]
+                    last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
+                    
+                    # 运行节点
+                    output = workNode.run()
+                    
+                    # 节点运行成功，发送success状态和输出数据
+                    # 将 MessageList 转换为 JSON 格式
+                    output_json = {
+                         "type": last_node_type,
+                         "data": output
+                    }
+                    self.bus.emit("workflow", curNodeID, "success", output_json)
+                    
+               except Exception as e:
+                    # 如果运行失败，发送error状态和错误信息
+                    error_json = {
+                         "type": last_node_type,
+                         "error": str(e)
+                    }
+                    self.bus.emit("workflow", curNodeID, "error", error_json)
+                    return False, f"Node {curNodeID} execution failed: {str(e)}"
                
-               workNode.run()
                curNodeID = workNode.getNext()
                if curNodeID is None:
                     curNodeID = self.popStack()

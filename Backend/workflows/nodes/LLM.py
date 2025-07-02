@@ -171,7 +171,7 @@ class LLMProcessor(Node):
             
             # 更新下一个节点
             self.updateNext()
-            return True
+            return self.MessageList
 
         except LLMError as e:
             self._eventBus.emit("message", "error", self._id, str(e))

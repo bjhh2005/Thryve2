@@ -217,7 +217,7 @@ class Loop(MessageNode):
             
             # 更新下一个要执行的节点
             self.updateNext()
-            return self.getNext()
+            return self.MessageList
             
         except LoopError:
             raise

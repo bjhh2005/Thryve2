@@ -16,6 +16,7 @@ class End(Node):
     def run(self):
         # 更新下一个节点
         self.updateNext()
+        return True
         
     def updateNext(self):
         return None
