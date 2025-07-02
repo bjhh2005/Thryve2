@@ -6,11 +6,17 @@ import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
 import { IconUser, IconBolt, IconSetting, IconSend, IconSidebar, IconMenu } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
+import IconAIAssistant from '../../../assets/icon-logo.png';
 import './ChatView.less';
 
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => (
     <div className={`message-bubble ${message.role}`}>
-        <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
+        <div className="avatar">
+            {message.role === 'assistant' 
+                ? <img src={IconAIAssistant} alt="AI" className="ai-avatar" />
+                : <IconUser />
+            }
+        </div>
         <div className="bubble-content">
             {message.content === 'Thinking...' ? (
                 <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>

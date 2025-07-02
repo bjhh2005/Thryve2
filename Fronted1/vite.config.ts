@@ -31,5 +31,8 @@ export default defineConfig({
     },
     emptyOutDir: true,
     cssCodeSplit: false
+  },
+  server: {
+    open: true
   }
 });

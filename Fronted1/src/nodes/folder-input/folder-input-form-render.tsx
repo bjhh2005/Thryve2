@@ -68,7 +68,6 @@ const FolderInput: React.FC<{
 
             // 使用文件夹名作为变量名，保留中文但替换空格和特殊字符为下划线
             const variableName = folderRef.folderName
-                .trim()
                 .replace(/[\s\(\)\[\]\{\}\+\*\?\^\$\|\.\\]/g, '_');
             
             field.onChange({ 

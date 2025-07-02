@@ -47,5 +47,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getBackendStatus: () => backendStatus,
     
     // 检查后端是否运行
-    isBackendRunning: () => backendStatus.running
+    isBackendRunning: () => backendStatus.running,
+    
+    // 设置后端下载路径
+    setDownloadPath: (path) => ipcRenderer.invoke('set-download-path', path),
+    
+    // 获取后端下载路径
+    getDownloadPath: () => ipcRenderer.invoke('get-download-path')
 }); 

@@ -1,7 +1,7 @@
 {
   "name": "fronted",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Workflow Editor Application",
   "author": {
@@ -17,9 +17,11 @@
     "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron .\"",
     "electron:zrx": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron . --disable-gpu-sandbox\"",
     "electron:build": "vite build && electron-builder",
+    "electron:build:zrx": "vite build && cross-env ELECTRON_EXTRA_LAUNCH_ARGS=\"--disable-gpu-sandbox\" electron-builder",
+    "electron:build:portable": "vite build && cross-env ELECTRON_EXTRA_LAUNCH_ARGS=\"--disable-gpu-sandbox\" electron-builder --win portable",
     "electron:preview": "electron .",
     "build:backend": "cd ../Backend && mkdir -p workflows && pyinstaller backend.spec",
-    "build:all": "npm run build && npm run build:backend && npm run package:all",
+    "build:all": "npm run build && npm run build:backend && npm run electron:zrx",
     "package:all": "electron-builder --dir"
   },
   "dependencies": {
@@ -34,6 +36,7 @@
     "fuzzysort": "^3.1.0",
     "idb": "^8.0.3",
     "lodash-es": "^4.17.21",
+    "mime-types": "^3.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^10.1.0",
@@ -62,46 +65,83 @@
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
     "less": "^4.3.0",
-    "mime-types": "^3.0.1",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5"
   },
   "build": {
     "appId": "com.your-company.workflow-editor",
-    "productName": "Workflow Editor",
+    "productName": "Thryve",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "build",
+      "app": "."
     },
     "files": [
       "dist/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "node_modules/mime-types/**/*",
+      "node_modules/mime-db/**/*"
     ],
     "extraResources": [
       {
-        "from": "../Backend/dist/backend",
+        "from": "../Backend/dist/Thryve_back",
         "to": "backend",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**",
+          "!**/*.spec",
+          "!**/*.pyc~",
+          "!**/*.pyo~",
+          "!**/*.git/**"
+        ]
       }
     ],
     "extraMetadata": {
       "main": "electron/main.cjs"
     },
     "win": {
-      "target": "nsis",
-      "icon": "../logo/icon.ico"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "../logo/icon.ico",
+      "artifactName": "Thryve-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Thryve-Portable-${version}.exe"
     },
     "mac": {
       "target": "dmg",
-      "icon": "../logo/icon.icns"
+      "icon": "../logo/icon.ico",
+      "artifactName": "Thryve-${version}.${ext}"
     },
     "linux": {
       "target": "AppImage",
-      "icon": "../logo/icon.png"
+      "icon": "../logo/icon.ico",
+      "artifactName": "Thryve-${version}.${ext}"
     },
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"
     },
-    "afterPack": "electron/after-pack.js"
+    "afterPack": "electron/after-pack.js",
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
+    },
+    "asar": true,
+    "buildDependenciesFromSource": true,
+    "removePackageScripts": true,
+    "npmRebuild": true,
+    "publish": null,
+    "extends": null
   }
 }
