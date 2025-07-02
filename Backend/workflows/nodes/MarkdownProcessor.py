@@ -3,7 +3,6 @@ import markdown
 import frontmatter as fm
 import yaml
 from .Node import Node
-from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
 import pypandoc
 
@@ -25,7 +24,6 @@ class MarkdownProcessor(Node):
         self.inputs = data.get("inputsValues", {})
         self.output = None
         self.MessageList = {}
-        pretty_print_dict(self.data)
 
     def _get_input_value(self, value, default=None):
         if isinstance(value, dict):
