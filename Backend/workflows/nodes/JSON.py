@@ -430,7 +430,7 @@ class JSONProcessor(MessageNode):
             
             # 更新下一个节点
             self.updateNext()
-            return True
+            return self.MessageList
 
         except JSONProcessError as e:
             self._eventBus.emit("message", "error", self._id, str(e))
