@@ -2,8 +2,8 @@ import os
 import markdown
 import frontmatter as fm
 import yaml
-from .Node import Node
-from ..dict_viewer import pretty_print_dict
+from .MessageNode import MessageNode
+#from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
 import pypandoc
 
@@ -17,7 +17,7 @@ def generate_output_path(output_folder: str, output_name: str, ext: str = ".md")
     print(output_folder, output_name)
     return os.path.join(output_folder, output_name)
 
-class MarkdownProcessor(Node):
+class MarkdownProcessor(MessageNode):
     def __init__(self, id, type, nextNodes, eventBus, data):
         super().__init__(id, type, nextNodes, eventBus)
         self.data = data
@@ -25,7 +25,7 @@ class MarkdownProcessor(Node):
         self.inputs = data.get("inputsValues", {})
         self.output = None
         self.MessageList = {}
-        pretty_print_dict(self.data)
+        #pretty_print_dict(self.data)
 
     def _get_input_value(self, value, default=None):
         if isinstance(value, dict):
