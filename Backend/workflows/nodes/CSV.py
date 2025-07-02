@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import Dict, Any, List, Optional
+from .MessageNode import MessageNode
 from .Node import Node
 import json
 import os
@@ -14,7 +15,7 @@ def generate_output_path(output_folder: str, output_name: str) -> str:
         output_name += '.csv'
     return os.path.join(output_folder, output_name)
 
-class CSVProcessor(Node):
+class CSVProcessor(MessageNode):
     def __init__(self, id: str, type: str, nextNodes: list, eventBus: Any, data: Dict[str, Any]):
         """
         初始化CSV处理节点
@@ -26,7 +27,7 @@ class CSVProcessor(Node):
             eventBus: 事件总线
             data: 节点数据
         """
-        super().__init__(id, type, nextNodes, eventBus)
+        super(MessageNode, self).__init__(id, type, nextNodes, eventBus)
         self.data = data
         self.mode = data.get("mode", "")
         self.inputs = data.get("inputsValues", {})
@@ -115,30 +116,50 @@ class CSVProcessor(Node):
         try:
             # 获取并记录输入参数
             input_file = self._get_input_value(self.inputs.get("inputFile"))
+            if not input_file:
+                raise CSVProcessError("输入文件路径为空")
             self._eventBus.emit("message", "info", self._id, f"准备读取文件: {input_file}")
             
-            column = self.inputs.get("column")
-            ascending = self._get_input_value(self.inputs.get("ascending", True))
+            # 检查文件是否存在
+            if not os.path.exists(input_file):
+                raise CSVProcessError(f"输入文件不存在: {input_file}")
+            
+            column = self._get_input_value(self.inputs.get("column"))
+            if not column:
+                raise CSVProcessError("排序列名为空")
+            
+            # 处理ascending参数，如果未设置则默认为false
+            ascending_input = self.inputs.get("ascending")
+            if ascending_input is None:
+                ascending = False
+                self._eventBus.emit("message", "info", self._id, "未设置排序方向，默认使用降序(ascending=false)")
+            else:
+                ascending_value = self._get_input_value(ascending_input)
+                ascending = ascending_value.lower() == "true" if isinstance(ascending_value, str) else bool(ascending_value)
             
             output_folder = self._get_input_value(self.inputs.get("outputFolder"))
             output_name = self._get_input_value(self.inputs.get("outputName"))
+            
+            if not output_folder or not output_name:
+                raise CSVProcessError("输出路径参数不完整")
+            
             output_file = generate_output_path(output_folder, output_name)
             
             self._eventBus.emit("message", "info", self._id, f"排序参数: 列名={column}, 升序={ascending}")
-
-            if not all([input_file, column, output_folder, output_name]):
-                raise CSVProcessError("排序参数不完整")
 
             # 确保输出目录存在
             os.makedirs(output_folder, exist_ok=True)
 
             # 读取CSV文件
             self._eventBus.emit("message", "info", self._id, "开始读取CSV文件")
-            df = pd.read_csv(input_file)
+            try:
+                df = pd.read_csv(input_file)
+            except Exception as e:
+                raise CSVProcessError(f"读取CSV文件失败: {str(e)}")
             
             # 验证列名是否存在
             if column not in df.columns:
-                raise CSVProcessError(f"列名 '{column}' 不存在")
+                raise CSVProcessError(f"列名 '{column}' 不存在，可用的列名有: {', '.join(df.columns)}")
             
             # 排序
             try:
@@ -243,6 +264,10 @@ class CSVProcessor(Node):
 
             # 更新MessageList
             self.MessageList.update(result)
+            
+            # 如果生成了文件，确保文件路径被单独存储
+            if "filePath" in result:
+                self.MessageList["outputFile"] = result["filePath"]
             
             # 将结果转换为字符串
             result_str = json.dumps(result, ensure_ascii=False)

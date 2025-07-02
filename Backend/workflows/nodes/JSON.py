@@ -1,5 +1,6 @@
 import json
 from typing import Dict, Any, List, Optional
+from .MessageNode import MessageNode
 from .Node import Node
 from jsonpath_ng import parse as parse_jsonpath
 from jsonschema import validate as validate_schema, ValidationError
@@ -31,7 +32,7 @@ def save_json_to_file(data: Any, file_path: str, indent: int = 2) -> None:
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, ensure_ascii=False, indent=indent)
 
-class JSONProcessor(Node):
+class JSONProcessor(MessageNode):
     def __init__(self, id: str, type: str, nextNodes: list, eventBus: Any, data: Dict[str, Any]):
         """
         初始化JSON处理节点
@@ -43,7 +44,7 @@ class JSONProcessor(Node):
             eventBus: 事件总线
             data: 节点数据
         """
-        super().__init__(id, type, nextNodes, eventBus)
+        super(MessageNode, self).__init__(id, type, nextNodes, eventBus)
         self.data = data
         self.mode = data.get("mode", "")
         self.inputs = data.get("inputsValues", {})
@@ -236,7 +237,16 @@ class JSONProcessor(Node):
             # 获取输入参数
             input_data = self._get_input_value(self.inputs.get("inputData"))
             source_data = self._get_input_value(self.inputs.get("sourceData"))
-            deep = self._get_input_value(self.inputs.get("deep", True))
+            
+            # 处理deep参数，如果未设置则默认为false
+            deep_input = self.inputs.get("deep")
+            if deep_input is None:
+                deep = False
+                self._eventBus.emit("message", "info", self._id, "未设置合并方式，默认使用浅合并(deep=false)")
+            else:
+                deep_value = self._get_input_value(deep_input)
+                deep = deep_value.lower() == "true" if isinstance(deep_value, str) else bool(deep_value)
+            
             output_folder = self._get_input_value(self.inputs.get("outputFolder"))
             output_name = self._get_input_value(self.inputs.get("outputName"))
             
@@ -407,6 +417,10 @@ class JSONProcessor(Node):
 
             # 更新MessageList
             self.MessageList.update(result)
+            
+            # 如果生成了文件，确保文件路径被单独存储
+            if "filePath" in result:
+                self.MessageList["outputFile"] = result["filePath"]
             
             # 将结果转换为字符串
             result_str = json.dumps(result, ensure_ascii=False)
