@@ -15,8 +15,12 @@
     "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron .\"",
+    "electron:zrx": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron . --disable-gpu-sandbox\"",
     "electron:build": "vite build && electron-builder",
-    "electron:preview": "electron ."
+    "electron:preview": "electron .",
+    "build:backend": "cd ../Backend && mkdir -p workflows && pyinstaller backend.spec",
+    "build:all": "npm run build && npm run build:backend && npm run package:all",
+    "package:all": "electron-builder --dir"
   },
   "dependencies": {
     "@flowgram.ai/form-materials": "^0.2.14",
@@ -27,8 +31,8 @@
     "@flowgram.ai/free-snap-plugin": "^0.2.14",
     "@flowgram.ai/runtime-interface": "^0.2.14",
     "@flowgram.ai/runtime-js": "^0.2.14",
-    "idb": "^8.0.3",
     "fuzzysort": "^3.1.0",
+    "idb": "^8.0.3",
     "lodash-es": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -73,17 +77,31 @@
       "dist/**/*",
       "electron/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "../Backend/dist/backend",
+        "to": "backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "extraMetadata": {
+      "main": "electron/main.cjs"
+    },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "../logo/icon.ico"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "../logo/icon.icns"
     },
     "linux": {
-      "target": "AppImage"
+      "target": "AppImage",
+      "icon": "../logo/icon.png"
     },
     "electronDownload": {
       "mirror": "https://npmmirror.com/mirrors/electron/"
-    }
+    },
+    "afterPack": "electron/after-pack.js"
   }
 }

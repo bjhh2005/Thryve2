@@ -128,28 +128,53 @@ class PdfProcessor(MessageNode):
             # 提取文本和图片
             for page_num in pages:
                 page = doc[page_num]
-                text_content.append(page.get_text())
+                try:
+                    page_text = page.get_text()
+                    # 处理可能的编码问题
+                    if isinstance(page_text, str):
+                        try:
+                            # 测试能否正确编码
+                            page_text.encode('utf-8')
+                        except UnicodeEncodeError:
+                            # 如果编码失败，使用replace策略
+                            page_text = page_text.encode('utf-8', errors='replace').decode('utf-8')
+                    text_content.append(page_text)
+                except Exception as e:
+                    self._eventBus.emit("message", "warning", self._id, f"提取页面 {page_num + 1} 文本时出错: {str(e)}")
+                    text_content.append(f"[页面 {page_num + 1} 文本提取失败]")
                 
                 if extract_images:
                     for img_index, img in enumerate(page.get_images()):
-                        xref = img[0]
-                        base_image = doc.extract_image(xref)
-                        image_data = base_image["image"]
-                        
-                        # 保存图片到指定目录
-                        image_filename = f"page_{page_num + 1}_img_{img_index + 1}.png"
-                        image_path = os.path.join(self.output_dir, image_filename)
-                        image_path = self._get_unique_filename(image_path)
-                        with open(image_path, "wb") as img_file:
-                            img_file.write(image_data)
-                        images.append(image_path)
+                        try:
+                            xref = img[0]
+                            base_image = doc.extract_image(xref)
+                            image_data = base_image["image"]
+                            
+                            # 保存图片到指定目录
+                            image_filename = f"page_{page_num + 1}_img_{img_index + 1}.png"
+                            image_path = os.path.join(self.output_dir, image_filename)
+                            image_path = self._get_unique_filename(image_path)
+                            with open(image_path, "wb") as img_file:
+                                img_file.write(image_data)
+                            images.append(image_path)
+                        except Exception as img_err:
+                            self._eventBus.emit("message", "warning", self._id, 
+                                              f"提取页面 {page_num + 1} 图片 {img_index + 1} 时出错: {str(img_err)}")
             
             # 保存提取的文本到指定目录
             text_content_str = "\n".join(text_content)
             text_output_file = os.path.join(self.output_dir, "extracted_text.txt")
             text_output_file = self._get_unique_filename(text_output_file)
-            with open(text_output_file, "w", encoding="utf-8") as f:
-                f.write(text_content_str)
+            
+            # 使用utf-8编码保存文本，处理可能的编码问题
+            try:
+                with open(text_output_file, "w", encoding="utf-8", errors="replace") as f:
+                    f.write(text_content_str)
+            except Exception as write_err:
+                self._eventBus.emit("message", "error", self._id, f"保存提取文本时出错: {str(write_err)}")
+                # 尝试使用不同的编码方式
+                with open(text_output_file, "w", encoding="cp936", errors="replace") as f:
+                    f.write(text_content_str)
 
             doc.close()
             self._eventBus.emit("message", "info", self._id, "PDF extraction completed successfully!")
@@ -327,24 +352,50 @@ class PdfProcessor(MessageNode):
                     conversion_log.append(f"Page {page_num + 1} converted to {output_format}")
                 
                 elif output_format == 'text':
-                    text = page.get_text()
-                    text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
-                    text_path = os.path.join(self.output_dir, text_filename)
-                    text_path = self._get_unique_filename(text_path)
-                    with open(text_path, 'w', encoding='utf-8') as f:
-                        f.write(text)
-                    output_files.append(text_path)
-                    conversion_log.append(f"Page {page_num + 1} converted to text")
+                    try:
+                        text = page.get_text()
+                        # 处理可能的编码问题
+                        if isinstance(text, str):
+                            try:
+                                # 测试能否正确编码
+                                text.encode('utf-8')
+                            except UnicodeEncodeError:
+                                # 如果编码失败，使用replace策略
+                                text = text.encode('utf-8', errors='replace').decode('utf-8')
+                        
+                        text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
+                        text_path = os.path.join(self.output_dir, text_filename)
+                        text_path = self._get_unique_filename(text_path)
+                        with open(text_path, 'w', encoding='utf-8', errors='replace') as f:
+                            f.write(text)
+                        output_files.append(text_path)
+                        conversion_log.append(f"Page {page_num + 1} converted to text")
+                    except Exception as text_err:
+                        self._eventBus.emit("message", "warning", self._id, 
+                                          f"转换页面 {page_num + 1} 为文本时出错: {str(text_err)}")
                 
                 elif output_format == 'html':
-                    html = page.get_text("html")
-                    html_filename = f"{self.output_name}_page_{page_num + 1}.html"
-                    html_path = os.path.join(self.output_dir, html_filename)
-                    html_path = self._get_unique_filename(html_path)
-                    with open(html_path, 'w', encoding='utf-8') as f:
-                        f.write(html)
-                    output_files.append(html_path)
-                    conversion_log.append(f"Page {page_num + 1} converted to HTML")
+                    try:
+                        html = page.get_text("html")
+                        # 处理可能的编码问题
+                        if isinstance(html, str):
+                            try:
+                                # 测试能否正确编码
+                                html.encode('utf-8')
+                            except UnicodeEncodeError:
+                                # 如果编码失败，使用replace策略
+                                html = html.encode('utf-8', errors='replace').decode('utf-8')
+                        
+                        html_filename = f"{self.output_name}_page_{page_num + 1}.html"
+                        html_path = os.path.join(self.output_dir, html_filename)
+                        html_path = self._get_unique_filename(html_path)
+                        with open(html_path, 'w', encoding='utf-8', errors='replace') as f:
+                            f.write(html)
+                        output_files.append(html_path)
+                        conversion_log.append(f"Page {page_num + 1} converted to HTML")
+                    except Exception as html_err:
+                        self._eventBus.emit("message", "warning", self._id, 
+                                          f"转换页面 {page_num + 1} 为HTML时出错: {str(html_err)}")
             
             doc.close()
             self._eventBus.emit("message", "info", self._id, "PDF conversion completed successfully!")

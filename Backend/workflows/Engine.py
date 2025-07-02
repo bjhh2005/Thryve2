@@ -1,4 +1,5 @@
 import logging
+import sys
 
 
 from .Factory import NodeFactory
@@ -78,20 +79,52 @@ class WorkflowEngine :
           last_node_type = None  # Track the last executed node type
           
           while curNodeID != None:
-               self.bus.emit("workflow", curNodeID)
-                              
-               if curNodeID not in self.instance:
-                    self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
-                    if self.instance[curNodeID] is None:
-                         raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
+               try:
+                    self.bus.emit("workflow", curNodeID)
+                                   
+                    if curNodeID not in self.instance:
+                         self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
+                         if self.instance[curNodeID] is None:
+                              raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
+                         
+                    workNode = self.instance[curNodeID]
+                    last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
                     
-               workNode = self.instance[curNodeID]
-               last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
-               
-               workNode.run()
-               curNodeID = workNode.getNext()
-               if curNodeID is None:
-                    curNodeID = self.popStack()
+                    workNode.run()
+                    curNodeID = workNode.getNext()
+                    if curNodeID is None:
+                         curNodeID = self.popStack()
+               except UnicodeError as ue:
+                    # 处理编码错误
+                    node_type = self.nodes[curNodeID].get('type', 'unknown')
+                    error_msg = f"编码错误在节点 {node_type} (ID: {curNodeID}): {str(ue)}"
+                    logging.error(error_msg)
+                    
+                    # 尝试修复编码问题
+                    try:
+                         # 对于消息类节点，尝试修复其MessageList中的内容
+                         if hasattr(workNode, 'MessageList') and isinstance(workNode.MessageList, dict):
+                              for key, value in workNode.MessageList.items():
+                                   if isinstance(value, str):
+                                        # 尝试使用replace策略处理无法编码的字符
+                                        workNode.MessageList[key] = value.encode('utf-8', errors='replace').decode('utf-8')
+                         
+                         # 继续执行
+                         curNodeID = workNode.getNext()
+                         if curNodeID is None:
+                              curNodeID = self.popStack()
+                    except Exception:
+                         # 如果修复失败，则中断工作流
+                         return False, error_msg
+               except Exception as e:
+                    # 处理其他异常
+                    node_type = "unknown"
+                    if curNodeID in self.nodes:
+                         node_type = self.nodes[curNodeID].get('type', 'unknown')
+                    
+                    error_msg = f"节点 {node_type} (ID: {curNodeID}) 执行错误: {str(e)}"
+                    logging.error(error_msg)
+                    return False, error_msg
           
           # Check if workflow ended properly (last node is end node)
           if last_node_type != 'end':
@@ -101,7 +134,22 @@ class WorkflowEngine :
 
 
      def askMessage(self, nodeId, nodePort):
-          return self.instance[nodeId].getMessage(nodePort)
+          try:
+               message = self.instance[nodeId].getMessage(nodePort)
+               
+               # 如果是字符串，确保编码正确
+               if isinstance(message, str):
+                    try:
+                         # 测试能否正确编码
+                         message.encode('utf-8')
+                    except UnicodeEncodeError:
+                         # 如果编码失败，使用replace策略
+                         message = message.encode('utf-8', errors='replace').decode('utf-8')
+               
+               return message
+          except Exception as e:
+               logging.error(f"Error in askMessage: {e}")
+               return f"[ERROR: {str(e)}]"
 
 
      def putStack(self, nodeID):

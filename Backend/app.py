@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 import json
 import threading
 import logging
+import locale
 
 from flask import Flask, request, Response
 from flask_socketio import SocketIO, emit
@@ -10,6 +12,38 @@ from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
+
+# 设置编码相关
+def setup_encoding():
+    """设置正确的编码环境"""
+    try:
+        # 记录当前编码信息，便于调试
+        default_encoding = sys.getdefaultencoding()
+        preferred_encoding = locale.getpreferredencoding()
+        logger.info(f"Default encoding: {default_encoding}")
+        logger.info(f"Preferred encoding: {preferred_encoding}")
+        
+        # 确保stdout和stderr使用UTF-8编码
+        if hasattr(sys.stdout, 'reconfigure'):
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        if hasattr(sys.stderr, 'reconfigure'):
+            sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        
+        # 设置环境变量
+        os.environ['PYTHONIOENCODING'] = 'utf-8'
+        
+        # 在Windows上特别处理控制台编码
+        if sys.platform == 'win32':
+            try:
+                import ctypes
+                kernel32 = ctypes.windll.kernel32
+                kernel32.SetConsoleOutputCP(65001)  # 设置控制台代码页为UTF-8
+                kernel32.SetConsoleCP(65001)
+                logger.info("Windows console code page set to UTF-8")
+            except Exception as e:
+                logger.warning(f"Failed to set Windows console code page: {e}")
+    except Exception as e:
+        logger.warning(f"Error setting up encoding: {e}")
 
 load_dotenv()
 app = Flask(__name__)
@@ -21,20 +55,51 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 # 设置详细的日志记录
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-    
+
+# 初始化时设置编码
+setup_encoding()
 
 # 执行中连接
 def engineConnect(engine : WorkflowEngine):
 
     # 这里的所有的message的传递应该都是str类型的
-    engine.bus.on('workflow', lambda nodeId:socketio.emit('workflow', {"nodeId" : nodeId}, namespace='/workflow'))
+    def safe_emit(event_name, data, namespace):
+        """安全的emit函数，处理可能的编码问题"""
+        try:
+            socketio.emit(event_name, data, namespace=namespace)
+        except UnicodeEncodeError as e:
+            logger.error(f"Unicode encode error in emit: {e}")
+            # 尝试处理编码问题
+            if isinstance(data, dict):
+                sanitized_data = {}
+                for k, v in data.items():
+                    if isinstance(v, str):
+                        try:
+                            # 尝试使用replace策略处理无法编码的字符
+                            sanitized_data[k] = v.encode('utf-8', errors='replace').decode('utf-8')
+                        except Exception:
+                            sanitized_data[k] = f"[无法显示的内容]"
+                    else:
+                        sanitized_data[k] = v
+                socketio.emit(event_name, sanitized_data, namespace=namespace)
+            else:
+                # 如果不是字典，则尝试直接处理
+                try:
+                    sanitized_data = str(data).encode('utf-8', errors='replace').decode('utf-8')
+                    socketio.emit(event_name, sanitized_data, namespace=namespace)
+                except Exception:
+                    socketio.emit(event_name, {"error": "编码错误，无法显示内容"}, namespace=namespace)
+
+    engine.bus.on('workflow', lambda nodeId: safe_emit('workflow', {"nodeId": nodeId}, namespace='/workflow'))
 
     # 选择从 info , warning , error
-    engine.bus.on('message', lambda event,nodeId,message:socketio.emit(event, {"data":nodeId, "message" : message},namespace='/workflow'))
+    engine.bus.on('message', lambda event, nodeId, message: 
+                 safe_emit(event, {"data": nodeId, "message": message}, namespace='/workflow'))
 
-    engine.bus.on("nodes_output", lambda nodeId, message: socketio.emit('nodes_output', {"data":nodeId, "message" : message} , namespace='/workflow'))
+    engine.bus.on("nodes_output", lambda nodeId, message: 
+                 safe_emit('nodes_output', {"data": nodeId, "message": message}, namespace='/workflow'))
 
 
 def execute_workflow_task(workflow_data):
@@ -63,6 +128,13 @@ def execute_workflow_task(workflow_data):
                 'status': 'error'
             }, namespace='/workflow')
             
+    except UnicodeError as ue:
+        logger.error(f"Unicode error in workflow execution: {ue}")
+        socketio.emit('over', {
+            'message': f'编码错误: {str(ue)}. 请检查输入数据是否包含不支持的字符。',
+            'data': -2,
+            'status': 'error'
+        }, namespace='/workflow')
     except Exception as e:
         # Send failure signal to frontend
         socketio.emit('over', {
@@ -129,8 +201,16 @@ def chat():
             for chunk in stream:
                 content = chunk.choices[0].delta.content or ""
                 if content:
-                    yield f"data: {json.dumps({'content': content})}\n\n"
+                    try:
+                        yield f"data: {json.dumps({'content': content})}\n\n"
+                    except UnicodeEncodeError:
+                        # 处理编码错误
+                        sanitized_content = content.encode('utf-8', errors='replace').decode('utf-8')
+                        yield f"data: {json.dumps({'content': sanitized_content})}\n\n"
             yield f"data: {json.dumps({'end': True})}\n\n"
+        except UnicodeError as ue:
+            logger.error(f"Unicode error in stream: {ue}")
+            yield f"data: {json.dumps({'error': '编码错误，请检查输入内容'})}\n\n"
         except Exception as e:
             logger.error(f"Error calling external API: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -176,15 +256,25 @@ def generate_title():
             stream=False
         )
         
-        title = completion.choices[0].message.content.strip().replace("\"", "").replace("“", "").replace("”", "")
+        title = completion.choices[0].message.content.strip().replace("\"", "").replace(""", "").replace(""", "")
         
         logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
         return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
 
+    except UnicodeError as ue:
+        logger.error(f"Unicode error in generate_title: {ue}")
+        return Response(json.dumps({"error": "编码错误，请检查输入内容", "title": "新对话"}), 
+                      status=200, mimetype='application/json')
     except Exception as e:
         logger.error(f"An error occurred in /api/generate-title: {e}")
         return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server...")
-    socketio.run(app, debug=True, port=4000)
+    try:
+        socketio.run(app, debug=True, port=4000)
+    except UnicodeError as ue:
+        logger.error(f"Unicode error when starting server: {ue}")
+        # 重新设置编码并尝试再次启动
+        setup_encoding()
+        socketio.run(app, debug=True, port=4000)
