@@ -2,8 +2,10 @@ import { FormMeta, ValidateTrigger } from '@flowgram.ai/free-layout-editor';
 
 import { FlowNodeJSON } from '../../typings';
 import { FormHeader, FormContent, FormInputs } from '../../form-components';
+import { useTranslation } from 'react-i18next';
 
 const renderForm = () => {
+
   return (
     <>
       <FormHeader />

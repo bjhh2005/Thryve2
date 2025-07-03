@@ -8,13 +8,14 @@ import {
     IconFolderStroked,
 } from '@douyinfe/semi-icons';
 import { useLeftSidebar } from './SidebarProvider';
-
+import { LanguageSwitcher } from '../LanguageSwitcher';
 import { AIAssistantPanel } from './AIAssistant/AIAssistantPanel';
 import { ConsolePanel } from './ConsolePanel/ConsolePanel';
 import './sidebar-left.less';
 
 import { AIConfigProvider } from '../../context/AIConfigContext';
 import { ChatProvider } from '../../context/ChatProvider';
+
 
 // ActionBarButton 组件保持不变
 const ActionBarButton: React.FC<{ icon: React.ReactNode; tooltip: string; onClick?: () => void }> = ({ icon, tooltip, onClick }) => (
@@ -61,6 +62,7 @@ export const SidebarRenderer = () => {
                             tooltip="我的项目"
                             onClick={handleMyProjects}
                         />
+                        <LanguageSwitcher />
                     </div>
 
                     {/* 主面板 */}
