@@ -81,7 +81,7 @@ class WorkflowEngine :
           while curNodeID != None:
                try:
                     #这里节点开始running，向前端发送消息
-                    self.bus.emit("workflow", curNodeID, "running")
+                    #self.bus.emit("workflow", curNodeID, "running")
                               
                     if curNodeID not in self.instance:
                          self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
@@ -96,11 +96,11 @@ class WorkflowEngine :
                     
                     # 节点运行成功，发送success状态和输出数据
                     # 将 MessageList 转换为 JSON 格式
-                    output_json = {
-                         "type": last_node_type,
-                         "data": output
-                    }
-                    self.bus.emit("workflow", curNodeID, "success", output_json)
+                    #output_json = {
+                    #     "type": last_node_type,
+                    #     "data": output
+                    # }
+                    #self.bus.emit("workflow", curNodeID, "success", output_json)
                     
                except Exception as e:
                     # 如果运行失败，发送error状态和错误信息
@@ -108,7 +108,7 @@ class WorkflowEngine :
                          "type": last_node_type,
                          "error": str(e)
                     }
-                    self.bus.emit("workflow", curNodeID, "error", error_json)
+                    #self.bus.emit("workflow", curNodeID, "error", error_json)
                     return False, f"Node {curNodeID} execution failed: {str(e)}"
                
                curNodeID = workNode.getNext()
