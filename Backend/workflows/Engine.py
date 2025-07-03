@@ -79,41 +79,34 @@ class WorkflowEngine :
           last_node_type = None  # Track the last executed node type
           
           while curNodeID != None:
+
+               #这里节点开始running，向前端发送消息
+
+               self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "PROCESSING"})
+                         
+               if curNodeID not in self.instance:
+                    self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
+                    if self.instance[curNodeID] is None:
+                         self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "FAILED", "error": f"Unknown node type: {self.nodes[curNodeID]['type']}"})
+                         raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
+               
+               workNode = self.instance[curNodeID]
+               last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
+
                try:
-                    #这里节点开始running，向前端发送消息
-                    #self.bus.emit("workflow", curNodeID, "running")
-                              
-                    if curNodeID not in self.instance:
-                         self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
-                         if self.instance[curNodeID] is None:
-                              raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
-                    
-                    workNode = self.instance[curNodeID]
-                    last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
-                    
-                    # 运行节点
-                    output = workNode.run()
-                    
-                    # 节点运行成功，发送success状态和输出数据
-                    # 将 MessageList 转换为 JSON 格式
-                    #output_json = {
-                    #     "type": last_node_type,
-                    #     "data": output
-                    # }
-                    #self.bus.emit("workflow", curNodeID, "success", output_json)
-                    
+                    workNode.run()
+                    # 3. 节点成功执行后，发出 'node_succeeded' 事件
+                    self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "SUCCEEDED"})
                except Exception as e:
-                    # 如果运行失败，发送error状态和错误信息
-                    error_json = {
-                         "type": last_node_type,
-                         "error": str(e)
-                    }
-                    #self.bus.emit("workflow", curNodeID, "error", error_json)
-                    return False, f"Node {curNodeID} execution failed: {str(e)}"
+                    # 4. 节点执行失败，发出 'node_failed' 事件
+                    self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "FAILED", "error": str(e)})
+                    # 重新抛出异常，让外层捕获并终止工作流
+                    raise e
                
                curNodeID = workNode.getNext()
                if curNodeID is None:
                     curNodeID = self.popStack()
+                    
           
           # Check if workflow ended properly (last node is end node)
           if last_node_type != 'end':

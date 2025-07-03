@@ -27,8 +27,10 @@ logger = logging.getLogger(__name__)
 # 执行中连接
 def engineConnect(engine : WorkflowEngine):
 
+    # 监听并转发节点状态变化
+    engine.bus.on('node_status_change', lambda data: socketio.emit('node_status_change', data, namespace='/workflow'))
+    
     # 这里的所有的message的传递应该都是str类型的
-
     # 选择从 info , warning , error
     engine.bus.on('message', lambda event,nodeId,message:socketio.emit(event, {"data":nodeId, "message" : message},namespace='/workflow'))
 
