@@ -7,10 +7,11 @@ import {
   ValidateTrigger,
   FlowNodeJSON,
 } from '@flowgram.ai/free-layout-editor';
-import { Input, Button } from '@douyinfe/semi-ui';
+import { Input, Button, Notification } from '@douyinfe/semi-ui';
 import { IconPlus, IconDelete } from '@douyinfe/semi-icons';
 import { useIsSidebar, useNodeRenderContext } from '../../hooks';
 import { FormHeader, FormContent, FormOutputs, FormItem } from '../../form-components';
+import React, { useCallback, useMemo, useState } from 'react';
 
 interface StringInputNodeJSON extends FlowNodeJSON {
   data: {
@@ -21,12 +22,12 @@ interface StringInputNodeJSON extends FlowNodeJSON {
   };
 }
 
-const StringInput: React.FC<{
+const StringInput = React.memo<{
   field: any;
   index: number;
   onRemove?: () => void;
   readonly?: boolean;
-}> = ({ field, index, onRemove, readonly }) => {
+}>(({ field, index, onRemove, readonly }) => {
   return (
     <div style={{ position: 'relative', marginBottom: '16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -52,19 +53,77 @@ const StringInput: React.FC<{
       </div>
     </div>
   );
-};
+});
 
 export const renderForm = ({ form }: FormRenderProps<StringInputNodeJSON>) => {
   const isSidebar = useIsSidebar();
   const { readonly } = useNodeRenderContext();
+  const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
-  const renderInputs = () => (
+  const handleAdd = useCallback(async (field: any) => {
+    if (isAdding) return;
+    
+    try {
+      setIsAdding(true);
+      
+      if (!field.value) {
+        await field.onChange([]);
+      }
+      
+      const newValues = [...(field.value || []), ''];
+      await field.onChange(newValues);
+      
+    } catch (error: any) {
+      console.error('Failed to add string input:', error);
+      Notification.error({
+        title: 'Error',
+        content: error.message || 'Failed to add string input'
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  }, [isAdding]);
+
+  const handleRemove = useCallback(async (field: any, index: number) => {
+    if (isDeleting === index) return;
+    
+    try {
+      setIsDeleting(index);
+      
+      if (!Array.isArray(field.value)) {
+        throw new Error('Field value is not an array');
+      }
+      
+      if (index < 0 || index >= field.value.length) {
+        throw new Error('Invalid index');
+      }
+
+      if (field.value.length <= 1) {
+        throw new Error('Cannot delete the last string input');
+      }
+
+      const newValues = field.value.filter((_: any, i: number) => i !== index);
+      await field.onChange(newValues);
+      
+    } catch (error: any) {
+      console.error('Failed to remove string input:', error);
+      Notification.error({
+        title: 'Error',
+        content: error.message || 'Failed to remove string input'
+      });
+    } finally {
+      setIsDeleting(null);
+    }
+  }, [isDeleting]);
+
+  const renderInputs = useCallback(() => (
     <FieldArray<string> name="inputs.inputStrings">
-      {({ field }) => (
-        <div key={field.value?.length}>
-          {(field.value || []).map((value, index) => (
+      {({ field }) => {
+        const inputs = useMemo(() => (
+          (field.value || []).map((value, index) => (
             <StringInput
-              key={`string-input-${index}`}
+              key={`string-input-${index}-${value}`}
               field={{
                 value: value,
                 onChange: (newValue: string) => {
@@ -74,31 +133,36 @@ export const renderForm = ({ form }: FormRenderProps<StringInputNodeJSON>) => {
                 }
               }}
               index={index}
-              onRemove={field.value && field.value.length > 1 ? () => {
-                const newValues = (field.value || []).filter((_: any, i: number) => i !== index);
-                field.onChange(newValues);
-              } : undefined}
+              onRemove={field.value && field.value.length > 1 ? () => handleRemove(field, index) : undefined}
               readonly={readonly}
             />
-          ))}
-          {!readonly && (
-            <Button
-              type="primary"
-              theme="light"
-              icon={<IconPlus />}
-              onClick={() => {
-                const newValues = [...(field.value || []), ''];
-                field.onChange(newValues);
-              }}
-              style={{ width: '100%', marginTop: '8px' }}
-            >
-              Add an input string
-            </Button>
-          )}
-        </div>
-      )}
+          ))
+        ), [field.value, handleRemove, readonly]);
+
+        return (
+          <div>
+            {inputs}
+            {!readonly && (
+              <Button
+                type="primary"
+                theme="light"
+                icon={<IconPlus />}
+                onClick={() => handleAdd(field)}
+                disabled={isDeleting !== null || isAdding}
+                style={{ 
+                  width: '100%', 
+                  marginTop: '8px',
+                  opacity: isAdding ? 0.5 : 1
+                }}
+              >
+                Add an input string
+              </Button>
+            )}
+          </div>
+        );
+      }}
     </FieldArray>
-  );
+  ), [readonly, handleAdd, handleRemove, isAdding, isDeleting]);
 
   if (isSidebar) {
     return (
