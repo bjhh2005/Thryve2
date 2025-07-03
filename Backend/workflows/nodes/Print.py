@@ -31,7 +31,7 @@ class Print(Node):
         执行打印操作
         打印指定的消息，并更新节点状态
         """
-        self._eventBus.emit("workflow", self._id)
+
 
         # 处理输入值
         input_config = self.input_value

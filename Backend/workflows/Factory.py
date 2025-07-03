@@ -37,7 +37,7 @@ class NodeFactory:
                 return FileInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "folder-input":
                 return FolderInput(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
-            case "text_processor":
+            case "text-processor":
                 return TextProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "pdf-processor":
                 return PdfProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])

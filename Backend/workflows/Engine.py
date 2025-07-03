@@ -131,7 +131,7 @@ class WorkflowEngine :
 
      def popStack(self):
           if len(self.backStack) == 0:
-               return None
+               return None 
           else:
                return self.backStack.pop()
      
