@@ -1,8 +1,7 @@
 import { FC, useEffect, useState } from 'react';
-
-import { WorkflowInputs, WorkflowOutputs } from '@flowgram.ai/runtime-interface';
+import { WorkflowInputs, WorkflowOutputs, WorkflowStatus } from '@flowgram.ai/runtime-interface'; // 引入 WorkflowStatus
 import { useService } from '@flowgram.ai/free-layout-editor';
-import { Button, JsonViewer, SideSheet } from '@douyinfe/semi-ui';
+import { Button, JsonViewer, SideSheet, Toast } from '@douyinfe/semi-ui'; // 引入 Toast
 import { IconPlay, IconSpin, IconStop } from '@douyinfe/semi-icons';
 
 import { NodeStatusGroup } from '../node-status-bar/group';
@@ -20,9 +19,9 @@ export const TestRunSideSheet: FC<TestRunSideSheetProps> = ({ visible, onCancel 
   const [error, setError] = useState<string | undefined>();
   const [result, setResult] = useState<
     | {
-        inputs: WorkflowInputs;
-        outputs: WorkflowOutputs;
-      }
+      inputs: WorkflowInputs;
+      outputs: WorkflowOutputs;
+    }
     | undefined
   >();
 
@@ -49,12 +48,23 @@ export const TestRunSideSheet: FC<TestRunSideSheetProps> = ({ visible, onCancel 
   };
 
   useEffect(() => {
-    const disposer = runtimeService.onTerminated(({ result }) => {
+    // 这个回调现在可以正确地接收到 status 和 message
+    const disposer = runtimeService.onTerminated(({ status, message, result }) => {
       setRunning(false);
-      setResult(result);
+      if (result) {
+        setResult(result);
+      }
+
+      if (status === WorkflowStatus.Succeeded) {
+        Toast.success(message || 'Workflow executed successfully!');
+      } else if (status === WorkflowStatus.Failed) {
+        const errorMessage = message || 'Workflow execution failed.';
+        Toast.error(errorMessage);
+        setError(errorMessage);
+      }
     });
     return () => disposer.dispose();
-  }, []);
+  }, [runtimeService]);
 
   const renderRunning = (
     <div

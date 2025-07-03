@@ -30,11 +30,11 @@ interface NodeRunningStatus {
 
 @injectable()
 export class WorkflowRuntimeService {
-  @inject(Playground) playground: Playground;
+  @inject(Playground) playground!: Playground;
 
-  @inject(WorkflowDocument) document: WorkflowDocument;
+  @inject(WorkflowDocument) document!: WorkflowDocument;
 
-  @inject(WorkflowRuntimeClient) runtimeClient: WorkflowRuntimeClient;
+  @inject(WorkflowRuntimeClient) runtimeClient!: WorkflowRuntimeClient;
 
   private runningNodes: WorkflowNodeEntity[] = [];
 
@@ -47,13 +47,15 @@ export class WorkflowRuntimeService {
   private resetEmitter = new Emitter<{}>();
 
   public terminatedEmitter = new Emitter<{
+    status: WorkflowStatus;
+    message?: string;
     result?: {
       inputs: WorkflowInputs;
       outputs: WorkflowOutputs;
     };
   }>();
 
-  private nodeRunningStatus: Map<string, NodeRunningStatus>;
+  private nodeRunningStatus!: Map<string, NodeRunningStatus>;
 
   public onNodeReportChange = this.reportEmitter.event;
 
@@ -87,7 +89,10 @@ export class WorkflowRuntimeService {
     });
     // 如果任务启动失败，则终止任务
     if (!output) {
-      this.terminatedEmitter.fire({});
+      this.terminatedEmitter.fire({
+        status: WorkflowStatus.Failed,
+        message: 'Task failed to start. Please check runtime client or server.',
+      });
       return;
     }
     // 设置任务 ID
@@ -145,20 +150,28 @@ export class WorkflowRuntimeService {
     if (!output) {
       clearInterval(this.syncTaskReportIntervalID);
       console.error('Sync task report failed');
+      this.terminatedEmitter.fire({
+        status: WorkflowStatus.Failed,
+        message: 'Sync task report failed',
+      });
       return;
     }
     // 获取任务报告
-    const { workflowStatus, inputs, outputs } = output;
+    const { workflowStatus, inputs, outputs, reports } = output;
     // 如果任务报告终止，则清除任务报告同步间隔
     if (workflowStatus.terminated) {
       clearInterval(this.syncTaskReportIntervalID);
-      // 如果任务报告有输出，则触发终止事件
-      if (Object.keys(outputs).length > 0) {
-        this.terminatedEmitter.fire({ result: { inputs, outputs } });
-      } else {
-        // 如果任务报告没有输出，则触发终止事件
-        this.terminatedEmitter.fire({});
-      }
+
+      const finalStatus = Object.values(reports).some(r => r.status === WorkflowStatus.Failed)
+        ? WorkflowStatus.Failed
+        : WorkflowStatus.Succeeded;
+
+      // --- 步骤3：修改 fire 调用，传递更完整的数据 ---
+      this.terminatedEmitter.fire({
+        status: finalStatus,
+        message: finalStatus === WorkflowStatus.Failed ? 'Workflow failed' : 'Workflow Succeeded',
+        result: { inputs, outputs },
+      });
     }
     this.updateReport(output);
   }

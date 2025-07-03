@@ -1,6 +1,8 @@
-import React, { useState, useContext } from 'react';
+// base-node/node-wrapper.tsx
 
-import { WorkflowPortRender } from '@flowgram.ai/free-layout-editor';
+import React, { useState, useContext } from 'react';
+import { WorkflowPortRender } from '@flowgram.ai/free-layout-editor'; // 引入 NodeReport
+import { NodeReport } from '@flowgram.ai/runtime-interface';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
 
 import { useNodeRenderContext, usePortClick } from '../../hooks';
@@ -11,6 +13,7 @@ import { NodeWrapperStyle } from './styles';
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
   children: React.ReactNode;
+  report?: NodeReport;
 }
 
 /**
@@ -18,7 +21,7 @@ export interface NodeWrapperProps {
  * 用于节点的拖拽/点击事件和点位渲染
  */
 export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
-  const { children, isScrollToView = false } = props;
+  const { children, isScrollToView = false, report } = props; // --- 新增 report ---
   const nodeRender = useNodeRenderContext();
   const { selected, startDrag, ports, selectNode, nodeRef, onFocus, onBlur } = nodeRender;
   const [isDragging, setIsDragging] = useState(false);
@@ -34,6 +37,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   return (
     <>
       <NodeWrapperStyle
+        status={report?.status}
         className={selected ? 'selected' : ''}
         ref={nodeRef}
         draggable
@@ -49,8 +53,6 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
           selectNode(e);
           if (!isDragging) {
             sidebar.setNodeId(nodeRender.node.id);
-            // 可选：将 isScrollToView 设为 true，可以让节点选中后滚动到画布中间
-            // Optional: Set isScrollToView to true to scroll the node to the center of the canvas after it is selected.
             if (isScrollToView) {
               scrollToView(ctx, nodeRender.node);
             }
@@ -61,6 +63,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
         onBlur={onBlur}
         data-node-selected={String(selected)}
         style={{
+          // 当节点本身校验失败时，依然显示红色外框，优先级高于状态外框
           outline: form?.state.invalid ? '1px solid red' : 'none',
         }}
       >
