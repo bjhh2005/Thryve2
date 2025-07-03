@@ -6,6 +6,7 @@ export enum WorkflowNodeType {
   Loop = 'loop',
   Comment = 'comment',
   Print = 'print',
+  Relocation = 'relocation',
   FileInput = 'file-input',
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
