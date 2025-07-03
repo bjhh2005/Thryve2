@@ -14,6 +14,30 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
 
+# 设置详细的日志记录
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# 尝试加载.env文件
+logger.info("尝试加载环境变量文件...")
+
+# 检查是否在PyInstaller环境中运行
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    logger.info("在PyInstaller打包环境中运行")
+    
+    # 在PyInstaller环境中，首先尝试从_internal目录加载.env文件
+    internal_env_path = os.path.join(os.path.dirname(sys.executable), '_internal', '.env')
+    if os.path.exists(internal_env_path):
+        logger.info(f"从_internal目录加载.env文件: {internal_env_path}")
+        load_dotenv(internal_env_path)
+    else:
+        logger.warning(f"_internal目录中未找到.env文件: {internal_env_path}")
+else:
+    logger.info("在普通Python环境中运行")
+    # 在开发环境中，从当前目录加载.env文件
+    load_dotenv()
+
+
 # 设置编码相关
 def setup_encoding():
     """设置正确的编码环境"""
@@ -46,110 +70,6 @@ def setup_encoding():
                 logger.warning(f"Failed to set Windows console code page: {e}")
     except Exception as e:
         logger.warning(f"Error setting up encoding: {e}")
-
-# 设置详细的日志记录
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-# 初始化时设置编码
-setup_encoding()
-
-# 获取PyInstaller资源目录中的.env文件路径
-def get_env_file_path():
-    """
-    获取.env文件的路径，优先从PyInstaller资源目录加载，然后再尝试当前目录
-    """
-    # 首先检查环境变量是否已直接设置
-    if os.environ.get('OPENAI_API_KEY') or os.environ.get('OPENAI_API_BASE'):
-        logger.info("找到环境变量，无需加载.env文件")
-        return None
-        
-    # PyInstaller打包后的环境
-    if getattr(sys, 'frozen', False):
-        # 获取资源根目录
-        try:
-            base_path = sys._MEIPASS
-            env_path = os.path.join(base_path, '.env')
-            
-            logger.info(f"Running in PyInstaller bundle, looking for .env at {env_path}")
-            if os.path.isfile(env_path):
-                logger.info(f"Found .env in PyInstaller resources: {env_path}")
-                return env_path
-        except Exception as e:
-            logger.warning(f"Error accessing PyInstaller resources: {e}")
-            
-    # 尝试在当前目录寻找.env文件
-    env_path = os.path.join(os.getcwd(), '.env')
-    logger.info(f"Looking for .env in current directory: {env_path}")
-    if os.path.isfile(env_path):
-        logger.info(f"Found .env in current directory: {env_path}")
-        return env_path
-    
-    # 尝试在上层目录寻找.env文件
-    parent_env_path = os.path.join(os.path.dirname(os.getcwd()), '.env')
-    if os.path.isfile(parent_env_path):
-        logger.info(f"Found .env in parent directory: {parent_env_path}")
-        return parent_env_path
-        
-    # 找不到.env文件，将在后面创建一个默认的
-    logger.warning("No .env file found")
-    return env_path  # 返回当前目录的路径，稍后会在此创建默认文件
-
-# 创建默认环境变量内容
-def create_default_env_content():
-    """创建默认的环境变量内容"""
-    return """# Environment variables
-# OpenAI API配置
-OPENAI_API_KEY=
-OPENAI_API_BASE=https://api.openai.com/v1
-"""
-
-# 尝试加载.env文件，处理可能的编码问题
-try:
-    # 获取环境变量文件路径
-    env_path = get_env_file_path()
-    
-    # 如果找到了.env文件，则加载它
-    if env_path:
-        try:
-            # 尝试加载环境变量文件
-            load_dotenv(dotenv_path=env_path, encoding='utf-8', override=True)
-            logger.info(f".env file loaded from {env_path} with UTF-8 encoding")
-        except UnicodeDecodeError:
-            try:
-                # 如果UTF-8失败，尝试使用系统默认编码
-                load_dotenv(dotenv_path=env_path, encoding=locale.getpreferredencoding(), override=True)
-                logger.info(f".env file loaded from {env_path} with {locale.getpreferredencoding()} encoding")
-            except Exception as e:
-                logger.warning(f"Failed to load .env file with system encoding: {e}")
-                raise
-    else:
-        # 直接设置默认环境变量
-        logger.info("Setting default environment variables directly")
-        if not os.environ.get('OPENAI_API_KEY'):
-            os.environ.setdefault('OPENAI_API_KEY', '')
-        if not os.environ.get('OPENAI_API_BASE'):
-            os.environ.setdefault('OPENAI_API_BASE', 'https://api.openai.com/v1')
-except Exception as e:
-    logger.warning(f"Failed to load .env file: {e}")
-    # 创建一个默认的.env文件在当前目录
-    try:
-        env_path = os.path.join(os.getcwd(), '.env')
-        logger.info(f"Creating default .env file at {env_path}")
-        with open(env_path, 'w', encoding='utf-8') as f:
-            f.write(create_default_env_content())
-        logger.info("Created default .env file with UTF-8 encoding")
-        load_dotenv(dotenv_path=env_path, encoding='utf-8')
-    except Exception as create_err:
-        logger.error(f"Failed to create .env file: {create_err}")
-        # 如果文件无法创建，直接设置环境变量
-        logger.info("Setting default environment variables directly")
-        os.environ.setdefault("OPENAI_API_KEY", "")
-        os.environ.setdefault("OPENAI_API_BASE", "https://api.openai.com/v1")
-
-# 验证环境变量是否已设置
-logger.info(f"OPENAI_API_BASE: {os.environ.get('OPENAI_API_BASE', 'not set')}")
-logger.info(f"OPENAI_API_KEY: {'set' if os.environ.get('OPENAI_API_KEY') else 'not set'}")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-workflow-secret-key'

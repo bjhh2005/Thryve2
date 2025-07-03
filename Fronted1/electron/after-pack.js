@@ -113,64 +113,47 @@ exports.default = async function(context) {
   
   console.log(`Looking for backend executable at: ${sourceBackendExe}`);
   
+  // 复制后端可执行文件
   if (fs.existsSync(sourceBackendExe)) {
-    console.log('Backend executable found, copying essential files...');
-    
-    // 1. 复制后端可执行文件到资源目录
-    try {
-      fs.copyFileSync(sourceBackendExe, backendExe);
-      console.log(`Copied backend executable to: ${backendExe}`);
-      
-      // 2. 复制后端可执行文件到应用程序根目录
-      const appDirExe = path.join(normalizedAppOutDir, backendExeName);
-      fs.copyFileSync(sourceBackendExe, appDirExe);
-      console.log(`Copied backend executable to app root: ${appDirExe}`);
-    } catch (err) {
-      console.error(`Error copying backend executable: ${err.message}`);
-    }
-    
-    // 3. 复制必要的运行时文件（不包括Python源代码）
-    const internalDir = path.join(sourceBackendDir, '_internal');
-    if (fs.existsSync(internalDir)) {
-      console.log(`Copying _internal directory from: ${internalDir}`);
-      
-      // 复制到后端资源目录
-      copyRecursiveSync(internalDir, path.join(backendPath, '_internal'));
-      
-      // 复制到应用程序根目录
-      copyRecursiveSync(internalDir, path.join(normalizedAppOutDir, '_internal'));
-    } else {
-      console.warn(`_internal directory not found at: ${internalDir}`);
-    }
-    
-    // 4. 复制必要的工作流程文件（如果存在），但排除Python源代码
-    const workflowsDir = path.join(sourceBackendDir, 'workflows');
-    if (fs.existsSync(workflowsDir)) {
-      console.log(`Copying workflows directory (excluding Python source code) from: ${workflowsDir}`);
-      
-      // 创建目标workflows目录
-      const destWorkflowsDir = path.join(backendPath, 'workflows');
-      if (!fs.existsSync(destWorkflowsDir)) {
-        fs.mkdirSync(destWorkflowsDir, { recursive: true });
-      }
-      
-      // 只复制必要的文件（排除.py文件）
-      fs.readdirSync(workflowsDir).forEach(item => {
-        const srcItem = path.join(workflowsDir, item);
-        const destItem = path.join(destWorkflowsDir, item);
-        
-        // 跳过Python源文件
-        if (!shouldExclude(srcItem)) {
-          copyRecursiveSync(srcItem, destItem);
-        } else {
-          console.log(`Skipping Python source file: ${srcItem}`);
-        }
-      });
-    }
+    console.log(`Copying backend executable from ${sourceBackendExe} to ${backendExe}`);
+    await fs.promises.copyFile(sourceBackendExe, backendExe);
+    console.log('Backend executable copied successfully.');
   } else {
-    console.error(`ERROR: Backend executable not found at: ${sourceBackendExe}`);
-    console.error('Backend might not work properly in the packaged app!');
+    console.error(`Backend executable not found at ${sourceBackendExe}`);
   }
   
-  console.log('afterPack script completed');
-}; 
+  // 复制_internal目录的内容
+  const sourceInternalDir = path.join(sourceBackendDir, '_internal');
+  const targetInternalDir = path.join(backendPath, '_internal');
+  
+  if (fs.existsSync(sourceInternalDir)) {
+    console.log(`Copying _internal directory from ${sourceInternalDir} to ${targetInternalDir}`);
+    
+    // 确保目标目录存在
+    if (!fs.existsSync(targetInternalDir)) {
+      fs.mkdirSync(targetInternalDir, { recursive: true });
+    }
+    
+    // 复制_internal目录下的所有文件
+    try {
+      await copyDir(sourceInternalDir, targetInternalDir);
+      console.log('_internal directory copied successfully.');
+    } catch (err) {
+      console.error(`Error copying _internal directory: ${err.message}`);
+    }
+  } else {
+    console.error(`_internal directory not found at ${sourceInternalDir}`);
+  }
+  
+  // 确保.env文件也被复制到backend目录
+  const sourceEnvFile = path.join(process.cwd(), '..', 'Backend', '.env');
+  const targetEnvFile = path.join(backendPath, '.env');
+  
+  if (fs.existsSync(sourceEnvFile)) {
+    console.log(`Copying .env file from ${sourceEnvFile} to ${targetEnvFile}`);
+    await fs.promises.copyFile(sourceEnvFile, targetEnvFile);
+    console.log('.env file copied to backend directory.');
+  } else {
+    console.warn(`.env file not found at ${sourceEnvFile}`);
+  }
+} 
