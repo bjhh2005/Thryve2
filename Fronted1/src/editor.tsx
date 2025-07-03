@@ -12,30 +12,29 @@ import { DemoTools } from './components/tools';
 import { SidebarProvider as RightSidebarProvider, SidebarRenderer as RightSidebarRenderer } from './components/sidebar';
 import { SidebarProvider as LeftSidebarProvider, SidebarRenderer as LeftSidebarRenderer } from './components/sidebar-left';
 // 上下文管理器，用于处理侧边栏状态；侧边栏内容的渲染器
-import { ConsoleProvider } from './context/ConsoleProvider';
-import { WorkflowStateProvider } from './context/WorkflowStateProvider';
+// import { ConsoleProvider } from './context/ConsoleProvider';
+// import { WorkflowStateProvider } from './context/WorkflowStateProvider';
+import { ExecutionProvider } from './context/ExecutionProvider';
 
 export const Editor = () => {
     const editorProps = useEditorProps(initialData, nodeRegistries);
     return (
         <div className="doc-free-feature-overview">
             <FreeLayoutEditorProvider {...editorProps}>
-                <WorkflowStateProvider>
+                <ExecutionProvider>
                     <RightSidebarProvider>
-                        <ConsoleProvider>
-                            <LeftSidebarProvider>
+                        <LeftSidebarProvider>
 
-                                <div className="demo-container">
-                                    <EditorRenderer className="demo-editor" />
-                                </div>
-                                <DemoTools />
+                            <div className="demo-container">
+                                <EditorRenderer className="demo-editor" />
+                            </div>
+                            <DemoTools />
 
-                                <LeftSidebarRenderer />
-                                <RightSidebarRenderer />
-                            </LeftSidebarProvider>
-                        </ConsoleProvider>
+                            <LeftSidebarRenderer />
+                            <RightSidebarRenderer />
+                        </LeftSidebarProvider>
                     </RightSidebarProvider>
-                </WorkflowStateProvider>
+                </ExecutionProvider>
             </FreeLayoutEditorProvider>
         </div>
     );

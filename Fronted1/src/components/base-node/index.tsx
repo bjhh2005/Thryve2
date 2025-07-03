@@ -3,7 +3,8 @@
 import { useCallback } from 'react';
 import { FlowNodeEntity, useNodeRender } from '@flowgram.ai/free-layout-editor';
 import { ConfigProvider } from '@douyinfe/semi-ui';
-import { useWorkflowState } from '../../context/WorkflowStateProvider'; // 1. 引入新的 Hook
+// import { useWorkflowState } from '../../context/WorkflowStateProvider'; 
+import { useExecution } from '../../context/ExecutionProvider';
 import { NodeWrapper } from './node-wrapper';
 import { ErrorIcon } from './styles';
 // NodeStatusBar 和 NodeRenderContext 依然可以保留，用于显示节点的静态配置信息
@@ -16,7 +17,7 @@ export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
   const form = nodeRender.form;
 
   // 2. 从新的 Context 中获取所有节点的状态
-  const { nodeStatuses } = useWorkflowState();
+  const { nodeStatuses } = useExecution();
   // 3. 找到当前节点对应的状态，如果没有则为 'IDLE'
   const currentNodeStatus = nodeStatuses[node.id] || 'IDLE';
 
