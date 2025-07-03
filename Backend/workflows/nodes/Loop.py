@@ -21,10 +21,22 @@ class Loop(MessageNode):
             LoopError: 当初始化参数无效时
         """
         super().__init__(id, type, nextNodes, eventBus)
+        
+        # 获取循环模式
+        self.mode = data.get("mode", "array")
+        if self.mode not in ["array", "times"]:
+            raise LoopError(f"节点 {id} 的循环模式无效，必须是 'array' 或 'times'")
+        
+        # 获取循环次数（仅times模式使用）
+        self.times = data.get("times", 1) if self.mode == "times" else None
+        if self.mode == "times" and not isinstance(self.times, (int, float)):
+            raise LoopError(f"节点 {id} 的循环次数必须是数字")
             
-        self.batchFor = data.get("batchFor")
-        if not isinstance(self.batchFor, dict):
-            raise LoopError(f"节点 {id} 缺少有效的batchFor配置")
+        # 获取循环数组配置（仅array模式使用）
+        self.batchFor = data.get("batchFor") if self.mode == "array" else None
+        if self.mode == "array":
+            if not isinstance(self.batchFor, dict):
+                raise LoopError(f"节点 {id} 缺少有效的batchFor配置")
         
         # 获取节点信息
         node_info = self._eventBus.emit("getNodeInfo", id)
@@ -139,27 +151,33 @@ class Loop(MessageNode):
         """
         self._eventBus.emit("message", "info", self._id, "Loop start!")
         
-        # 验证循环数组配置
-        batch_for_type = self.batchFor.get("type") if self.batchFor else None
-        if batch_for_type != "ref":
-            raise LoopError(f"节点 {self._id} 的batchFor类型必须是ref")
-            
-        array_path = self.batchFor.get("content") if self.batchFor else None
-        if not array_path or len(array_path) < 2:
-            raise LoopError(f"节点 {self._id} 的数组引用路径无效")
-            
-        ref_node_id = array_path[0]
-        if ref_node_id.endswith("_locals"):
-            ref_node_id = ref_node_id[:-7]
-        ref_node_property = array_path[1]
-        
         try:
-            # 获取循环数组
-            array_data = self._eventBus.emit("askMessage", ref_node_id, ref_node_property)
-            if array_data is None:
-                raise LoopError(f"节点 {self._id} 无法获取循环数组")
-            if not array_data:
-                array_data = []
+            # 获取循环数据
+            array_data = []
+            if self.mode == "array":
+                # 验证循环数组配置
+                batch_for_type = self.batchFor.get("type") if self.batchFor else None
+                if batch_for_type != "ref":
+                    raise LoopError(f"节点 {self._id} 的batchFor类型必须是ref")
+                    
+                array_path = self.batchFor.get("content") if self.batchFor else None
+                if not array_path or len(array_path) < 2:
+                    raise LoopError(f"节点 {self._id} 的数组引用路径无效")
+                    
+                ref_node_id = array_path[0]
+                if ref_node_id.endswith("_locals"):
+                    ref_node_id = ref_node_id[:-7]
+                ref_node_property = array_path[1]
+                
+                # 获取循环数组
+                array_data = self._eventBus.emit("askMessage", ref_node_id, ref_node_property)
+                if array_data is None:
+                    raise LoopError(f"节点 {self._id} 无法获取循环数组")
+                if not array_data:
+                    array_data = []
+            else:  # times mode
+                # 创建一个包含指定次数的范围列表
+                array_data = range(int(self.times))
                 
             # 查找start节点
             start_node_id = self._find_start_node()
