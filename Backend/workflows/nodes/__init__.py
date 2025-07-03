@@ -13,8 +13,8 @@ from .FolderInput import FolderInput
 from .ImageProcessor import ImageProcessor
 from .MarkdownProcessor import MarkdownProcessor
 from .LLM import LLMProcessor
-
+from .Relocation import Relocation
 
 __version__ = "1.0.0"
 
-__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor","MarkdownProcessor" ,"CSVProcessor", "JSONProcessor", "FolderInput", "ImageProcessor", "LLMProcessor"]
+__all__ = ["Start", "FileInput", "ConditionNode", "Print", "Loop", "End", "TextProcessor", "PdfProcessor","MarkdownProcessor" ,"CSVProcessor", "JSONProcessor", "FolderInput", "ImageProcessor", "LLMProcessor", "Relocation"]

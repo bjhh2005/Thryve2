@@ -307,9 +307,9 @@ const MODE_OUTPUTS = {
     }
   },
   convert: {
-    outputFiles: {
-      type: 'array',
-      description: 'Converted file(s)'
+    outputFile: {
+      type: 'string',
+      description: 'Converted file'
     },
     conversionLog: {
       type: 'string',
@@ -353,9 +353,9 @@ const MODE_OUTPUTS = {
     }
   },
   metadata: {
-    success: {
-      type: 'boolean',
-      description: 'Metadata update status'
+    outputFile: {
+      type: 'string',
+      description: 'PDF file with updated metadata'
     },
     metadata: {
       type: 'object',
