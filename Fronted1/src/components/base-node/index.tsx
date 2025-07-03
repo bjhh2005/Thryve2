@@ -1,42 +1,50 @@
-// base-node/index.tsx (对接新 Provider)
+// base-node/index.tsx (支持高级可视化和结果展示的最终版)
 
-import { useCallback } from 'react';
+import React, { useCallback } from 'react'; // 导入 React 以使用 Fragment
 import { FlowNodeEntity, useNodeRender } from '@flowgram.ai/free-layout-editor';
 import { ConfigProvider } from '@douyinfe/semi-ui';
-// import { useWorkflowState } from '../../context/WorkflowStateProvider'; 
+
+// 1. 导入我们统一的 useExecution Hook
 import { useExecution } from '../../context/ExecutionProvider';
+
+// 2. 导入我们新创建的结果展示组件
+import { NodeResultDisplay } from '../NodeResultDisplay/NodeResultDisplay';
+
 import { NodeWrapper } from './node-wrapper';
 import { ErrorIcon } from './styles';
-// NodeStatusBar 和 NodeRenderContext 依然可以保留，用于显示节点的静态配置信息
-import { NodeStatusBar } from '../testrun/node-status-bar';
 import { NodeRenderContext } from '../../context';
-
 
 export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
   const nodeRender = useNodeRender();
   const form = nodeRender.form;
 
-  // 2. 从新的 Context 中获取所有节点的状态
-  const { nodeStatuses } = useExecution();
-  // 3. 找到当前节点对应的状态，如果没有则为 'IDLE'
-  const currentNodeStatus = nodeStatuses[node.id] || 'IDLE';
+  // 3. 从 Context 中获取包含 status 和 payload 的完整状态对象
+  const { nodeStates } = useExecution();
+
+  // 4. 获取当前节点对应的完整状态对象
+  const currentNodeState = nodeStates[node.id];
+
+  // 5. 从中提取出 status，用于驱动样式变化。如果状态不存在，默认为 'IDLE'
+  const currentNodeStatus = currentNodeState?.status || 'IDLE';
 
   const getPopupContainer = useCallback(() => node.renderData.node || document.body, [node.renderData.node]);
 
   return (
-    <ConfigProvider getPopupContainer={getPopupContainer}>
-      <NodeRenderContext.Provider value={nodeRender}>
-        {/* 4. 将状态传递给 NodeWrapper 用于改变样式 */}
-        <NodeWrapper reportStatus={currentNodeStatus}>
-          {form?.state.invalid && <ErrorIcon />}
-          {form?.render()}
-        </NodeWrapper>
-        {/* 这里的 NodeStatusBar 是旧插件体系的，它将不再显示运行时信息。
-          你可以保留它用于显示其他内容，或者之后创建一个新的组件来显示我们新系统的输入输出。
-          暂时可以先注释掉或移除。
-        */}
-        {/* <NodeStatusBar /> */}
-      </NodeRenderContext.Provider>
-    </ConfigProvider>
+    // 使用 React.Fragment (<> ... </>) 来包裹两个并列的组件
+    <>
+      {/* 节点主体部分 */}
+      <ConfigProvider getPopupContainer={getPopupContainer}>
+        <NodeRenderContext.Provider value={nodeRender}>
+          <NodeWrapper reportStatus={currentNodeStatus}>
+            {form?.state.invalid && <ErrorIcon />}
+            {form?.render()}
+          </NodeWrapper>
+        </NodeRenderContext.Provider>
+      </ConfigProvider>
+
+      {/* 6. 在节点主体的下方，渲染新的结果展示组件 */}
+      {/* 并将当前节点的完整状态(包括payload)传递给它 */}
+      <NodeResultDisplay nodeState={currentNodeState} />
+    </>
   );
 };

@@ -12,6 +12,10 @@
   --g-workflow-line-color-hover: #37d0ff;
   --g-workflow-line-color-selected: #37d0ff;
   --g-workflow-line-color-error: red;
+
+  /* --g-workflow-line-color-default: #b0b8c4; */
+  --g-workflow-line-color-flowing: #4d53e8;
+  /* 流动时的颜色 */
 }
 
 /*
@@ -109,4 +113,31 @@ textarea:focus-visible,
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* 1. 定义一个用于 "蚂蚁行军" 效果的动画 */
+@keyframes line-flow-animation {
+  to {
+    /* 虚线偏移量不断变化，产生流动效果 */
+    stroke-dashoffset: -20;
+  }
+}
+
+/* 2. 针对 @flowgram.ai 库中连线的默认 class (.workflow-line) 进行样式设置 */
+/* is-flowing 这个 class 是由 use-editor-props.tsx 中的 isFlowingLine 逻辑动态添加的 */
+.workflow-line.is-flowing {
+
+  /* 只有当父容器有 .is-running class 时才应用动画 */
+  .is-running & {
+    /* stroke-dasharray 创建了虚线效果，'8 4' 表示8像素实线，4像素空白 */
+    stroke-dasharray: 8 4;
+    /* 应用动画：名称、时长、线性、无限循环 */
+    animation: line-flow-animation 0.5s linear infinite;
+  }
+}
+
+/* 3. (可选) 您可以为错误状态下的连线也添加样式 */
+.workflow-line.has-error {
+  stroke: red;
+  stroke-width: 2px;
 }
