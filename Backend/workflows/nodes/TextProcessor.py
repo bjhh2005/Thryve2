@@ -2,6 +2,7 @@ from .MessageNode import MessageNode
 import re
 from collections import Counter
 from typing import Dict, Any, Optional, List
+import os
 
 class TextProcessor(MessageNode):
     def __init__(self, id: str, type: str, nextNodes: List, eventBus, data: Dict):
@@ -25,6 +26,14 @@ class TextProcessor(MessageNode):
         self.use_regex = False
         self.ignore_case = False
         self.min_length = 1
+        
+        # 获取输出路径配置
+        self.output_folder = self._get_input_value(data, 'outputFolder') or "output"
+        self.output_name = self._get_input_value(data, 'outputFileName') or "output"
+        
+        # 确保输出目录存在
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
 
     def _get_input_value(self, data: Dict[str, Any], key: str) -> Any:
         """从inputsValues中获取值，处理constant和ref两种类型"""
@@ -95,12 +104,39 @@ class TextProcessor(MessageNode):
             raise Exception(f"节点 {self._id}: 缺少后续节点配置",9)
         self._next = self._nextNodes[0][1]
 
+    def _get_output_file(self) -> str:
+        """
+        根据输入文件的扩展名生成输出文件路径
+        
+        Returns:
+            str: 输出文件路径
+        """
+        # 获取输入文件的扩展名
+        _, ext = os.path.splitext(self.input_file)
+        if not ext:  # 如果没有扩展名，默认使用.txt
+            ext = '.txt'
+            
+        # 创建输出文件路径
+        output_file = os.path.join(self.output_folder, f"{self.output_name}{ext}")
+        return self._get_unique_filename(output_file)
+
     def _append_text(self) -> Dict[str, Any]:
         try:
-            with open(self.input_file, 'a', encoding='utf-8') as f:
-                f.write(self.content)
+            # 读取原文件内容
+            with open(self.input_file, 'r', encoding='utf-8') as f:
+                original_content = f.read()
+            
+            # 创建新的输出文件
+            output_file = self._get_output_file()
+            
+            # 写入原内容和新内容
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(original_content + self.content)
+                
             self._eventBus.emit("message", "info", self._id, "Append text success!")
-            return {}
+            return {
+                "outputFile": output_file
+            }
         except Exception as e:
             raise RuntimeError(f"追加文本时发生错误: {str(e)}",9)
 
@@ -118,19 +154,32 @@ class TextProcessor(MessageNode):
                 replacement_count = content.count(self.search_text)
                 replaced_content = content.replace(self.search_text, self.replace_text)
 
-            with open(self.input_file, 'w', encoding='utf-8') as f:
+            # 创建新的输出文件
+            output_file = self._get_output_file()
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(replaced_content)
+                
             self._eventBus.emit("message", "info", self._id, "Replace text success!")
-            return {"replacementCount": replacement_count}
+            return {
+                "outputFile": output_file,
+                "replacementCount": replacement_count
+            }
         except Exception as e:
             raise RuntimeError(f"替换文本时发生错误: {str(e)}",9)
 
     def _write_text(self) -> Dict[str, Any]:
         try:
-            with open(self.input_file, 'w', encoding='utf-8') as f:
+            # 创建新的输出文件
+            output_file = self._get_output_file()
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(self.content)
+                
             self._eventBus.emit("message", "info", self._id, "Write text success!")
-            return {}
+            return {
+                "outputFile": output_file
+            }
         except Exception as e:
             raise RuntimeError(f"写入文本时发生错误: {str(e)}",9)
 
@@ -156,9 +205,22 @@ class TextProcessor(MessageNode):
             frequencies = {
                 word: count for word, count in word_counts.items()
             }
-            #print(frequencies)
-            self._eventBus.emit("message", "info", self._id, "Word frequency success!")
+            
+            # 将结果写入输出文件（词频分析结果总是输出为txt格式）
+            output_file = os.path.join(self.output_folder, f"{self.output_name}_frequency.txt")
+            output_file = self._get_unique_filename(output_file)
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
+                f.write("Word Frequency Analysis Results:\n\n")
+                f.write(f"Total Words: {len(words)}\n")
+                f.write(f"Unique Words: {len(word_counts)}\n\n")
+                f.write("Word Frequencies:\n")
+                for word, count in sorted(frequencies.items()):
+                    f.write(f"{word}: {count}\n")
+            
+            self._eventBus.emit("message", "info", self._id, "Word frequency analysis success!")
             return {
+                "outputFile": output_file,
                 "statistics": {
                     "totalWords": len(words),
                     "uniqueWords": len(word_counts),
@@ -167,3 +229,27 @@ class TextProcessor(MessageNode):
             }
         except Exception as e:
             raise RuntimeError(f"统计词频时发生错误: {str(e)}",9)
+
+    def _get_unique_filename(self, filepath: str) -> str:
+        """
+        生成不重复的文件名。如果文件已存在，在文件名后添加序号。
+        
+        Args:
+            filepath (str): 原始文件路径
+            
+        Returns:
+            str: 不重复的文件路径
+        """
+        if not os.path.exists(filepath):
+            return filepath
+            
+        directory = os.path.dirname(filepath)
+        filename = os.path.basename(filepath)
+        name, ext = os.path.splitext(filename)
+        
+        counter = 1
+        while True:
+            new_filepath = os.path.join(directory, f"{name}_{counter}{ext}")
+            if not os.path.exists(new_filepath):
+                return new_filepath
+            counter += 1
