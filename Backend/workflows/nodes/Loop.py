@@ -217,6 +217,7 @@ class Loop(MessageNode):
             
             # 更新下一个要执行的节点
             self.updateNext()
+            self._eventBus.emit("message", "info", self._id, "Loop end!")
             return self.MessageList
             
         except LoopError:
