@@ -53,6 +53,7 @@ class WorkflowEngine :
           self.bus.on("createNode", self.createNode)
           self.bus.on("getNodeInfo", self.getNodeInfo)
           self.bus.on("cleanupNode", self.cleanupNode)
+          self.bus.on("updateMessage", self.updateMessage)
 
 
     
@@ -162,4 +163,14 @@ class WorkflowEngine :
           if nodeId in self.instance:
                del self.instance[nodeId]
 
+     def updateMessage(self, nodeId, nodePort, value):
+          """
+          更新节点的消息值
+          :param nodeId: 节点ID
+          :param nodePort: 节点端口
+          :param value: 新的值
+          """
+          if nodeId in self.instance:
+               self.instance[nodeId].setMessage(nodePort, value)
+               
                
