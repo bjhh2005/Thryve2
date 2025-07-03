@@ -6,6 +6,7 @@ import { Button } from '@douyinfe/semi-ui';
 import { IconPlay, IconStop } from '@douyinfe/semi-icons';
 import { useConsole } from '../../../context/ConsoleProvider';
 import { useWorkflowState } from '../../../context/WorkflowStateProvider';
+import { v4 as uuidv4 } from 'uuid';
 
 export function TestRunButton(props: { disabled: boolean }) {
   const clientContext = useClientContext();
@@ -19,6 +20,8 @@ export function TestRunButton(props: { disabled: boolean }) {
 
   // 3. 创建一个统一的点击事件处理器
   const handleTestRun = useCallback(() => {
+    const clickId = uuidv4();
+    console.log(`%c[ButtonClick] Click event fired with ID: ${clickId}`, 'color: blue; font-weight: bold;');
     // 如果当前是运行状态，按钮扮演“停止”的角色
     if (isOverallRunning) {
       // 调用可视化系统的停止方法
@@ -28,7 +31,7 @@ export function TestRunButton(props: { disabled: boolean }) {
       // 如果当前是停止状态，按钮扮演“开始”的角色
       const documentData = clientContext.document.toJSON();
       // 同时启动两个系统
-      startExecution(documentData); // 启动日志系统
+      startExecution(documentData, clickId); // 启动日志系统
       startWorkflow(documentData);  // 启动画布可视化系统
     }
   }, [

@@ -7,7 +7,8 @@ from .events import EventBus
 
 class WorkflowEngine :
      
-     def __init__(self, workflowData):
+     def __init__(self, workflowData, socketio_instance):
+          self.socketio = socketio_instance
           
           # 1. 清洗节点数据，移除meta字段，直接创建字典
           cleaned_nodes = {}
@@ -80,35 +81,30 @@ class WorkflowEngine :
           
           while curNodeID != None:
 
+               self.socketio.sleep(0)
+
                #这里节点开始running，向前端发送消息
 
-               self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "PROCESSING"})
-                         
-               if curNodeID not in self.instance:
-                    self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
-                    if self.instance[curNodeID] is None:
-                         self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "FAILED", "error": f"Unknown node type: {self.nodes[curNodeID]['type']}"})
-                         raise Exception(f"Failed to instantiate node type: {self.nodes[curNodeID]['type']}", 1)
-               
-               workNode = self.instance[curNodeID]
-               last_node_type = self.nodes[curNodeID].get('type')  # Record current node type
-
                try:
+                    self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "PROCESSING"})
+                    
+                    if curNodeID not in self.instance:
+                         self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
+                    
+                    workNode = self.instance[curNodeID]
+                    last_node_type = self.nodes[curNodeID].get('type')
+                    
                     workNode.run()
-                    # 3. 节点成功执行后，发出 'node_succeeded' 事件
                     self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "SUCCEEDED"})
+
                except Exception as e:
-                    # 4. 节点执行失败，发出 'node_failed' 事件
-                    self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "FAILED", "error": str(e)})
-                    # 重新抛出异常，让外层捕获并终止工作流
-                    raise e
-               
+                self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "FAILED", "error": str(e)})
+                raise e
+
                curNodeID = workNode.getNext()
                if curNodeID is None:
                     curNodeID = self.popStack()
-                    
-          
-          # Check if workflow ended properly (last node is end node)
+
           if last_node_type != 'end':
                return False, "Workflow did not end with End node"
           

@@ -1,6 +1,6 @@
 // src/context/WorkflowStateProvider.tsx
 
-import { createContext, useState, useContext, useCallback, ReactNode, useRef } from 'react';
+import { createContext, useState, useContext, useCallback, ReactNode, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 // 节点的可视化状态类型
@@ -23,6 +23,7 @@ export const WorkflowStateProvider = ({ children }: { children: ReactNode }) => 
     const [nodeStatuses, setNodeStatuses] = useState<NodeStatusMap>({});
     const socketRef = useRef<Socket | null>(null);
 
+
     // 更新单个节点状态的内部函数
     const updateNodeStatus = useCallback((nodeId: string, status: NodeStatus) => {
         setNodeStatuses(prevStatuses => ({
@@ -38,6 +39,10 @@ export const WorkflowStateProvider = ({ children }: { children: ReactNode }) => 
         setIsRunning(false);
     }, []);
 
+    useEffect(() => {
+        return cleanup;
+    }, [cleanup]);
+
     const cancelWorkflow = useCallback(() => {
         cleanup();
         // 可以在这里添加一个 addLog，如果需要的话
@@ -47,7 +52,10 @@ export const WorkflowStateProvider = ({ children }: { children: ReactNode }) => 
     }, [cleanup]);
 
     const startWorkflow = useCallback((documentData: any) => {
-        if (isRunning) return;
+        if (socketRef.current) {
+            console.warn("Execution blocked: A socket instance already exists.");
+            return;
+        }
 
         // 1. 重置状态并开始运行
         setNodeStatuses({});
@@ -79,6 +87,11 @@ export const WorkflowStateProvider = ({ children }: { children: ReactNode }) => 
         socket.on('connect', () => {
             console.log('[WorkflowState] Connected to server, starting workflow...');
             socket.emit('start_process', documentData);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('[WorkflowState] Connected disconnect, starting workflow...');
+            cleanup();
         });
 
     }, [isRunning, updateNodeStatus, cleanup]);

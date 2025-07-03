@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import eventlet
+eventlet.monkey_patch()
+
 import os
 import json
 import threading
 import logging
 
 from flask import Flask, request, Response
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -18,7 +21,7 @@ app.config['SECRET_KEY'] = 'your-workflow-secret-key'
 CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 #    这是解决此问题的最直接、最可靠的方法
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # 设置详细的日志记录
 logging.basicConfig(level=logging.DEBUG)
@@ -43,7 +46,7 @@ def execute_workflow_task(workflow_data):
         logger.info("Starting workflow execution")
         
         # Create workflow engine
-        engine = WorkflowEngine(workflow_data)  
+        engine = WorkflowEngine(workflow_data, socketio)  
         engineConnect(engine)
 
         # Run workflow
@@ -51,25 +54,13 @@ def execute_workflow_task(workflow_data):
 
         # Send appropriate signal based on execution result
         if success:
-            socketio.emit('over', {
-                'message': message,
-                'data': 0,
-                'status': 'success'
-            }, namespace='/workflow')
+            socketio.emit('over', {'message': message, 'status': 'success'}, namespace='/workflow')
         else:
-            socketio.emit('over', {
-                'message': f'Workflow execution failed: {message}',
-                'data': -1,
-                'status': 'error'
-            }, namespace='/workflow')
+            socketio.emit('over', {'message': f'Workflow execution failed: {message}', 'status': 'error'}, namespace='/workflow')
             
     except Exception as e:
         # Send failure signal to frontend
-        socketio.emit('over', {
-            'message': f'Workflow execution error: {str(e)}',
-            'data': e.args,
-            'status': 'error'
-        }, namespace='/workflow')
+        socketio.emit('over', {'message': f'Workflow execution error: {str(e)}', 'status': 'error'}, namespace='/workflow')
         
 
 @socketio.on('connect', namespace='/workflow')
@@ -188,5 +179,5 @@ def generate_title():
     #     return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
 if __name__ == '__main__':
-    logger.info("Starting workflow WebSocket server...")
+    logger.info("Starting workflow WebSocket server with Eventlet...")
     socketio.run(app, debug=True, port=4000)
