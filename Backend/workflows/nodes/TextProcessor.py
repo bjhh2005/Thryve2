@@ -120,30 +120,72 @@ class TextProcessor(MessageNode):
         output_file = os.path.join(self.output_folder, f"{self.output_name}{ext}")
         return self._get_unique_filename(output_file)
 
+    def _read_file_with_encoding(self, file_path: str) -> tuple[str, str]:
+        """
+        使用多种编码尝试读取文件
+        
+        Args:
+            file_path (str): 文件路径
+            
+        Returns:
+            tuple[str, str]: (文件内容, 使用的编码)
+            
+        Raises:
+            RuntimeError: 当所有编码都无法成功读取文件时抛出
+        """
+        encodings = ['utf-8', 'gbk', 'gb2312', 'gb18030', 'latin1']
+        
+        for encoding in encodings:
+            try:
+                with open(file_path, 'r', encoding=encoding) as f:
+                    content = f.read()
+                    return content, encoding
+            except UnicodeDecodeError:
+                continue
+                
+        raise RuntimeError("无法使用支持的编码格式读取文件，请检查文件编码")
+
+    def _write_file_with_encoding(self, file_path: str, content: str, encoding: str = 'utf-8') -> None:
+        """
+        使用指定编码写入文件
+        
+        Args:
+            file_path (str): 文件路径
+            content (str): 要写入的内容
+            encoding (str): 编码格式，默认utf-8
+        """
+        try:
+            with open(file_path, 'w', encoding=encoding) as f:
+                f.write(content)
+        except UnicodeEncodeError:
+            # 如果指定编码无法编码内容，回退到UTF-8
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+
     def _append_text(self) -> Dict[str, Any]:
         try:
             # 读取原文件内容
-            with open(self.input_file, 'r', encoding='utf-8') as f:
-                original_content = f.read()
+            original_content, input_encoding = self._read_file_with_encoding(self.input_file)
             
             # 创建新的输出文件
             output_file = self._get_output_file()
             
             # 写入原内容和新内容
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(original_content + self.content)
+            self._write_file_with_encoding(output_file, original_content + self.content, input_encoding)
                 
-            self._eventBus.emit("message", "info", self._id, "Append text success!")
+            self._eventBus.emit("message", "info", self._id, f"Append text success! (Encoding: {input_encoding})")
             return {
-                "outputFile": output_file
+                "outputFile": output_file,
+                "inputEncoding": input_encoding,
+                "outputEncoding": input_encoding
             }
         except Exception as e:
             raise RuntimeError(f"追加文本时发生错误: {str(e)}",9)
 
     def _replace_text(self) -> Dict[str, Any]:
         try:
-            with open(self.input_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # 读取文件内容
+            content, input_encoding = self._read_file_with_encoding(self.input_file)
 
             if self.use_regex:
                 # 使用正则表达式进行替换
@@ -157,12 +199,14 @@ class TextProcessor(MessageNode):
             # 创建新的输出文件
             output_file = self._get_output_file()
             
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(replaced_content)
+            # 写入替换后的内容
+            self._write_file_with_encoding(output_file, replaced_content, input_encoding)
                 
-            self._eventBus.emit("message", "info", self._id, "Replace text success!")
+            self._eventBus.emit("message", "info", self._id, f"Replace text success! (Encoding: {input_encoding})")
             return {
                 "outputFile": output_file,
+                "inputEncoding": input_encoding,
+                "outputEncoding": input_encoding,
                 "replacementCount": replacement_count
             }
         except Exception as e:
@@ -173,20 +217,35 @@ class TextProcessor(MessageNode):
             # 创建新的输出文件
             output_file = self._get_output_file()
             
-            with open(output_file, 'w', encoding='utf-8') as f:
-                f.write(self.content)
+            # 写入内容（使用UTF-8编码，因为这是新内容）
+            self._write_file_with_encoding(output_file, self.content, 'utf-8')
                 
-            self._eventBus.emit("message", "info", self._id, "Write text success!")
+            self._eventBus.emit("message", "info", self._id, "Write text success! (Encoding: utf-8)")
             return {
-                "outputFile": output_file
+                "outputFile": output_file,
+                "outputEncoding": "utf-8"
             }
         except Exception as e:
             raise RuntimeError(f"写入文本时发生错误: {str(e)}",9)
 
     def _word_frequency(self) -> Dict[str, Any]:
         try:
-            with open(self.input_file, 'r', encoding='utf-8') as f:
-                content = f.read()
+            # 尝试不同的编码格式
+            encodings = ['utf-8', 'gbk', 'gb2312', 'gb18030', 'latin1']
+            content = None
+            used_encoding = None  # 记录成功读取文件的编码格式
+            
+            for encoding in encodings:
+                try:
+                    with open(self.input_file, 'r', encoding=encoding) as f:
+                        content = f.read()
+                        used_encoding = encoding  # 保存成功的编码格式
+                        break  # 如果成功读取，跳出循环
+                except UnicodeDecodeError:
+                    continue
+            
+            if content is None:
+                raise RuntimeError("无法使用支持的编码格式读取文件，请检查文件编码")
 
             # 如果忽略大小写，将所有文本转换为小写
             if self.ignore_case:
@@ -210,7 +269,9 @@ class TextProcessor(MessageNode):
             output_file = os.path.join(self.output_folder, f"{self.output_name}_frequency.txt")
             output_file = self._get_unique_filename(output_file)
             
+            # 始终使用UTF-8编码写入输出文件
             with open(output_file, 'w', encoding='utf-8') as f:
+                f.write(f"Input file encoding: {used_encoding}\n")
                 f.write("Word Frequency Analysis Results:\n\n")
                 f.write(f"Total Words: {len(words)}\n")
                 f.write(f"Unique Words: {len(word_counts)}\n\n")
@@ -218,9 +279,11 @@ class TextProcessor(MessageNode):
                 for word, count in sorted(frequencies.items()):
                     f.write(f"{word}: {count}\n")
             
-            self._eventBus.emit("message", "info", self._id, "Word frequency analysis success!")
+            self._eventBus.emit("message", "info", self._id, f"Word frequency analysis success! (Input encoding: {used_encoding})")
             return {
                 "outputFile": output_file,
+                "inputEncoding": used_encoding,
+                "outputEncoding": "utf-8",
                 "statistics": {
                     "totalWords": len(words),
                     "uniqueWords": len(word_counts),
