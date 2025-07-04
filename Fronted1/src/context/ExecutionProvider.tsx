@@ -1,16 +1,16 @@
+// src/context/ExecutionProvider.tsx (智能运行最终版)
+
 import { createContext, useState, useContext, useCallback, ReactNode, useRef, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- 类型定义区 ---
 export type NodeStatus = 'PROCESSING' | 'SUCCEEDED' | 'FAILED' | 'IDLE' | 'PAUSED';
-
 export interface NodeState {
     status: NodeStatus;
     payload?: any;
 }
 export type NodeStateMap = Record<string, NodeState>;
-
 export interface LogEntry {
     id: string;
     timestamp: string;
@@ -19,58 +19,41 @@ export interface LogEntry {
     nodeId?: string;
 }
 
-// 统一的、功能更丰富的 Context 类型
+// 1. 简化并统一 Context 类型定义
 interface ExecutionContextType {
-    // 原有状态
     logs: LogEntry[];
     isRunning: boolean;
     nodeStates: NodeStateMap;
-    clearLogs: () => void;
-
-    // 新增的调试状态
     isPaused: boolean;
     pausedOnNodeId: string | null;
-
-    // 新的控制方法
-    startExecution: (documentData: any) => void; // 保留“一键运行”
-    startDebug: (documentData: any, breakpoints: string[]) => void; // 新增“调试运行”
+    clearLogs: () => void;
+    // 统一的启动入口
+    startExecution: (documentData: any, breakpoints: string[]) => void;
+    // 调试控制方法
     pauseExecution: () => void;
     resumeExecution: () => void;
-    terminateExecution: () => void;
     stepOver: () => void;
+    terminateExecution: () => void;
 }
 
 const ExecutionContext = createContext<ExecutionContextType | undefined>(undefined);
 
 export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
-    // --- 状态管理 ---
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isRunning, setIsRunning] = useState(false);
     const [nodeStates, setNodeStates] = useState<NodeStateMap>({});
-
-    // 新增的调试相关状态
     const [isPaused, setIsPaused] = useState(false);
     const [pausedOnNodeId, setPausedOnNodeId] = useState<string | null>(null);
-
-    // Ref 用于存储不直接触发渲染的数据
     const socketRef = useRef<Socket | null>(null);
-    const runIdRef = useRef<string | null>(null); // 存储当前调试会话的ID
+    const runIdRef = useRef<string | null>(null);
 
-    // --- 基础方法 ---
     const addLog = useCallback((log: Omit<LogEntry, 'id' | 'timestamp'>) => {
-        const newLog: LogEntry = {
-            ...log,
-            id: uuidv4(),
-            timestamp: new Date().toLocaleTimeString(),
-        };
-        setLogs(prevLogs => [newLog, ...prevLogs]); // 将新日志放在最前面
+        const newLog: LogEntry = { ...log, id: uuidv4(), timestamp: new Date().toLocaleTimeString() };
+        setLogs(prevLogs => [...prevLogs, newLog]);
     }, []);
 
-    const clearLogs = useCallback(() => {
-        setLogs([]);
-    }, []);
+    const clearLogs = useCallback(() => { setLogs([]); }, []);
 
-    // 统一的清理函数
     const cleanup = useCallback(() => {
         if (socketRef.current) {
             socketRef.current.disconnect();
@@ -82,58 +65,16 @@ export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
         runIdRef.current = null;
     }, []);
 
-    // 组件卸载时执行最终清理
-    useEffect(() => {
-        return cleanup;
-    }, [cleanup]);
+    useEffect(() => { return cleanup; }, [cleanup]);
 
-    // --- 核心执行与控制逻辑 ---
+    const startExecution = useCallback((documentData: any, breakpoints: string[] = []) => {
+        if (socketRef.current) {
+            console.warn("Execution blocked: An active socket instance already exists.");
+            return;
+        }
 
-    const setupSocketListeners = (socket: Socket) => {
-        // 所有事件都应检查 run_id 是否匹配，防止接收到旧会话的串线消息
-        const checkRunId = (data: any) => !runIdRef.current || data.run_id === runIdRef.current;
-
-        socket.on('node_status_change', (data) => {
-            if (!checkRunId(data)) return;
-            setNodeStates(prev => ({ ...prev, [data.nodeId]: { status: data.status, payload: data.payload } }));
-            if (data.status === 'FAILED' && data.payload?.details) {
-                addLog({ level: 'ERROR', message: `Node ${data.nodeId} failed: ${data.payload.details}`, nodeId: data.nodeId });
-            }
-        });
-
-        socket.on('execution_paused', (data) => {
-            if (!checkRunId(data)) return;
-            setIsPaused(true);
-            setPausedOnNodeId(data.nodeId);
-            setNodeStates(prev => ({ ...prev, [data.nodeId]: { ...prev[data.nodeId], status: 'PAUSED' } }));
-            addLog({ level: 'SYSTEM', message: `Execution paused at node ${data.nodeId}. Reason: ${data.reason}` });
-        });
-
-        socket.on('execution_terminated', (data) => {
-            if (!checkRunId(data)) return;
-            addLog({ level: 'WARN', message: `Execution terminated. Reason: ${data.reason}` });
-            cleanup();
-        });
-
-        // 其他日志事件
-        socket.on('info', (data) => addLog({ level: 'INFO', message: data.message, nodeId: data.data }));
-        socket.on('warning', (data) => addLog({ level: 'WARN', message: data.message, nodeId: data.data }));
-        socket.on('nodes_output', (data) => addLog({ level: 'OUTPUT', message: data.message, nodeId: data.data }));
-
-        socket.on('over', (data) => {
-            if (!checkRunId(data)) return;
-            addLog({ level: data.status === 'success' ? 'SUCCESS' : 'ERROR', message: data.message });
-            cleanup();
-        });
-
-        // socket.on('disconnect', (reason) => {
-        //     addLog({ level: 'WARN', message: `Disconnected: ${reason}` });
-        //     cleanup();
-        // });
-    };
-
-    const startExecution = useCallback((documentData: any, isDebug = false, breakpoints: string[] = []) => {
-        if (socketRef.current) return;
+        // 2. 智能判断：如果传入的 breakpoints 数组不为空，则为调试模式
+        const isDebugRun = breakpoints.length > 0;
 
         // 重置所有状态
         clearLogs();
@@ -141,25 +82,37 @@ export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
         setIsRunning(true);
         setIsPaused(false);
         setPausedOnNodeId(null);
-        addLog({ level: 'SYSTEM', message: `Connecting for ${isDebug ? 'Debug' : 'Normal'} Run...` });
+        addLog({ level: 'SYSTEM', message: `Connecting for ${isDebugRun ? 'Debug' : 'Normal'} Run...` });
 
         const socket = io('http://localhost:4000/workflow', { transports: ['websocket'], reconnection: false });
         socketRef.current = socket;
 
-        // 为这个新的 socket 实例绑定所有监听器
+        // --- 统一的事件监听逻辑 ---
+        const setupSocketListeners = (sock: Socket) => {
+            const checkRunId = (data: any) => !runIdRef.current || data.run_id === runIdRef.current;
+            sock.on('node_status_change', (data) => { if (checkRunId(data)) setNodeStates(prev => ({ ...prev, [data.nodeId]: { status: data.status, payload: data.payload } })); });
+            sock.on('execution_paused', (data) => { if (checkRunId(data)) { setIsPaused(true); setPausedOnNodeId(data.nodeId); setNodeStates(prev => ({ ...prev, [data.nodeId]: { ...prev[data.nodeId], status: 'PAUSED' } })); addLog({ level: 'SYSTEM', message: `Execution paused at node ${data.nodeId}.` }); } });
+            sock.on('execution_terminated', (data) => { if (checkRunId(data)) { addLog({ level: 'WARN', message: `Execution terminated.` }); cleanup(); } });
+            sock.on('over', (data) => { if (checkRunId(data)) { addLog({ level: data.status === 'success' ? 'SUCCESS' : 'ERROR', message: data.message }); cleanup(); } });
+            // sock.on('disconnect', (reason) => { addLog({ level: 'WARN', message: `Disconnected: ${reason}` }); cleanup(); });
+            sock.on('nodes_output', (data) => addLog({ level: 'OUTPUT', message: data.message, nodeId: data.data }));
+            sock.on('info', (data) => addLog({ level: 'INFO', message: data.message, nodeId: data.data }));
+            sock.on('warning', (data) => addLog({ level: 'WARN', message: data.message, nodeId: data.data }));
+            sock.on('error', (data) => addLog({ level: 'ERROR', message: data.message, nodeId: data.data }));
+        };
+
         setupSocketListeners(socket);
 
         socket.once('connect', () => {
-            if (isDebug) {
-                addLog({ level: 'SYSTEM', message: 'Connection successful. Starting debug session...' });
+            addLog({ level: 'SUCCESS', message: `Connected with ID: ${socket.id}. Starting workflow...` });
+            // 3. 根据 isDebugRun 的值，决定发送哪个事件
+            if (isDebugRun) {
                 socket.emit('start_debug', { documentData, breakpoints });
             } else {
-                addLog({ level: 'SYSTEM', message: 'Connection successful. Starting normal run...' });
                 socket.emit('start_process', documentData);
             }
         });
 
-        // 监听后端返回的会话ID
         socket.once('debug_session_started', (data) => {
             runIdRef.current = data.run_id;
             addLog({ level: 'SYSTEM', message: `Debug session created with ID: ${data.run_id}` });
@@ -167,12 +120,7 @@ export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
 
     }, [addLog, clearLogs, cleanup]);
 
-    // --- 暴露给 UI 的方法 ---
-
-    const startDebug = (documentData: any, breakpoints: string[]) => {
-        startExecution(documentData, true, breakpoints);
-    };
-
+    // --- 调试指令发送逻辑 (保持不变) ---
     const sendCommand = (command: string) => {
         if (socketRef.current && runIdRef.current) {
             socketRef.current.emit('debug_command', { run_id: runIdRef.current, command });
@@ -185,20 +133,19 @@ export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
             }
         }
     };
-
     const resumeExecution = () => sendCommand('resume');
     const pauseExecution = () => sendCommand('pause');
     const stepOver = () => sendCommand('step_over');
     const terminateExecution = () => sendCommand('terminate');
 
-    const value = {
+    // 4. 构建最终对外暴露的 value 对象
+    const value: ExecutionContextType = {
         logs,
         isRunning,
         nodeStates,
         isPaused,
         pausedOnNodeId,
-        startExecution: (doc: any) => startExecution(doc, false), // 简化版，用于一键运行
-        startDebug,
+        startExecution,
         clearLogs,
         resumeExecution,
         pauseExecution,

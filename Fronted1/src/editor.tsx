@@ -11,7 +11,6 @@ import { nodeRegistries } from './nodes';
 import { initialData } from './initial-data';
 import { useEditorProps } from './hooks';
 import { DemoTools } from './components/tools';
-import { DebugToolbar } from './components/DebugToolbar/DebugToolbar';
 import { SidebarProvider as RightSidebarProvider, SidebarRenderer as RightSidebarRenderer } from './components/sidebar';
 import { SidebarProvider as LeftSidebarProvider, SidebarRenderer as LeftSidebarRenderer } from './components/sidebar-left';
 import { ExecutionProvider, useExecution } from './context/ExecutionProvider';
@@ -37,9 +36,6 @@ const EditorLayout = () => {
                         <EditorRenderer className="demo-editor" />
                     </div>
                     <DemoTools />
-                    <div id="debug-toolbar-container">
-                        <DebugToolbar />
-                    </div>
                     <LeftSidebarRenderer />
                     <RightSidebarRenderer />
                 </LeftSidebarProvider>
