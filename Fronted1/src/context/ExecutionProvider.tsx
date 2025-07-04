@@ -119,6 +119,18 @@ export const ExecutionProvider = ({ children }: { children: ReactNode }) => {
             cleanup();
         });
 
+        socket.on('info', (data) => {
+            addLog({ level: 'INFO', message: data.message, nodeId: data.data });
+        });
+
+        socket.on('warning', (data) => {
+            addLog({ level: 'WARN', message: data.message, nodeId: data.data });
+        });
+
+        socket.on('error', (data) => {
+            addLog({ level: 'ERROR', message: data.message, nodeId: data.data });
+        });
+
         // socket.on('disconnect', (reason) => {
         //     addLog({ level: 'WARN', message: `Disconnected from server: ${reason}` });
         //     cleanup();
