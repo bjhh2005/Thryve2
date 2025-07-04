@@ -24,7 +24,7 @@ const SCHEDULER_MODES = [
 const MODE_INPUTS = {
   interval: {
     interval: {
-      type: 'number',
+      type: 'string',
       description: 'Interval in seconds',
       default: 3,
     },
@@ -55,13 +55,13 @@ export const SchedulerFormRender = (props: FormRenderProps<{ mode: SchedulerMode
   };
 
   const intervalInput = (
-    <Field<number> name="interval">
+    <Field<string> name="interval">
       {({ field, fieldState }) => (
-        <FormItem name={'interval'} type={'number'} required={form.values.mode === 'interval'}>
+        <FormItem name={'interval'} type={'string'} required={form.values.mode === 'interval'}>
           <InputNumber
             style={{ width: '100%' }}
             value={field.value}
-            onChange={(val) => field.onChange(Number(val))}
+            onChange={(val) => field.onChange(val as string)}
             min={1}
             readonly={readonly}
             suffix="seconds"
