@@ -9,7 +9,6 @@ import './MyProjectsPanel.less';
 
 export const MyProjectsPanel: React.FC = memo(() => {
     const { projects } = useProject();
-    console.log("MyProjectsPanel is rendering..."); // 您可以加上这个日志来观察效果
 
     return (
         <div className="my-projects-panel">
