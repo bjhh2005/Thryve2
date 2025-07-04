@@ -10,7 +10,7 @@ export enum WorkflowNodeType {
   FileInput = 'file-input',
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
-  CreateStringArray = 'create-string-array',
+  // CreateStringArray = 'create-string-array',
 
   // 基础文本处理
   TextProcessor = 'text-processor',
