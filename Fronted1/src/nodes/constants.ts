@@ -11,6 +11,7 @@ export enum WorkflowNodeType {
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
   CreateStringArray = 'create-string-array',
+  Scheduler = 'scheduler',
 
   // 基础文本处理
   TextProcessor = 'text-processor',

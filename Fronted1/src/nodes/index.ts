@@ -17,6 +17,7 @@ import { MarkdownProcessorRegistry } from './markdown-processor';
 import { ImgProcessorRegistry } from './img-processor';
 import { RelocationNodeRegistry } from './relocation';
 import { CreateStringArrayNodeRegistry } from './create-string-array';
+import { SchedulerNodeRegistry } from './scheduler';
 
 export { WorkflowNodeType } from './constants';
 
@@ -38,6 +39,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   ImgProcessorRegistry,
   RelocationNodeRegistry,
   CreateStringArrayNodeRegistry,
+  SchedulerNodeRegistry,
 ];
 
 /**
