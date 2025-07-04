@@ -1,6 +1,6 @@
 import logging
 
-from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, MarkdownProcessor, PdfProcessor, FolderInput, ImageProcessor, LLMProcessor, Relocation
+from .nodes import Start, FileInput, ConditionNode, Print, Loop, End, TextProcessor, CSV, JSON, MarkdownProcessor, PdfProcessor, FolderInput, ImageProcessor, LLMProcessor, Relocation, Sleep
 
 
 logger = logging.getLogger(__name__)
@@ -53,6 +53,8 @@ class NodeFactory:
                 return LLMProcessor(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "relocation":
                 return Relocation(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
+            case "sleep":
+                return Sleep(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case "end":
                 return End(nodeId, type, nextNodes, bus, self.nodes[nodeId]["data"])
             case _:
