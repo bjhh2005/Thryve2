@@ -26,7 +26,17 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
         // 修正 3: shadow -> shadows
         <Card className="project-card" shadows="hover" bodyStyle={{ padding: 0 }}>
             <div className="project-card-thumbnail-wrapper" onClick={() => loadProject(project.id)}>
-                <img src={project.thumbnail} alt={project.name} className="project-card-thumbnail" />
+                <img
+                    src={project.thumbnail}
+                    alt={project.name}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        objectPosition: 'center'
+                    }}
+                    className='project-card-thumbnail'
+                />
             </div>
             <div className="project-card-footer">
                 <Text ellipsis={{ showTooltip: true }} className="project-card-name">{project.name}</Text>

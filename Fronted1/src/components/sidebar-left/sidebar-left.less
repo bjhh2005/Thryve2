@@ -94,7 +94,7 @@
 
 .current-project-name {
     font-size: 16px;
-    font-weight: 600;
+    // font-weight: 600;
     color: var(--semi-color-text-0);
     padding-left: 4px;
     white-space: nowrap;
@@ -108,9 +108,8 @@
 .left-sidebar-content-wrapper {
     flex-grow: 1;
     position: relative;
-    overflow: hidden;
-    transition: opacity @transition-speed ease;
-    background-color: #fff;
+    overflow: auto;
+    // width: 600px !important;
 
     .tab-pane {
         position: absolute;
@@ -122,6 +121,11 @@
         transform: translateX(-15px);
         transition: opacity @transition-speed @transition-curve, transform @transition-speed @transition-curve;
         pointer-events: none;
+
+        background-color: #fff;
+        overflow-y: auto;
+
+        box-sizing: border-box;
 
         &.active {
             opacity: 1;

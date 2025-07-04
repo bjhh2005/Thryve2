@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { useExecution, LogEntry } from '../../../context/ExecutionProvider';
 import { IconTriangleDown } from '@douyinfe/semi-icons';
 import './ConsolePanel.less';
@@ -14,7 +14,7 @@ const LogEntryView: React.FC<{ log: LogEntry }> = ({ log }) => {
     );
 };
 
-export const ConsolePanel = () => {
+export const ConsolePanel = memo(() => {
     const { logs, clearLogs } = useExecution();
     const logContainerRef = useRef<HTMLDivElement>(null);
 
@@ -42,4 +42,4 @@ export const ConsolePanel = () => {
             </div>
         </div>
     );
-};
+});

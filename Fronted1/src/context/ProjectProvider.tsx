@@ -5,13 +5,24 @@ import { useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
 import { v4 as uuidv4 } from 'uuid';
 import { Toast, Modal, Input } from '@douyinfe/semi-ui';
 import * as ProjectDB from '../utils/ProjectDB';
+import { initialData } from '../initial-data';
 
 export type { Project } from '../utils/ProjectDB';
+import DefaultThumbnail from '../assets/default-thumbnail.svg';
 
-// 1. 定义一个固定的、美观的SVG作为所有项目的缩略图
 // 这是一个内联的Data URL，无需网络请求
-const STATIC_PROJECT_THUMBNAIL = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCAxNjAgMTIwJyB3aWR0aD0nMTYwJyBoZWlnaHQ9JzEyMCc+IDxyZWN0IHdpZHRoPScxNjAnIGhlaWdodD0nMTIwJyBmaWxsPScjZjBmMmY1Jy8+IDxyZWN0IHg9JzIwJyB5PSc0MCcgd2lkdGg9JzMwJyBoZWlnaHQ9JzIwJyByeD0nMycgZmlsbD0nI2ZmZmZmZicgc3Ryb2tlPScjZDlkOWQ5JyBzdHJva2Utd2lkdGg9JzInLz4gPHJlY3QgeD0nNzAnIHk9JzIwJyB3aWR0aD0nNTAnIGhlaWdodD0nMjAnIHJ4PSczJyBmaWxsPScjZmZmZmZmJyBzdHJva2U9JyNkOWQ5ZDknIHN0cm9rZS13aWR0aD0nMicvPiA8cmVjdCB4PSc3MCcgeT0nODAnIHdpZHRoPSc1MCcgaGVpZ2h0PScyMCcgcng9JzMnIGZpbGw9JyNmZmZmZmYnIHN0cm9rZT0nI2Q5ZDlkOScgc3Ryb2tlLXdpZHRoPScyJy8+IDxwYXRoIGQ9J001MCA1MCBDIDcwIDUwLCA3MCAzMCwgNzAgMzAnIHN0cm9rZT0nI2EwYTBhMCcgc3Ryb2tlLXdpZHRoPScxLjUnIGZpbGw9J25vbmUnLz4gPHBhdGggZD0nTTUwIDUwIEMgNzAgNTAsIDcwIDkwLCA3MCA5MCcgc3Ryb2tlPScjYTBhMGExJyBzdHJva2Utd2lkdGg9JzEuNScgZmlsbD0nbm9uZScvPiA8L3N2Zz4=";
+const STATIC_PROJECT_THUMBNAIL = DefaultThumbnail;
 
+const DEFAULT_PROJECT_ID = 'default-example-workflow-v1';
+
+const defaultProjectObject: ProjectDB.Project = {
+    id: DEFAULT_PROJECT_ID,
+    name: '示例工作流',
+    workflowData: initialData as any,
+    thumbnail: STATIC_PROJECT_THUMBNAIL,
+    createdAt: Date.now() - 1000,
+    updatedAt: Date.now() - 1000,
+};
 
 interface ProjectContextType {
     projects: ProjectDB.Project[];
@@ -36,8 +47,25 @@ export const useProject = () => {
 
 export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const document = useService(WorkflowDocument);
-    const [projects, setProjects] = useState<ProjectDB.Project[]>([]);
-    const [currentProject, setCurrentProject] = useState<ProjectDB.Project | null>(null);
+    const [projects, setProjects] = useState<ProjectDB.Project[]>([defaultProjectObject]);
+    const [currentProject, setCurrentProject] = useState<ProjectDB.Project | null>(defaultProjectObject);
+
+    useEffect(() => {
+        const initializeApp = async () => {
+            // 检查并创建默认项目
+            const defaultProject = await ProjectDB.getProject(DEFAULT_PROJECT_ID);
+            if (!defaultProject) {
+                await ProjectDB.addProject(defaultProjectObject);
+            }
+
+            // 获取并更新完整的项目列表，但不会导致闪烁
+            const allProjects = await ProjectDB.getAllProjects();
+            setProjects(allProjects);
+        };
+
+        initializeApp();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // 这个 effect 只在组件初次挂载时运行一次
 
     const fetchAllProjects = useCallback(async () => {
         const allProjects = await ProjectDB.getAllProjects();
@@ -69,7 +97,7 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
         return currentProject?.name || '未命名画布';
     }, [currentProject]);
 
-    const loadProject = useCallback(async (id: string) => {
+    const loadProject = useCallback(async (id: string, silent = false) => {
         const projectToLoad = await ProjectDB.getProject(id);
         if (projectToLoad) {
             document.clear();
@@ -77,7 +105,9 @@ export const ProjectProvider: React.FC<{ children: ReactNode }> = ({ children })
                 document.renderJSON(projectToLoad.workflowData);
                 document.fitView(false);
                 setCurrentProject(projectToLoad);
-                Toast.info(`已加载项目: ${projectToLoad.name}`);
+                if (!silent) {
+                    Toast.info(`已加载项目: ${projectToLoad.name}`);
+                }
             }, 100);
         } else {
             Toast.error('项目加载失败');

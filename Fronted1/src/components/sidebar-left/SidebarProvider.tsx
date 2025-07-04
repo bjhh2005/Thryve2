@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useContext, createContext, useRef, useEffect } from 'react';
 
 // 初始宽度和最小/最大宽度限制
-const INITIAL_WIDTH = 400;
-const MIN_WIDTH = 300;
+const INITIAL_WIDTH = 600;
+const MIN_WIDTH = 312;
 const MAX_WIDTH = 1000;
+const LOCAL_STORAGE_KEY = 'sidebarWidth'; // 定义用于 localStorage 的键
 
 interface LeftSidebarContextType {
   isCollapsed: boolean;
@@ -28,8 +29,28 @@ export const useLeftSidebar = () => {
 export const SidebarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState('ai');
-  const [width, setWidth] = useState(INITIAL_WIDTH);
+  const [width, setWidth] = useState(() => {
+    try {
+      const savedWidth = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      // 如果有保存的值，则使用它，否则使用初始值
+      return savedWidth ? parseInt(savedWidth, 10) : INITIAL_WIDTH;
+    } catch (error) {
+      // 如果出错（例如在SSR环境中），则使用初始值
+      return INITIAL_WIDTH;
+    }
+  });
   const [isDragging, setIsDragging] = useState(false);
+
+  useEffect(() => {
+    try {
+      // 我们只在拖拽结束或初次加载后保存，避免在拖拽过程中频繁写入
+      if (!isDragging) {
+        window.localStorage.setItem(LOCAL_STORAGE_KEY, String(width));
+      }
+    } catch (error) {
+      console.error("无法保存侧边栏宽度到 localStorage", error);
+    }
+  }, [width, isDragging]);
 
   const toggleSidebar = useCallback(() => {
     setIsCollapsed(prev => !prev);

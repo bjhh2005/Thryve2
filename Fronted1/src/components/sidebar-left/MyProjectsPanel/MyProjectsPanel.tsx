@@ -1,14 +1,15 @@
 // src/components/Sidebar/MyProjectsPanel/MyProjectsPanel.tsx
 
-import React from 'react';
+import React, { memo } from 'react';
 import { useProject } from '../../../context/ProjectProvider';
 import { ProjectCard } from './ProjectCard';
 import { Empty } from '@douyinfe/semi-ui';
 import { IconFolder } from '@douyinfe/semi-icons';
 import './MyProjectsPanel.less';
 
-export const MyProjectsPanel: React.FC = () => {
+export const MyProjectsPanel: React.FC = memo(() => {
     const { projects } = useProject();
+    console.log("MyProjectsPanel is rendering..."); // 您可以加上这个日志来观察效果
 
     return (
         <div className="my-projects-panel">
@@ -27,4 +28,4 @@ export const MyProjectsPanel: React.FC = () => {
             )}
         </div>
     );
-};
+});
