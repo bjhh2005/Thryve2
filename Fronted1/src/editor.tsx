@@ -1,6 +1,7 @@
 import {
     EditorRenderer,
     FreeLayoutEditorProvider,
+    FreeLayoutProps, // 导入 FreeLayoutProps 类型
 } from '@flowgram.ai/free-layout-editor';
 import '@flowgram.ai/free-layout-editor/index.css';
 import './styles/index.css';
@@ -13,8 +14,10 @@ import { SidebarProvider as RightSidebarProvider, SidebarRenderer as RightSideba
 import { SidebarProvider as LeftSidebarProvider, SidebarRenderer as LeftSidebarRenderer } from './components/sidebar-left';
 import { ExecutionProvider, useExecution } from './context/ExecutionProvider';
 
+import { ProjectProvider } from './context/ProjectProvider';
+
 /**
- * 创建一个新的内部组件，用于消费 ExecutionProvider 提供的状态
+ * 创建一个新的内部组件，用于消费 ExecutionProvider 和 ProjectProvider 提供的状态
  */
 const EditorLayout = () => {
     const { isRunning } = useExecution();
@@ -35,15 +38,27 @@ const EditorLayout = () => {
     );
 };
 
-export const Editor = () => {
+
+const EditorWrapper = () => {
+
     const editorProps = useEditorProps(initialData, nodeRegistries);
+
+    return (
+        <FreeLayoutEditorProvider {...editorProps}>
+            <ExecutionProvider>
+                <EditorLayout />
+            </ExecutionProvider>
+        </FreeLayoutEditorProvider>
+    );
+}
+
+
+export const Editor = () => {
     return (
         <div className="doc-free-feature-overview">
-            <FreeLayoutEditorProvider {...editorProps}>
-                <ExecutionProvider>
-                    <EditorLayout />
-                </ExecutionProvider>
-            </FreeLayoutEditorProvider>
+            <ProjectProvider>
+                <EditorWrapper />
+            </ProjectProvider>
         </div>
     );
 };

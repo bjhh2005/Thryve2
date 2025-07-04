@@ -58,6 +58,11 @@
     background-color: @action-bar-bg-color;
 }
 
+.action-bar-button.active {
+    background-color: var(--semi-color-primary-light-active) !important;
+    color: var(--semi-color-primary) !important;
+}
+
 .action-bar-button.semi-button {
     width: 40px;
     height: 40px;
@@ -77,12 +82,28 @@
 }
 
 .left-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
     padding: 8px 12px;
     background-color: #fff;
     text-align: right;
     border-bottom: 1px solid @border-color;
 }
+
+.current-project-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--semi-color-text-0);
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    text-align: left;
+}
+
 
 .left-sidebar-content-wrapper {
     flex-grow: 1;
@@ -106,6 +127,10 @@
             opacity: 1;
             transform: translateX(0);
             pointer-events: auto;
+        }
+
+        &.projects-active {
+            background-color: #fafafa;
         }
     }
 }
