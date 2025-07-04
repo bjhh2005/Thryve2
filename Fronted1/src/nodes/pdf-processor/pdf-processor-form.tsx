@@ -53,7 +53,10 @@ const MODE_INPUTS = {
     inputFiles: {
       type: 'array',
       title: 'PDF Files',
-      description: 'Files to merge'
+      description: 'Files to merge',
+      items: {
+        type: 'string',
+      }
     },
     sortBy: {
       type: 'string',
