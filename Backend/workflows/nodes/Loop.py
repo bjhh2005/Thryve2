@@ -131,7 +131,10 @@ class Loop(MessageNode):
             raise LoopError(f"循环体内节点 {node_id} 不存在")
             
         # 更新当前迭代项到 MessageList
-        self.MessageList["item"] = item
+        if self.mode == "array":
+            self.MessageList["item"] = item
+        elif self.mode == "times":
+            self.MessageList["item"] = None
             
         try:
             # 执行节点
