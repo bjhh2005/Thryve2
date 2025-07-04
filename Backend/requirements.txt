@@ -54,3 +54,4 @@ Werkzeug==3.0.1
 wsproto==1.2.0
 python-docx==1.1.0
 eventlet==0.40.1
+schedule==1.2.1
