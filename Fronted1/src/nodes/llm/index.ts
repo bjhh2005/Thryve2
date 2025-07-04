@@ -49,28 +49,59 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
             type: 'constant',
             content: '',
           },
+          outputFolder: {
+            type: 'constant',
+            content: '',
+          },
+          outputName: {
+            type: 'constant',
+            content: '',
+          },
         },
         inputs: {
           type: 'object',
           required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
           properties: {
+            inputFiles: {
+              type: 'array',
+              description: 'The files to process.',
+              items: {
+                type: 'string',
+              },
+            },
             modelName: {
               type: 'string',
+              description: 'The name of the model to use.',
             },
             apiKey: {
               type: 'string',
+              description: 'The API key to use.',
             },
             apiHost: {
               type: 'string',
+              description: 'The API host to use.',
             },
             temperature: {
               type: 'number',
+              description: 'The temperature to use.',
             },
             systemPrompt: {
               type: 'string',
+              description: 'The system prompt to use.',
             },
             prompt: {
               type: 'string',
+              description: 'The prompt to use.',
+            },
+            outputFolder: {
+              type: 'string',
+              description: 'The folder to save the output file.',
+              default: '',
+            },
+            outputName: {
+              type: 'string',
+              description: 'The name of the output file.',
+              default: '',
             },
           },
         },
@@ -78,6 +109,7 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
           type: 'object',
           properties: {
             result: { type: 'string' },
+            outputFile: { type: 'string' },
           },
         },
       },

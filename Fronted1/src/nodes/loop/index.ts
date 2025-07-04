@@ -39,10 +39,10 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
      * 子画布 padding 设置
      */
     padding: () => ({
-      top: 120,
-      bottom: 60,
-      left: 100,
-      right: 100,
+      top: 180,
+      bottom: 30,
+      left: 50,
+      right: 50,
     }),
     /**
      * Controls the node selection status within the subcanvas
@@ -64,6 +64,7 @@ export const LoopNodeRegistry: FlowNodeRegistry = {
       type: 'loop',
       data: {
         title: `Loop_${++index}`,
+        mode: 'array',
       },
     };
   },

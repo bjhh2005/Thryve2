@@ -58,9 +58,9 @@ class FileInput(MessageNode):
             raise FileInputError(f"节点 {self._id} 没有指定下一个节点")
             
         try:
-            #self._eventBus.emit("message", "info", self._id, "Fileinput success!")
+            self._eventBus.emit("message", "info", self._id, "Fileinput success!")
             self.updateNext()
-            return True
+            return self.MessageList
         except Exception as e:
             raise FileInputError(f"节点 {self._id} 执行失败: {str(e)}")
 

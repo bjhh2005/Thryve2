@@ -1,0 +1,82 @@
+// src/components/NodeResultDisplay.less
+
+.node-result-display {
+    width: calc(100% + 2px); // 比节点稍宽一点
+    margin-left: -1px;
+    margin-top: 8px; // 与节点的间距
+    border-radius: 8px;
+    font-size: 13px;
+    overflow: hidden;
+    border: 1px solid;
+
+    &.success {
+        border-color: #dff0d8;
+        background-color: #f7fff5;
+    }
+
+    &.failed {
+        border-color: #f2dede;
+        background-color: #fff5f5;
+    }
+
+    .result-header {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+        transition: background-color 0.2s;
+        color: #000;
+
+        &:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+    }
+
+    .icon-success {
+        color: #4CAF50;
+    }
+
+    .icon-failed {
+        color: #F44336;
+    }
+
+    .result-status-text {
+        font-weight: 500;
+    }
+
+    .expand-icon {
+        margin-left: auto;
+        transition: transform 0.2s ease-in-out;
+
+        &.expanded {
+            transform: rotate(180deg);
+        }
+    }
+
+    .result-payload {
+        padding: 4px 12px 12px 12px;
+        border-top: 1px solid;
+        max-height: 200px;
+        overflow-y: auto;
+        color: #000;
+
+        .json-viewer {
+            margin: 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+            background-color: rgba(0, 0, 0, 0.02);
+            padding: 8px;
+            border-radius: 4px;
+        }
+    }
+
+    &.success .result-payload {
+        border-color: #dff0d8;
+    }
+
+    &.failed .result-payload {
+        border-color: #f2dede;
+    }
+}

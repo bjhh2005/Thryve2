@@ -1,40 +1,50 @@
-import { useCallback } from 'react';
+// base-node/index.tsx (支持高级可视化和结果展示的最终版)
 
+import React, { useCallback } from 'react'; // 导入 React 以使用 Fragment
 import { FlowNodeEntity, useNodeRender } from '@flowgram.ai/free-layout-editor';
 import { ConfigProvider } from '@douyinfe/semi-ui';
 
-import { NodeStatusBar } from '../testrun/node-status-bar';
-import { NodeRenderContext } from '../../context';
-import { ErrorIcon } from './styles';
+// 1. 导入我们统一的 useExecution Hook
+import { useExecution } from '../../context/ExecutionProvider';
+
+// 2. 导入我们新创建的结果展示组件
+import { NodeResultDisplay } from '../NodeResultDisplay/NodeResultDisplay';
+
 import { NodeWrapper } from './node-wrapper';
+import { ErrorIcon } from './styles';
+import { NodeRenderContext } from '../../context';
 
 export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
-  /**
-   * Provides methods related to node rendering
-   * 提供节点渲染相关的方法
-   */
   const nodeRender = useNodeRender();
-  /**
-   * It can only be used when nodeEngine is enabled
-   * 只有在节点引擎开启时候才能使用表单
-   */
   const form = nodeRender.form;
 
-  /**
-   * Used to make the Tooltip scale with the node, which can be implemented by itself depending on the UI library
-   * 用于让 Tooltip 跟随节点缩放, 这个可以根据不同的 ui 库自己实现
-   */
-  const getPopupContainer = useCallback(() => node.renderData.node || document.body, []);
+  // 3. 从 Context 中获取包含 status 和 payload 的完整状态对象
+  const { nodeStates } = useExecution();
+
+  // 4. 获取当前节点对应的完整状态对象
+  const currentNodeState = nodeStates[node.id];
+
+  // 5. 从中提取出 status，用于驱动样式变化。如果状态不存在，默认为 'IDLE'
+  const currentNodeStatus = currentNodeState?.status || 'IDLE';
+
+  const getPopupContainer = useCallback(() => node.renderData.node || document.body, [node.renderData.node]);
 
   return (
-    <ConfigProvider getPopupContainer={getPopupContainer}>
-      <NodeRenderContext.Provider value={nodeRender}>
-        <NodeWrapper>
-          {form?.state.invalid && <ErrorIcon />}
-          {form?.render()}
-        </NodeWrapper>
-        <NodeStatusBar />
-      </NodeRenderContext.Provider>
-    </ConfigProvider>
+    // 使用 React.Fragment (<> ... </>) 来包裹两个并列的组件
+    <>
+      {/* 节点主体部分 */}
+      <ConfigProvider getPopupContainer={getPopupContainer}>
+        <NodeRenderContext.Provider value={nodeRender}>
+          <NodeWrapper reportStatus={currentNodeStatus}>
+            {form?.state.invalid && <ErrorIcon />}
+            {form?.render()}
+          </NodeWrapper>
+        </NodeRenderContext.Provider>
+      </ConfigProvider>
+
+      {/* 6. 在节点主体的下方，渲染新的结果展示组件 */}
+      {/* 并将当前节点的完整状态(包括payload)传递给它 */}
+      <NodeResultDisplay nodeState={currentNodeState} />
+    </>
   );
 };

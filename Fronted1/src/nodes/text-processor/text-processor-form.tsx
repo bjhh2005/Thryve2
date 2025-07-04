@@ -20,6 +20,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Content to Append',
       description: 'Content to be appended at the end of the file'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Folder to write the appended content to'
+    },
+    outputFileName: {
+      type: 'string',
+      title: 'Output File Name',
+      description: 'Name of the file to write the appended content to'
     }
   },
   write: {
@@ -27,6 +37,16 @@ const MODE_INPUTS = {
       type: 'string',
       title: 'Content to Write',
       description: 'Content to write to the file (will overwrite existing content)'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Folder to write the written content to'
+    },
+    outputFileName: {
+      type: 'string',
+      title: 'Output File Name',
+      description: 'Name of the file to write the written content to'
     }
   },
   replace: {
@@ -44,6 +64,16 @@ const MODE_INPUTS = {
       type: 'boolean',
       title: 'Use Regular Expression',
       description: 'Enable regular expression for search and replace'
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Folder to write the replaced content to'
+    },
+    outputFileName: {
+      type: 'string',
+      title: 'Output File Name',
+      description: 'Name of the file to write the replaced content to'
     }
   },
   wordFreq: {
@@ -57,22 +87,50 @@ const MODE_INPUTS = {
       title: 'Minimum Word Length',
       description: 'Minimum length of words to count',
       default: 1
+    },
+    outputFolder: {
+      type: 'string',
+      title: 'Output Folder',
+      description: 'Folder to write the word frequency statistics to'
+    },
+    outputFileName: {
+      type: 'string',
+      title: 'Output File Name',
+      description: 'Name of the file to write the word frequency statistics to'
     }
   }
 };
 
 // Output configurations for different modes
 const MODE_OUTPUTS = {
-  append: {},
-  write: {},
+  append: {
+    outputFile: {
+      type: 'string',
+      description: 'File to write the appended content to'
+    }
+  },
+  write: {
+    outputFile: {
+      type: 'string',
+      description: 'File to write the written content to'
+    }
+  },
   replace: {
     replacementCount: {
       type: 'number',
       title: 'Replacement Count',
       description: 'Number of replacements made'
+    },
+    outputFile: {
+      type: 'string',
+      description: 'File to write the replaced content to'
     }
   },
   wordFreq: {
+    outputFile: {
+      type: 'string',
+      description: 'File to write the word frequency statistics to'
+    },
     statistics: {
       type: 'object',
       title: 'Statistics',

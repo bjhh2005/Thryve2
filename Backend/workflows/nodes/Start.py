@@ -20,12 +20,11 @@ class Start(MessageNode):
                 self.MessageList[propName] = []
             else:
                 self.MessageList[propName] = propInfo.get('default', None)
-        print(self.MessageList)
+
 
     def run(self):
-        self._eventBus.emit("workflow", self._id)
-        print(self._nextNodes)
         self.updateNext()
+        return self.MessageList
 
     def updateNext(self):
         if not self._nextNodes:

@@ -96,6 +96,10 @@ const MODE_INPUTS = {
 // Output configurations for different modes
 const MODE_OUTPUTS = {
   filter: {
+    outputFile: {
+      type: 'string',
+      description: 'Filtered CSV file'
+    },
     filteredData: {
       type: 'array',
       description: 'Filtered CSV data'
@@ -106,12 +110,20 @@ const MODE_OUTPUTS = {
     }
   },
   sort: {
+    outputFile: {
+      type: 'string',
+      description: 'Sorted CSV file'
+    },
     sortedData: {
       type: 'array',
       description: 'Sorted CSV data'
     }
   },
   aggregate: {
+    outputFile: {
+      type: 'string',
+      description: 'Aggregated CSV file'
+    },
     result: {
       type: 'object',
       description: 'Aggregation results'
