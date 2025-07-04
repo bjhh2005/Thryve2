@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Union, TypedDict
 import json
 import requests
-from .Node import Node
+from .MessageNode import MessageNode
 import urllib3
 from urllib3 import Retry
 from urllib.parse import urljoin
@@ -28,7 +28,7 @@ class Message(TypedDict):
     role: str
     content: Union[str, List[ImageContent]]
 
-class LLMProcessor(Node):
+class LLMProcessor(MessageNode):
     def __init__(self, id: str, type: str, nextNodes: list, eventBus: Any, data: Dict[str, Any]):
         """
         初始化LLM处理节点
