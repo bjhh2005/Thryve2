@@ -7,14 +7,12 @@ import json
 import threading
 import logging
 
-from flask import Flask, request, Response, jsonify
+from flask import Flask, request, Response
 from flask_socketio import SocketIO
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
-from workflows.scheduler.Scheduler import WorkflowScheduler
-from workflows.events.EventBus import EventBus
 
 load_dotenv()
 app = Flask(__name__)
@@ -180,60 +178,6 @@ def generate_title():
     #     logger.error(f"An error occurred in /api/generate-title: {e}")
     #     return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
-# 创建事件总线实例
-event_bus = EventBus()
-
-# 创建工作流引擎实例
-engine = WorkflowEngine({}, socketio)  # 传入空的工作流数据作为初始状态
-
-# 创建调度器实例
-scheduler = WorkflowScheduler(event_bus)
-
-@app.before_request
-def init_app():
-    """初始化应用"""
-    if not app.config.get('SCHEDULER_STARTED'):
-        scheduler.start()
-        app.config['SCHEDULER_STARTED'] = True
-
-@app.teardown_appcontext
-def cleanup_app(exception):
-    """清理应用"""
-    if app.config.get('SCHEDULER_STARTED'):
-        scheduler.stop()
-        app.config['SCHEDULER_STARTED'] = False
-
-# 调度器管理API
-@app.route('/api/schedules', methods=['GET'])
-def list_schedules():
-    """列出所有调度任务"""
-    workflow_id = request.args.get('workflow_id')
-    schedules = scheduler.list_schedules(workflow_id)
-    return jsonify(schedules)
-
-@app.route('/api/schedules/<schedule_id>', methods=['GET'])
-def get_schedule(schedule_id):
-    """获取调度任务详情"""
-    schedule = scheduler.get_schedule(schedule_id)
-    if schedule:
-        return jsonify(schedule)
-    return jsonify({'error': '调度任务不存在'}), 404
-
-@app.route('/api/schedules/<schedule_id>', methods=['PUT'])
-def update_schedule(schedule_id):
-    """更新调度任务"""
-    data = request.get_json()
-    if scheduler.update_schedule(schedule_id, data.get('schedule_config', {})):
-        return jsonify({'message': '调度任务已更新'})
-    return jsonify({'error': '调度任务不存在'}), 404
-
-@app.route('/api/schedules/<schedule_id>', methods=['DELETE'])
-def delete_schedule(schedule_id):
-    """删除调度任务"""
-    if scheduler.remove_schedule(schedule_id):
-        return jsonify({'message': '调度任务已删除'})
-    return jsonify({'error': '调度任务不存在'}), 404
-
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server with Eventlet...")
     socketio.run(app, debug=True, port=4000)
