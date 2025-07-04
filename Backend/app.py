@@ -13,6 +13,7 @@ from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
+from workflows.WorkflowManager import WorkflowManager
 
 load_dotenv()
 app = Flask(__name__)
@@ -42,15 +43,35 @@ def engineConnect(engine : WorkflowEngine):
 
 def execute_workflow_task(workflow_data):
     """Execute workflow task in background"""
+    global current_workflow_manager
     try:
         logger.info("Starting workflow execution")
         
-        # Create workflow engine
-        engine = WorkflowEngine(workflow_data, socketio)  
-        engineConnect(engine)
-
-        # Run workflow
-        success, message = engine.run()
+        # 检查是否为多工作流数据格式
+        if isinstance(workflow_data, dict) and "workflows" in workflow_data:
+            # 新的多工作流格式
+            logger.info("Using WorkflowManager for multi-workflow execution")
+            manager = WorkflowManager(socketio)
+            current_workflow_manager = manager  # 保存全局引用
+            
+            # 连接管理器事件
+            manager.global_bus.on('message', lambda event, nodeId, message: 
+                socketio.emit(event, {"data": nodeId, "message": message}, namespace='/workflow'))
+            manager.global_bus.on("nodes_output", lambda nodeId, message: 
+                socketio.emit('nodes_output', {"data": nodeId, "message": message}, namespace='/workflow'))
+            
+            # 注册工作流
+            manager.register_workflows(workflow_data["workflows"])
+            
+            # 执行工作流
+            success, message = manager.run()
+        else:
+            # 兼容旧的单工作流格式
+            logger.info("Using single WorkflowEngine for backward compatibility")
+            current_workflow_manager = None  # 清空管理器引用
+            engine = WorkflowEngine(workflow_data, socketio)
+            engineConnect(engine)
+            success, message = engine.run()
 
         # Send appropriate signal based on execution result
         if success:
@@ -178,6 +199,130 @@ def generate_title():
     #     logger.error(f"An error occurred in /api/generate-title: {e}")
     #     return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
+
+# -------------------------------------------------------------------
+#  新增：多工作流管理API
+# -------------------------------------------------------------------
+
+# 全局工作流管理器实例（用于状态查询）
+current_workflow_manager = None
+
+@app.route("/api/workflows/status", methods=["GET"])
+def get_workflows_status():
+    """获取所有工作流的状态"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        status = current_workflow_manager.get_all_workflow_status()
+        return Response(json.dumps({"status": status}), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/status", methods=["GET"])
+def get_workflow_status(workflow_id):
+    """获取指定工作流的状态"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        status = current_workflow_manager.get_workflow_status(workflow_id)
+        if status is None:
+            return Response(json.dumps({"error": f"Workflow {workflow_id} not found"}), status=404, mimetype='application/json')
+        
+        return Response(json.dumps({"workflow_id": workflow_id, "status": status.value}), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/pause", methods=["POST"])
+def pause_workflow(workflow_id):
+    """暂停指定工作流"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        current_workflow_manager.pause_workflow(workflow_id)
+        return Response(json.dumps({"message": f"Workflow {workflow_id} paused"}), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/resume", methods=["POST"])
+def resume_workflow(workflow_id):
+    """恢复指定工作流"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        current_workflow_manager.resume_workflow(workflow_id)
+        return Response(json.dumps({"message": f"Workflow {workflow_id} resumed"}), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/memory", methods=["GET"])
+def get_memory_usage():
+    """获取所有工作流的内存使用情况"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        memory_summary = current_workflow_manager.get_memory_usage_summary()
+        return Response(json.dumps(memory_summary), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/memory/cleanup", methods=["POST"])
+def force_cleanup_subworkflows():
+    """强制清理所有子工作流的内存（调试用）"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        # 获取清理前的内存信息
+        before_cleanup = current_workflow_manager.get_memory_usage_summary()
+        
+        # 执行清理
+        current_workflow_manager.force_cleanup_all_subworkflows()
+        
+        # 获取清理后的内存信息
+        after_cleanup = current_workflow_manager.get_memory_usage_summary()
+        
+        return Response(json.dumps({
+            "message": "All subworkflows cleaned up",
+            "before_cleanup": before_cleanup,
+            "after_cleanup": after_cleanup
+        }), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/memory", methods=["GET"])
+def get_workflow_memory(workflow_id):
+    """获取指定工作流的内存使用详情"""
+    global current_workflow_manager
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No workflow manager instance"}), status=404, mimetype='application/json')
+    
+    try:
+        if workflow_id not in current_workflow_manager.workflows:
+            return Response(json.dumps({"error": f"Workflow {workflow_id} not found or not instantiated"}), status=404, mimetype='application/json')
+        
+        engine = current_workflow_manager.workflows[workflow_id]
+        memory_info = engine.get_memory_usage_info()
+        
+        return Response(json.dumps({
+            "workflow_id": workflow_id,
+            "memory_info": memory_info,
+            "workflow_type": current_workflow_manager.workflow_types[workflow_id].value,
+            "workflow_status": current_workflow_manager.workflow_status[workflow_id].value
+        }), status=200, mimetype='application/json')
+    except Exception as e:
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
 if __name__ == '__main__':
     logger.info("Starting workflow WebSocket server with Eventlet...")
     socketio.run(app, debug=True, port=4000)

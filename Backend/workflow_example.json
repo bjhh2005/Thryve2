@@ -1,0 +1,235 @@
+{
+  "workflows": {
+    "main_workflow": {
+      "type": "main",
+      "name": "主工作流",
+      "nodes": [
+        {
+          "id": "start_1",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "print_1",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "开始执行主工作流"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "call_1",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "subworkflow_id": {
+                "type": "constant",
+                "content": "data_processing"
+              },
+              "input_data": {
+                "type": "constant",
+                "content": "来自主工作流的数据"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "print_2",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "子工作流执行完毕，继续主工作流"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "call_2",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "subworkflow_id": {
+                "type": "constant",
+                "content": "file_processing"
+              },
+              "input_data": {
+                "type": "ref",
+                "content": ["call_1", "output"]
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "end_1",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_1",
+          "targetNodeID": "print_1",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_1",
+          "targetNodeID": "call_1",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_1",
+          "targetNodeID": "print_2",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_2",
+          "targetNodeID": "call_2",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_2",
+          "targetNodeID": "end_1",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "data_processing": {
+      "type": "sub",
+      "name": "数据处理子工作流",
+      "nodes": [
+        {
+          "id": "start_2",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "print_3",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "执行数据处理"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "print_4",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "数据处理完成"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "end_2",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_2",
+          "targetNodeID": "print_3",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_3",
+          "targetNodeID": "print_4",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_4",
+          "targetNodeID": "end_2",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "file_processing": {
+      "type": "sub",
+      "name": "文件处理子工作流",
+      "nodes": [
+        {
+          "id": "start_3",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "print_5",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "执行文件处理"
+              }
+            },
+            "outputsValues": {}
+          }
+        },
+        {
+          "id": "end_3",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {}
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_3",
+          "targetNodeID": "print_5",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_5",
+          "targetNodeID": "end_3",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    }
+  }
+} 

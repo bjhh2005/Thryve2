@@ -1,6 +1,10 @@
 import logging
+from typing import Optional, TYPE_CHECKING
 from .Factory import NodeFactory
 from .events import EventBus 
+
+if TYPE_CHECKING:
+    from .WorkflowManager import WorkflowManager
 
 class WorkflowEngine:
     
@@ -9,6 +13,11 @@ class WorkflowEngine:
         构造函数，接收工作流数据和 socketio 实例。
         """
         self.socketio = socketio_instance
+        
+        # 多工作流支持相关属性
+        self.global_bus: Optional[EventBus] = None  # 全局事件总线，由WorkflowManager注入
+        self.workflow_id: Optional[str] = None  # 当前工作流ID，由WorkflowManager注入
+        self.workflow_manager: Optional['WorkflowManager'] = None  # 工作流管理器引用，由WorkflowManager注入
         
         # 1. 清洗节点数据，移除meta字段
         cleaned_nodes = {}
@@ -48,6 +57,9 @@ class WorkflowEngine:
         self.bus.on("getNodeInfo", self.getNodeInfo)
         self.bus.on("cleanupNode", self.cleanupNode)
         self.bus.on("updateMessage", self.updateMessage)
+        self.bus.on("get_global_bus", self.get_global_bus)
+        self.bus.on("nodes_output", self.nodes_output)
+        self.bus.on("message", self.message)
 
     def run(self):
         """
@@ -67,7 +79,7 @@ class WorkflowEngine:
             self.socketio.sleep(0)
 
             try:
-                # 1. 发送节点“处理中”状态
+                # 1. 发送节点"处理中"状态
                 self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "PROCESSING"})
                 
                 if curNodeID not in self.instance:
@@ -138,3 +150,66 @@ class WorkflowEngine:
     def updateMessage(self, nodeId, nodePort, value):
         if nodeId in self.instance:
             self.instance[nodeId].setMessage(nodePort, value)
+
+    def get_global_bus(self):
+        """返回全局事件总线给调用节点使用"""
+        return getattr(self, 'global_bus', None)
+    
+    def nodes_output(self, node_id, output_value):
+        """处理节点输出事件"""
+        logging.info(f"节点 {node_id} 输出: {output_value}")
+        # 可以在这里添加其他处理逻辑，如发送到前端
+        if self.socketio:
+            self.socketio.emit('node_output', {
+                'nodeId': node_id,
+                'output': output_value,
+                'workflowId': getattr(self, 'workflow_id', 'unknown')
+            })
+    
+    def message(self, level, node_id, message):
+        """处理节点消息事件"""
+        logging.log(getattr(logging, level.upper(), logging.INFO), 
+                   f"节点 {node_id}: {message}")
+        # 可以在这里添加其他处理逻辑，如发送到前端
+        if self.socketio:
+            self.socketio.emit('node_message', {
+                'level': level,
+                'nodeId': node_id,
+                'message': message,
+                'workflowId': getattr(self, 'workflow_id', 'unknown')
+            })
+    
+    def cleanup_all_nodes(self):
+        """清理所有节点实例，释放内存"""
+        logging.info(f"清理工作流 {getattr(self, 'workflow_id', 'unknown')} 的所有节点实例")
+        
+        # 清理所有节点实例
+        node_count = len(self.instance)
+        for node_id in list(self.instance.keys()):
+            try:
+                node_instance = self.instance[node_id]
+                # 如果节点有特殊的清理方法，调用它
+                if hasattr(node_instance, 'cleanup'):
+                    node_instance.cleanup()
+                del self.instance[node_id]
+            except Exception as e:
+                logging.warning(f"清理节点 {node_id} 时出现警告: {str(e)}")
+        
+        # 清理事件总线的监听器
+        if hasattr(self.bus, 'listeners'):
+            self.bus.listeners.clear()
+        
+        # 清理堆栈
+        self.backStack.clear()
+        
+        logging.info(f"已清理 {node_count} 个节点实例，内存已释放")
+    
+    def get_memory_usage_info(self):
+        """获取当前内存使用信息"""
+        return {
+            "workflow_id": getattr(self, 'workflow_id', 'unknown'),
+            "node_instances_count": len(self.instance),
+            "instantiated_nodes": list(self.instance.keys()),
+            "total_nodes_count": len(self.nodes),
+            "stack_size": len(self.backStack)
+        }
