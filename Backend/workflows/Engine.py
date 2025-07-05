@@ -13,7 +13,7 @@ class WorkflowEngine:
     
     def __init__(self, workflowData, socketio_instance, breakpoints=None):
         """
-        构造函数，增加对断点的支持。
+        构造函数，支持断点调试功能和多工作流支持。
         """
         self.socketio = socketio_instance
         self.bus = EventBus()
@@ -27,13 +27,16 @@ class WorkflowEngine:
         self.workflow_id: Optional[str] = None  # 当前工作流ID，由WorkflowManager注入
         self.workflow_manager: Optional['WorkflowManager'] = None  # 工作流管理器引用，由WorkflowManager注入
         
-        # 1. 清洗节点数据，移除meta字段
-        # 新增：调试相关的核心状态属性
-        self.pause_event = threading.Event()  # 用于暂停/继续的信号量
-        self.pause_event.set()                # 初始状态为“非暂停”（即“允许继续”）
-        self.is_terminated = False            # 终止状态标志
+        # 调试相关的核心状态属性
+        self.is_paused = False                    # 暂停状态标志
+        self.is_terminated = False                # 终止状态标志
+        self.step_mode = False                    # 单步执行模式
+        self.pause_event = threading.Event()     # 用于暂停/继续的信号量
+        self.pause_event.set()                   # 初始状态为"非暂停"
         self.current_node_id = self._findStartNode()
         self.breakpoints = set(breakpoints if breakpoints is not None else [])
+        self.debug_mode = len(self.breakpoints) > 0  # 如果有断点则启用调试模式
+        self.is_running = False                   # 运行状态标志
 
         # 注册内部事件监听器
         self.bus.on("askMessage", self.askMessage)
@@ -42,6 +45,10 @@ class WorkflowEngine:
         self.bus.on("getNodeInfo", self.getNodeInfo)
         self.bus.on("cleanupNode", self.cleanupNode)
         self.bus.on("updateMessage", self.updateMessage)
+        self.bus.on("get_global_bus", self.get_global_bus)
+        self.bus.on("get_workflow_manager", self.get_workflow_manager)
+        self.bus.on("nodes_output", self.nodes_output)
+        self.bus.on("message", self.message)
 
     def _prepare_nodes(self, workflowData):
         """
@@ -77,92 +84,220 @@ class WorkflowEngine:
                 return nodeId
         return None
     
-    # --- 新增：外部控制方法 ---
+    # --- 断点调试功能的外部控制方法 ---
     def pause(self):
         """命令：暂停执行"""
-        logger.debug(f"Pausing execution at node {self.current_node_id}")
-        self.pause_event.clear() # 清除信号，下次 wait() 将会阻塞
+        if not self.is_running:
+            logger.warning("Cannot pause: workflow is not running")
+            return False
+        
+        logger.info(f"Pausing execution at node {self.current_node_id}")
+        self.is_paused = True
+        self.pause_event.clear()  # 清除信号，下次 wait() 将会阻塞
+        # 发送暂停事件
+        self.bus.emit("execution_paused", {"nodeId": self.current_node_id, "reason": "Paused by user"})
+        return True
 
-        # 注册内部事件监听器
-        self.bus.on("askMessage", self.askMessage)
-        self.bus.on("putStack", self.putStack)
-        self.bus.on("createNode", self.createNode)
-        self.bus.on("getNodeInfo", self.getNodeInfo)
-        self.bus.on("cleanupNode", self.cleanupNode)
-        self.bus.on("updateMessage", self.updateMessage)
-        self.bus.on("get_global_bus", self.get_global_bus)
-        self.bus.on("get_workflow_manager", self.get_workflow_manager)
-        self.bus.on("nodes_output", self.nodes_output)
-        self.bus.on("message", self.message)
     def resume(self):
         """命令：恢复执行"""
-        logger.debug("Resuming execution...")
-        self.pause_event.set() # 设置信号，释放 wait() 的阻塞
+        if not self.is_paused:
+            logger.warning("Cannot resume: workflow is not paused")
+            return False
+        
+        logger.info(f"Resuming execution from node {self.current_node_id}")
+        self.is_paused = False
+        self.step_mode = False
+        self.pause_event.set()  # 设置信号，释放 wait() 的阻塞
+        # 发送恢复事件
+        self.bus.emit("execution_resumed", {"nodeId": self.current_node_id, "reason": "Resumed by user"})
+        return True
 
     def terminate(self):
         """命令：终止执行"""
-        logger.debug("Terminating execution...")
+        logger.info("Terminating execution...")
         self.is_terminated = True
+        self.is_running = False
+        self.is_paused = False
         # 必须先恢复执行，让循环得以继续并检测到终止信号
         if not self.pause_event.is_set():
-            self.resume()
+            self.pause_event.set()
+        # 发送终止事件
+        self.bus.emit("execution_terminated", {"nodeId": self.current_node_id, "reason": "Terminated by user"})
+        return True
 
     def step_over(self):
         """命令：单步执行（执行一步然后立即暂停）"""
-        logger.debug(f"Stepping over node {self.current_node_id}")
-        self.resume() 
-        self.socketio.sleep(0.05) # 给予一个极短的时间让一步执行完毕
-        self.pause()
-        # 执行完一步后，主动发送暂停事件，告知前端新的暂停位置
-        self.bus.emit("execution_paused", {"nodeId": self.current_node_id, "reason": "Step completed"})
+        if not self.is_paused:
+            logger.warning("Cannot step over: workflow is not paused")
+            return False
+        
+        logger.info(f"Stepping over from node {self.current_node_id}")
+        self.step_mode = True
+        self.is_paused = False
+        self.pause_event.set()  # 释放当前暂停状态，让执行继续
+        # 发送单步执行事件
+        self.bus.emit("execution_step_over", {"nodeId": self.current_node_id, "reason": "Step over by user"})
+        return True
 
-    # --- 新的执行方法，取代旧的 run ---
-    def debug_run(self):
+    def run(self):
         """
-        以可调试、可中断的模式运行工作流。
+        标准运行方法，为了向后兼容而保留。
+        如果有断点则使用调试模式，否则使用标准模式。
         """
-        while self.current_node_id is not None:
-            # 1. 检查终止信号
-            if self.is_terminated:
-                self.bus.emit("execution_terminated", {"reason": "Terminated by user."})
-                logger.info("Execution terminated by user.")
-                break
+        if self.debug_mode:
+            return self.debug_run()
+        else:
+            return self._standard_run()
 
-            # 2. 检查是否在断点处，如果是，则暂停
-            if self.current_node_id in self.breakpoints:
-                logger.info(f"Breakpoint hit at node {self.current_node_id}. Pausing.")
-                self.pause()
-                self.bus.emit("execution_paused", {"nodeId": self.current_node_id, "reason": "Breakpoint hit"})
+    def _standard_run(self):
+        """
+        标准运行模式，不支持断点调试。
+        """
+        curNodeID = self._findStartNode()
+        if curNodeID is None:
+            return False, "Missing Start node"
+        
+        if not any(node.get('type') == 'end' for node in self.nodes.values()):
+            return False, "Missing End node"
+        
+        self.is_running = True
+        last_node_type = None
+        
+        while curNodeID is not None:
+            # 关键：让出CPU时间给网络服务，保持连接稳定
+            self.socketio.sleep(0)
 
-            # 3. 等待“继续”信号，如果处于暂停状态，会在此阻塞
-            self.pause_event.wait() 
-            
-            # 4. 在等待后再次检查终止信号
-            if self.is_terminated:
-                self.bus.emit("execution_terminated", {"reason": "Terminated by user."})
-                logger.info("Execution terminated by user while paused.")
-                break
-
-            # 5. 执行单个节点逻辑
             try:
                 # 1. 发送节点"处理中"状态
                 self.bus.emit("node_status_change", {"nodeId": curNodeID, "status": "PROCESSING"})
-                self.bus.emit("node_status_change", {"nodeId": self.current_node_id, "status": "PROCESSING"})
                 
-                workNode = self.instance.get(self.current_node_id)
-                if not workNode:
-                    workNode = self.factory.create_node_instance(self.current_node_id)
-                    self.instance[self.current_node_id] = workNode
+                if curNodeID not in self.instance:
+                    self.instance[curNodeID] = self.factory.create_node_instance(curNodeID)
                 
+                workNode = self.instance[curNodeID]
+                last_node_type = self.nodes[curNodeID].get('type')
+                
+                # 执行节点并捕获返回值
                 result_payload = workNode.run()
                 
+                # 2. 节点成功，将返回值作为 payload 发送
+                self.bus.emit("node_status_change", {
+                    "nodeId": curNodeID, 
+                    "status": "SUCCEEDED",
+                    "payload": result_payload if result_payload is not None else "Execution finished with no output."
+                })
+
+            except Exception as e:
+                # 3. 节点失败，将错误信息作为 payload 发送
+                error_payload = { "error": type(e).__name__, "details": str(e) }
+                self.bus.emit("node_status_change", {
+                    "nodeId": curNodeID, 
+                    "status": "FAILED", 
+                    "payload": error_payload
+                })
+                # 重新抛出异常，以终止整个工作流的执行
+                raise e
+
+            curNodeID = workNode.getNext()
+            if curNodeID is None:
+                curNodeID = self.popStack()
+
+        self.is_running = False
+        if last_node_type != 'end':
+            return False, "Workflow did not end with End node"
+        
+        return True, "Workflow executed successfully"
+
+    def debug_run(self):
+        """
+        调试运行模式，支持断点、暂停、单步执行等功能。
+        """
+        if self.current_node_id is None:
+            return False, "Missing Start node"
+        
+        if not any(node.get('type') == 'end' for node in self.nodes.values()):
+            return False, "Missing End node"
+        
+        self.is_running = True
+        last_node_type = None
+        
+        logger.info(f"Starting debug execution with breakpoints: {list(self.breakpoints)}")
+        
+        while self.current_node_id is not None and not self.is_terminated:
+            # 1. 检查是否需要暂停（断点或用户暂停）
+            should_pause = False
+            pause_reason = ""
+            
+            # 检查断点
+            if self.current_node_id in self.breakpoints:
+                should_pause = True
+                pause_reason = "Breakpoint hit"
+                logger.info(f"Breakpoint hit at node {self.current_node_id}")
+            
+            # 检查单步模式
+            if self.step_mode:
+                should_pause = True
+                pause_reason = "Step mode"
+                self.step_mode = False  # 重置单步模式
+                logger.info(f"Step mode pause at node {self.current_node_id}")
+            
+            # 如果需要暂停，执行暂停逻辑
+            if should_pause:
+                self.is_paused = True
+                self.pause_event.clear()  # 清除信号，准备进入等待状态
+                self.bus.emit("execution_paused", {"nodeId": self.current_node_id, "reason": pause_reason})
+                logger.info(f"Execution paused at node {self.current_node_id}: {pause_reason}")
+            
+            # 2. 等待继续信号（如果当前事件未设置，即暂停状态）
+            if not self.pause_event.is_set():
+                logger.info(f"Waiting for resume signal at node {self.current_node_id}")
+                self.pause_event.wait()  # 阻塞等待，直到收到resume信号
+                logger.info(f"Resume signal received at node {self.current_node_id}")
+            
+            # 3. 检查终止状态
+            if self.is_terminated:
+                self.bus.emit("execution_terminated", {"reason": "Terminated by user"})
+                logger.info("Execution terminated by user")
+                break
+            
+            # 4. 执行当前节点
+            try:
+                # 发送节点"处理中"状态
+                self.bus.emit("node_status_change", {"nodeId": self.current_node_id, "status": "PROCESSING"})
+                
+                # 创建或获取节点实例
+                if self.current_node_id not in self.instance:
+                    self.instance[self.current_node_id] = self.factory.create_node_instance(self.current_node_id)
+                
+                workNode = self.instance[self.current_node_id]
+                if workNode is None:
+                    raise RuntimeError(f"Failed to create node instance for {self.current_node_id}")
+                
+                last_node_type = self.nodes[self.current_node_id].get('type')
+                logger.info(f"Executing node {self.current_node_id} ({last_node_type})")
+                
+                # 执行节点
+                result_payload = workNode.run()
+                
+                # 发送成功状态
                 self.bus.emit("node_status_change", {
                     "nodeId": self.current_node_id, 
                     "status": "SUCCEEDED", 
                     "payload": result_payload if result_payload is not None else "Execution finished with no output."
                 })
+                
+                logger.info(f"Node {self.current_node_id} executed successfully")
+                
+                # 5. 获取下一个节点
+                next_node_id = workNode.getNext()
+                if next_node_id is None:
+                    next_node_id = self.popStack()
+                
+                self.current_node_id = next_node_id
+                logger.info(f"Moving to next node: {self.current_node_id}")
             
             except Exception as e:
+                # 节点执行失败
                 error_payload = { "error": type(e).__name__, "details": str(e) }
                 self.bus.emit("node_status_change", {
                     "nodeId": self.current_node_id, 
@@ -171,22 +306,33 @@ class WorkflowEngine:
                 })
                 logger.error(f"Error executing node {self.current_node_id}: {e}")
                 
-                # 在调试模式下，遇到错误也应该暂停，而不是直接终止整个流程
-                self.pause()
+                # 在调试模式下，遇到错误时暂停而不是终止
+                self.is_paused = True
+                self.pause_event.clear()
                 self.bus.emit("execution_paused", {"nodeId": self.current_node_id, "reason": "Error occurred"})
+                logger.info(f"Execution paused due to error at node {self.current_node_id}")
+                
+                # 不立即返回，而是等待用户决定如何处理
+                continue
             
-            # 6. 获取下一个要执行的节点
-            self.current_node_id = workNode.getNext()
-            if self.current_node_id is None:
-                self.current_node_id = self.popStack()
-            
-            # 7. 给予 I/O 一点喘息时间，保持连接稳定
+            # 6. 让出CPU时间
             self.socketio.sleep(0.01)
 
-        # 循环正常结束后，发送工作流完成信号
-        if not self.is_terminated:
-            self.bus.emit("over", {"message": "Workflow finished.", "status": "success"})
-            logger.info("Workflow finished successfully.")
+        # 执行完成
+        self.is_running = False
+        self.is_paused = False
+        
+        if self.is_terminated:
+            return False, "Execution terminated by user"
+        
+        # 检查是否正常结束
+        if last_node_type != 'end':
+            return False, "Workflow did not end with End node"
+
+        # 发送完成信号
+        self.bus.emit("over", {"message": "Workflow finished.", "status": "success"})
+        logger.info("Debug workflow finished successfully")
+        return True, "Workflow executed successfully"
 
     def askMessage(self, nodeId, nodePort):
         return self.instance[nodeId].getMessage(nodePort)

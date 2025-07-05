@@ -53,7 +53,7 @@ export const ChatView = () => {
         // 3. 添加一个AI占位消息，并获取其ID
         const aiPlaceholder = await addMessageToActiveConversation({ role: 'assistant', content: 'Thinking...' });
 
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
         // --- 在此处异步地、非阻塞地生成标题 ---
         // 我们只对新会话的第一条用户消息执行此操作
