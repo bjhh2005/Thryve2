@@ -7,7 +7,7 @@ import { useNodeRenderContext, usePortClick } from '../../hooks';
 import { SidebarContext } from '../../context';
 import { scrollToView } from './utils';
 import { NodeWrapperStyle } from './styles';
-import { NodeStatus } from '../../context/WorkflowStateProvider';
+import { NodeStatus } from '../../context/ExecutionProvider';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;

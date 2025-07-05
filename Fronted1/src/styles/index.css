@@ -141,3 +141,53 @@ textarea:focus-visible,
   stroke: red;
   stroke-width: 2px;
 }
+
+.breakpoint-toggle {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  border: 2px solid white;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.breakpoint-toggle:hover {
+  transform: scale(1.1);
+}
+
+.breakpoint-toggle.active {
+  background-color: #F44336;
+  /* 激活时变为红色 */
+}
+
+#debug-toolbar-container {
+  /* 1. 使用绝对定位，让它脱离文档流，浮动起来 */
+  position: absolute;
+
+  /* 2. 定位到顶部中央 */
+  top: 20px;
+  /* 距离顶部的距离 */
+  left: 50%;
+  /* 将元素的左边界移动到父容器的中心线 */
+
+  /* 3. 使用 transform 将元素向左移动自身宽度的一半，实现完美水平居中 */
+  transform: translateX(-50%);
+
+  /* 4. 确保它在画布之上 */
+  z-index: 20;
+
+  /* 5. 添加一些视觉样式，使其看起来像一个悬浮面板 */
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px R12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(5px);
+  /* （可选）为支持的浏览器添加毛玻璃效果 */
+}

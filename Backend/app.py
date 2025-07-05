@@ -1,57 +1,192 @@
 # -*- coding: utf-8 -*-
+
+# 1. 必须在所有其他导入之前执行猴子补丁
 import eventlet
 eventlet.monkey_patch()
 
+# 2. 导入其他模块
 import os
 import json
-import threading
 import logging
-
+import uuid # 新增：用于生成唯一的运行ID
+import threading
 from flask import Flask, request, Response
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
+from workflows.WorkflowManager import WorkflowManager
+from workflow_converter import convert_workflow_format
 from config.system_prompt import SYSTEM_PROMPT  # 导入系统提示词
 
 load_dotenv()
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-workflow-secret-key'
+app.config['SECRET_KEY'] = 'your-secret-key-here'
 
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+# 简化并加强 CORS 配置，应用于所有路由
+CORS(app) 
 
-#    这是解决此问题的最直接、最可靠的方法
+# 明确告知 SocketIO 使用 eventlet，这是最稳妥的配置
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
-# 设置详细的日志记录
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# 全局变量管理
+current_workflow_manager = None
+DEBUG_SESSIONS = {}  # 用于管理所有激活的调试会话
+
+def engineConnect(engine: WorkflowEngine, run_id: str = None):
+    """
+    连接引擎的事件总线，并将事件转发给前端。
+    支持调试模式（带run_id）和普通模式。
+    """
+    if run_id:
+        # 调试模式：所有事件都附带 run_id
+        def create_emitter(event_name):
+            return lambda data: socketio.emit(event_name, {**data, 'run_id': run_id}, namespace='/workflow')
+        
+        engine.bus.on('node_status_change', create_emitter('node_status_change'))
+        engine.bus.on('execution_paused', create_emitter('execution_paused'))
+        engine.bus.on('execution_terminated', create_emitter('execution_terminated'))
+        engine.bus.on('over', create_emitter('over'))
+        
+        # 保留原有的日志和输出事件转发
+        engine.bus.on('message', lambda event, nodeId, message: 
+            socketio.emit(event, {"nodeId": nodeId, "message": message, "run_id": run_id}, namespace='/workflow'))
+        engine.bus.on("nodes_output", lambda nodeId, message: 
+            socketio.emit('nodes_output', {"nodeId": nodeId, "message": message, "run_id": run_id}, namespace='/workflow'))
+    else:
+        # 普通模式：不带run_id
+        engine.bus.on('node_status_change', lambda data: socketio.emit('node_status_change', data, namespace='/workflow'))
+        engine.bus.on('message', lambda event, nodeId, message: 
+            socketio.emit(event, {"data": nodeId, "message": message}, namespace='/workflow'))
+        engine.bus.on("nodes_output", lambda nodeId, message: 
+            socketio.emit('nodes_output', {"data": nodeId, "message": message}, namespace='/workflow'))
+
+def execute_debug_task(run_id, workflow_data, breakpoints):
+    """
+    在后台执行一个可调试的工作流任务。
+    """
+    logger.info(f"--- [TASK EXECUTION] Debug task started for Run ID: {run_id} ---")
     
-# 执行中连接
-def engineConnect(engine : WorkflowEngine):
-
-    # 监听并转发节点状态变化
-    engine.bus.on('node_status_change', lambda data: socketio.emit('node_status_change', data, namespace='/workflow'))
-    
-    # 这里的所有的message的传递应该都是str类型的
-    # 选择从 info , warning , error
-    engine.bus.on('message', lambda event,nodeId,message:socketio.emit(event, {"data":nodeId, "message" : message},namespace='/workflow'))
-
-    engine.bus.on("nodes_output", lambda nodeId, message: socketio.emit('nodes_output', {"data":nodeId, "message" : message} , namespace='/workflow'))
-
+    try:
+        # 检查是否是前端格式（包含nodes和edges）
+        if isinstance(workflow_data, dict) and 'nodes' in workflow_data and 'edges' in workflow_data:
+            logger.info("检测到前端格式，开始转换...")
+            
+            # 使用转换器将前端格式转换为后端格式
+            backend_format = convert_workflow_format(workflow_data)
+            
+            logger.info(f"转换成功，生成 {len(backend_format['workflows'])} 个工作流")
+            
+            # 使用转换后的格式
+            converted_data = backend_format
+        else:
+            # 已经是后端格式，直接使用
+            logger.info("检测到后端格式，直接使用")
+            converted_data = workflow_data
+        
+        # 对于调试模式，始终使用WorkflowEngine以支持断点功能
+        # 如果是多工作流格式，提取主工作流进行调试
+        if isinstance(converted_data, dict) and "workflows" in converted_data:
+            logger.info("Debug mode: Extracting main workflow from multi-workflow format for breakpoint support")
+            
+            # 查找主工作流
+            main_workflow_data = None
+            for workflow_id, workflow_data in converted_data["workflows"].items():
+                if workflow_id == "main_workflow" or "main" in workflow_id.lower():
+                    main_workflow_data = workflow_data
+                    break
+            
+            # 如果没找到主工作流，使用第一个工作流
+            if main_workflow_data is None and converted_data["workflows"]:
+                main_workflow_data = list(converted_data["workflows"].values())[0]
+                logger.info("No main workflow found, using first workflow for debugging")
+            
+            if main_workflow_data is None:
+                raise ValueError("No workflow found for debugging")
+            
+            # 使用提取的主工作流创建引擎
+            engine = WorkflowEngine(main_workflow_data, socketio, breakpoints)
+            DEBUG_SESSIONS[run_id] = engine
+            engineConnect(engine, run_id)
+            
+            logger.info(f"Debug session created with {len(breakpoints)} breakpoints: {breakpoints}")
+            success, message = engine.run()
+        else:
+            # 单工作流格式 - 直接使用WorkflowEngine
+            logger.info("Using single WorkflowEngine for debug execution")
+            engine = WorkflowEngine(converted_data, socketio, breakpoints)
+            DEBUG_SESSIONS[run_id] = engine  # 存储引擎实例
+            engineConnect(engine, run_id)
+            
+            logger.info(f"Debug session created with {len(breakpoints)} breakpoints: {breakpoints}")
+            # 调用引擎的run方法（会自动判断是否使用调试模式）
+            success, message = engine.run()
+        
+        if success:
+            socketio.emit('over', {'message': message, 'status': 'success', 'run_id': run_id}, namespace='/workflow')
+        else:
+            socketio.emit('over', {'message': f'Workflow execution failed: {message}', 'status': 'error', 'run_id': run_id}, namespace='/workflow')
+            
+    except Exception as e:
+        logger.error(f"An unhandled exception occurred in debug_run for {run_id}: {e}")
+        socketio.emit('over', {'message': f'Workflow execution error: {str(e)}', 'status': 'error', 'run_id': run_id}, namespace='/workflow')
+    finally:
+        # 任务结束后（无论成功、失败还是终止），都从会话中移除
+        if run_id in DEBUG_SESSIONS:
+            del DEBUG_SESSIONS[run_id]
+        logger.info(f"Debug session {run_id} finished and cleaned up.")
 
 def execute_workflow_task(workflow_data):
-    """Execute workflow task in background"""
+    """Execute workflow task in background (non-debug mode)"""
+    global current_workflow_manager
     try:
         logger.info("Starting workflow execution")
         
-        # Create workflow engine
-        engine = WorkflowEngine(workflow_data, socketio)  
-        engineConnect(engine)
-
-        # Run workflow
-        success, message = engine.run()
+        # 检查是否是前端格式（包含nodes和edges）
+        if isinstance(workflow_data, dict) and 'nodes' in workflow_data and 'edges' in workflow_data:
+            logger.info("检测到前端格式，开始转换...")
+            
+            # 使用转换器将前端格式转换为后端格式
+            backend_format = convert_workflow_format(workflow_data)
+            
+            logger.info(f"转换成功，生成 {len(backend_format['workflows'])} 个工作流")
+            
+            # 使用转换后的格式执行工作流
+            converted_data = backend_format
+        else:
+            # 已经是后端格式，直接使用
+            logger.info("检测到后端格式，直接使用")
+            converted_data = workflow_data
+        
+        # 检查是否为多工作流数据格式
+        if isinstance(converted_data, dict) and "workflows" in converted_data:
+            # 新的多工作流格式
+            logger.info("Using WorkflowManager for multi-workflow execution")
+            manager = WorkflowManager(socketio)
+            current_workflow_manager = manager  # 保存全局引用
+            
+            # 连接管理器事件
+            manager.global_bus.on('message', lambda event, nodeId, message: 
+                socketio.emit(event, {"data": nodeId, "message": message}, namespace='/workflow'))
+            manager.global_bus.on("nodes_output", lambda nodeId, message: 
+                socketio.emit('nodes_output', {"data": nodeId, "message": message}, namespace='/workflow'))
+            
+            # 注册工作流
+            manager.register_workflows(converted_data["workflows"])
+            
+            # 执行工作流
+            success, message = manager.run()
+        else:
+            # 兼容旧的单工作流格式
+            logger.info("Using single WorkflowEngine for backward compatibility")
+            current_workflow_manager = None  # 清空管理器引用
+            engine = WorkflowEngine(converted_data, socketio)
+            engineConnect(engine)
+            success, message = engine.run()
 
         # Send appropriate signal based on execution result
         if success:
@@ -62,23 +197,76 @@ def execute_workflow_task(workflow_data):
     except Exception as e:
         # Send failure signal to frontend
         socketio.emit('over', {'message': f'Workflow execution error: {str(e)}', 'status': 'error'}, namespace='/workflow')
-        
+
+# --- Socket.IO 事件处理器 ---
 
 @socketio.on('connect', namespace='/workflow')
 def handle_connect():
-    logger.info('Client connected to /workflow namespace')
+    logger.info(f'Client connected to /workflow namespace')
 
 @socketio.on('disconnect', namespace='/workflow')
 def handle_disconnect():
-    logger.info('Client disconnected from /workflow namespace')
+    logger.info(f'Client disconnected from /workflow namespace')
 
 @socketio.on('start_process', namespace='/workflow')
 def handle_start_process(workflow_data):
+    """处理普通工作流执行请求"""
+    logger.info("接收到前端工作流数据 (普通模式)")
     
-    logger.info("Hello")
     # Execute workflow in new thread to avoid blocking WebSocket
     thread = threading.Thread(target=execute_workflow_task, args=(workflow_data,))
     thread.start()
+
+@socketio.on('start_debug', namespace='/workflow')
+def handle_start_debug(data):
+    """处理调试工作流执行请求"""
+    run_id = str(uuid.uuid4())
+    workflow_data = data.get('documentData')
+    breakpoints = data.get('breakpoints', [])
+
+    logger.info(f"--- [DEBUG RUN START] Received breakpoints from frontend: {breakpoints} ---")
+    
+    if not workflow_data:
+        logger.error("start_debug event received without documentData.")
+        return
+
+    logger.info(f"--- [DEBUG RUN START] New debug process received. Assigning Run ID: {run_id} ---")
+    # 返回 run_id 给前端，以便后续的指令可以识别是哪个任务
+    emit('debug_session_started', {'run_id': run_id})
+    socketio.start_background_task(execute_debug_task, run_id, workflow_data, breakpoints)
+
+@socketio.on('debug_command', namespace='/workflow')
+def handle_debug_command(data):
+    """处理调试命令"""
+    run_id = data.get('run_id')
+    command = data.get('command')
+    session = DEBUG_SESSIONS.get(run_id)
+
+    if not session:
+        logger.warning(f"Received command '{command}' for non-existent or completed run_id '{run_id}'")
+        return
+
+    logger.info(f"Received command '{command}' for run_id '{run_id}'")
+    
+    # 根据session类型执行不同的命令
+    if hasattr(session, 'pause'):  # WorkflowEngine
+        if command == 'pause':
+            session.pause()
+        elif command == 'resume':
+            session.resume()
+        elif command == 'step_over':
+            session.step_over()
+        elif command == 'terminate':
+            session.terminate()
+    elif hasattr(session, 'pause_workflow'):  # WorkflowManager
+        workflow_id = session.main_workflow_id
+        if command == 'pause':
+            session.pause_workflow(workflow_id)
+        elif command == 'resume':
+            session.resume_workflow(workflow_id)
+        elif command == 'terminate':
+            # WorkflowManager目前没有terminate方法，可以考虑实现
+            logger.warning("WorkflowManager does not support terminate command yet")
 
 # -------------------------------------------------------------------
 #  新增：大模型聊天API路由
@@ -172,7 +360,7 @@ def generate_title():
         stream=False
     )
     
-    title = completion.choices[0].message.content.strip().replace("\"", "").replace("“", "").replace("”", "")
+    title = completion.choices[0].message.content.strip().replace("\"", "").replace(""", "").replace(""", "")
     
     logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
     return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
@@ -181,6 +369,248 @@ def generate_title():
     #     logger.error(f"An error occurred in /api/generate-title: {e}")
     #     return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
+
+# -------------------------------------------------------------------
+#  新增：断点调试控制API
+# -------------------------------------------------------------------
+
+@app.route("/api/debug/<run_id>/command", methods=["POST"])
+def debug_command_api(run_id):
+    """通过HTTP API发送调试命令"""
+    data = request.get_json()
+    
+    if not data:
+        return Response(json.dumps({"error": "Request body is missing"}), 
+                       status=400, mimetype='application/json')
+    
+    command = data.get('command')
+    if not command:
+        return Response(json.dumps({"error": "Command is required"}), 
+                       status=400, mimetype='application/json')
+    
+    # 验证命令类型
+    valid_commands = ['pause', 'resume', 'step_over', 'terminate']
+    if command not in valid_commands:
+        return Response(json.dumps({"error": f"Invalid command. Valid commands: {valid_commands}"}), 
+                       status=400, mimetype='application/json')
+    
+    # 查找调试会话
+    session = DEBUG_SESSIONS.get(run_id)
+    if not session:
+        return Response(json.dumps({"error": f"Debug session {run_id} not found or has ended"}), 
+                       status=404, mimetype='application/json')
+    
+    try:
+        logger.info(f"[HTTP API] Received command '{command}' for run_id '{run_id}'")
+        
+        # 根据session类型执行不同的命令
+        if hasattr(session, 'pause'):  # WorkflowEngine
+            if command == 'pause':
+                session.pause()
+            elif command == 'resume':
+                session.resume()
+            elif command == 'step_over':
+                session.step_over()
+            elif command == 'terminate':
+                session.terminate()
+        elif hasattr(session, 'pause_workflow'):  # WorkflowManager
+            workflow_id = session.main_workflow_id
+            if command == 'pause':
+                session.pause_workflow(workflow_id)
+            elif command == 'resume':
+                session.resume_workflow(workflow_id)
+            elif command == 'terminate':
+                # WorkflowManager目前没有terminate方法，可以考虑实现
+                logger.warning("WorkflowManager does not support terminate command yet")
+                return Response(json.dumps({"error": "Terminate command not supported for WorkflowManager"}), 
+                               status=400, mimetype='application/json')
+        
+        return Response(json.dumps({"message": f"Command '{command}' executed successfully", "run_id": run_id}), 
+                       status=200, mimetype='application/json')
+        
+    except Exception as e:
+        logger.error(f"Error executing debug command '{command}' for run_id '{run_id}': {e}")
+        return Response(json.dumps({"error": str(e)}), 
+                       status=500, mimetype='application/json')
+
+@app.route("/api/debug/<run_id>/status", methods=["GET"])
+def get_debug_status(run_id):
+    """获取调试会话状态"""
+    session = DEBUG_SESSIONS.get(run_id)
+    if not session:
+        return Response(json.dumps({"error": f"Debug session {run_id} not found"}), 
+                       status=404, mimetype='application/json')
+    
+    try:
+        status_info = {
+            "run_id": run_id,
+            "session_type": "WorkflowEngine" if hasattr(session, 'pause') else "WorkflowManager",
+            "is_running": hasattr(session, 'is_running') and session.is_running,
+            "is_paused": hasattr(session, 'is_paused') and session.is_paused
+        }
+        
+        return Response(json.dumps(status_info), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting debug status for run_id '{run_id}': {e}")
+        return Response(json.dumps({"error": str(e)}), 
+                       status=500, mimetype='application/json')
+
+@app.route("/api/debug/sessions", methods=["GET"])
+def get_debug_sessions():
+    """获取所有活跃的调试会话"""
+    try:
+        sessions_info = []
+        for run_id, session in DEBUG_SESSIONS.items():
+            session_info = {
+                "run_id": run_id,
+                "session_type": "WorkflowEngine" if hasattr(session, 'pause') else "WorkflowManager",
+                "is_running": hasattr(session, 'is_running') and session.is_running,
+                "is_paused": hasattr(session, 'is_paused') and session.is_paused
+            }
+            sessions_info.append(session_info)
+        
+        return Response(json.dumps({"sessions": sessions_info, "total": len(sessions_info)}), 
+                       status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting debug sessions: {e}")
+        return Response(json.dumps({"error": str(e)}), 
+                       status=500, mimetype='application/json')
+
+# -------------------------------------------------------------------
+#  新增：多工作流管理API
+# -------------------------------------------------------------------
+
+@app.route("/api/workflows/status", methods=["GET"])
+def get_workflows_status():
+    """获取所有工作流的状态"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        status = current_workflow_manager.get_all_workflow_status()
+        return Response(json.dumps(status), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting workflow status: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/status", methods=["GET"])
+def get_workflow_status(workflow_id):
+    """获取指定工作流的状态"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        status = current_workflow_manager.get_workflow_status(workflow_id)
+        if status is None:
+            return Response(json.dumps({"error": f"Workflow {workflow_id} not found"}), status=404, mimetype='application/json')
+        
+        return Response(json.dumps({"workflow_id": workflow_id, "status": status.value}), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting workflow {workflow_id} status: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/pause", methods=["POST"])
+def pause_workflow(workflow_id):
+    """暂停指定工作流"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        current_workflow_manager.pause_workflow(workflow_id)
+        return Response(json.dumps({"message": f"Workflow {workflow_id} paused successfully"}), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error pausing workflow {workflow_id}: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/resume", methods=["POST"])
+def resume_workflow(workflow_id):
+    """恢复指定工作流"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        current_workflow_manager.resume_workflow(workflow_id)
+        return Response(json.dumps({"message": f"Workflow {workflow_id} resumed successfully"}), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error resuming workflow {workflow_id}: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/memory", methods=["GET"])
+def get_memory_usage():
+    """获取工作流内存使用情况"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        memory_info = current_workflow_manager.get_memory_usage_summary()
+        return Response(json.dumps(memory_info), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting memory usage: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/memory/cleanup", methods=["POST"])
+def force_cleanup_subworkflows():
+    """强制清理所有子工作流内存"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        # 获取清理前的内存信息
+        before_cleanup = current_workflow_manager.get_memory_usage_summary()
+        
+        # 执行清理
+        current_workflow_manager.force_cleanup_all_subworkflows()
+        
+        # 获取清理后的内存信息
+        after_cleanup = current_workflow_manager.get_memory_usage_summary()
+        
+        cleanup_result = {
+            "message": "Subworkflows cleanup completed",
+            "before": before_cleanup,
+            "after": after_cleanup,
+            "cleaned_workflows": before_cleanup["total_workflows"] - after_cleanup["total_workflows"]
+        }
+        
+        return Response(json.dumps(cleanup_result), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error during cleanup: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
+@app.route("/api/workflows/<workflow_id>/memory", methods=["GET"])
+def get_workflow_memory(workflow_id):
+    """获取指定工作流的内存使用情况"""
+    global current_workflow_manager
+    
+    if current_workflow_manager is None:
+        return Response(json.dumps({"error": "No active workflow manager"}), status=404, mimetype='application/json')
+    
+    try:
+        memory_summary = current_workflow_manager.get_memory_usage_summary()
+        
+        # 查找指定工作流的内存信息
+        workflow_memory = memory_summary["memory_details"].get(workflow_id)
+        
+        if workflow_memory is None:
+            return Response(json.dumps({"error": f"Workflow {workflow_id} not found or not instantiated"}), 
+                          status=404, mimetype='application/json')
+        
+        return Response(json.dumps(workflow_memory), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting workflow {workflow_id} memory: {e}")
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
+
 if __name__ == '__main__':
-    logger.info("Starting workflow WebSocket server with Eventlet...")
-    socketio.run(app, debug=True, port=4000)
+    # 使用 eventlet 作为 WSGI 服务器
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

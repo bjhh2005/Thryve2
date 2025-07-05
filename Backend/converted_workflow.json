@@ -1,0 +1,108 @@
+{
+  "workflows": {
+    "main_workflow": {
+      "type": "main",
+      "name": "主工作流",
+      "nodes": [
+        {
+          "id": "start_vEudc",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Start_1"
+          }
+        },
+        {
+          "id": "call_-PcAk",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "func1"
+              }
+            },
+            "outputsValues": {},
+            "title": "Call_1"
+          }
+        },
+        {
+          "id": "end_oHeNu",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "End_1"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_vEudc",
+          "targetNodeID": "call_-PcAk",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_-PcAk",
+          "targetNodeID": "end_oHeNu",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "func1": {
+      "type": "sub",
+      "name": "func1",
+      "nodes": [
+        {
+          "id": "func_start_Kprtq",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "func1"
+          }
+        },
+        {
+          "id": "print_UuH9C",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "111"
+              }
+            },
+            "outputsValues": {},
+            "title": "Print_1"
+          }
+        },
+        {
+          "id": "Func_end_FLDj5",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Function End_1"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_Kprtq",
+          "targetNodeID": "print_UuH9C",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_UuH9C",
+          "targetNodeID": "Func_end_FLDj5",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    }
+  }
+}
