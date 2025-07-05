@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 current_workflow_manager = None
 DEBUG_SESSIONS = {}  # 用于管理所有激活的调试会话
 
-def engineConnect(engine: WorkflowEngine, run_id: str = None):
+def engineConnect(engine, run_id=None):
     """
     连接引擎的事件总线，并将事件转发给前端。
     支持调试模式（带run_id）和普通模式。
@@ -88,33 +88,51 @@ def execute_debug_task(run_id, workflow_data, breakpoints):
             logger.info("检测到后端格式，直接使用")
             converted_data = workflow_data
         
-        # 对于调试模式，始终使用WorkflowEngine以支持断点功能
-        # 如果是多工作流格式，提取主工作流进行调试
+        # 检查是否为多工作流数据格式
         if isinstance(converted_data, dict) and "workflows" in converted_data:
-            logger.info("Debug mode: Extracting main workflow from multi-workflow format for breakpoint support")
+            logger.info("Debug mode: Using WorkflowManager with breakpoint support for multi-workflow execution")
             
-            # 查找主工作流
-            main_workflow_data = None
-            for workflow_id, workflow_data in converted_data["workflows"].items():
-                if workflow_id == "main_workflow" or "main" in workflow_id.lower():
-                    main_workflow_data = workflow_data
-                    break
+            # 创建支持调试的WorkflowManager
+            manager = WorkflowManager(socketio)
             
-            # 如果没找到主工作流，使用第一个工作流
-            if main_workflow_data is None and converted_data["workflows"]:
-                main_workflow_data = list(converted_data["workflows"].values())[0]
-                logger.info("No main workflow found, using first workflow for debugging")
+            # 设置断点支持
+            manager.breakpoints = set(breakpoints) if breakpoints else set()
+            manager.debug_mode = True
             
-            if main_workflow_data is None:
-                raise ValueError("No workflow found for debugging")
+            # 存储管理器实例
+            DEBUG_SESSIONS[run_id] = manager
             
-            # 使用提取的主工作流创建引擎
-            engine = WorkflowEngine(main_workflow_data, socketio, breakpoints)
-            DEBUG_SESSIONS[run_id] = engine
-            engineConnect(engine, run_id)
+            # 连接管理器事件，确保包含run_id
+            manager.global_bus.on('message', lambda event, nodeId, message: 
+                socketio.emit(event, {"data": nodeId, "message": message, "run_id": run_id}, namespace='/workflow'))
+            manager.global_bus.on("nodes_output", lambda nodeId, message: 
+                socketio.emit('nodes_output', {"data": nodeId, "message": message, "run_id": run_id}, namespace='/workflow'))
+            
+            # 添加调试事件监听，关键修复：包含run_id
+            manager.global_bus.on("node_status_change", lambda event_data: 
+                socketio.emit('node_status_change', {**event_data, 'run_id': run_id}, namespace='/workflow'))
+            manager.global_bus.on("execution_paused", lambda event_data: 
+                socketio.emit('execution_paused', {**event_data, 'run_id': run_id}, namespace='/workflow'))
+            manager.global_bus.on("execution_terminated", lambda event_data: 
+                socketio.emit('execution_terminated', {**event_data, 'run_id': run_id}, namespace='/workflow'))
+            
+            # 关键修复：添加execution_step_over事件转发，支持单步执行功能
+            manager.global_bus.on("execution_step_over", lambda event_data: 
+                socketio.emit('execution_step_over', {**event_data, 'run_id': run_id}, namespace='/workflow'))
+            
+            # 注册工作流，并为每个工作流传递断点信息
+            manager.register_workflows(converted_data["workflows"])
+            
+            # 为每个工作流引擎设置断点
+            for workflow_id, engine in manager.workflows.items():
+                engine.breakpoints = set(breakpoints) if breakpoints else set()
+                engine.debug_mode = len(breakpoints) > 0
+                logger.info(f"设置工作流 {workflow_id} 的断点: {breakpoints}")
             
             logger.info(f"Debug session created with {len(breakpoints)} breakpoints: {breakpoints}")
-            success, message = engine.run()
+            
+            # 执行工作流
+            success, message = manager.run()
         else:
             # 单工作流格式 - 直接使用WorkflowEngine
             logger.info("Using single WorkflowEngine for debug execution")
@@ -169,11 +187,15 @@ def execute_workflow_task(workflow_data):
             manager = WorkflowManager(socketio)
             current_workflow_manager = manager  # 保存全局引用
             
-            # 连接管理器事件
+            # 连接管理器事件 - 包含所有必要的事件转发
             manager.global_bus.on('message', lambda event, nodeId, message: 
                 socketio.emit(event, {"data": nodeId, "message": message}, namespace='/workflow'))
             manager.global_bus.on("nodes_output", lambda nodeId, message: 
                 socketio.emit('nodes_output', {"data": nodeId, "message": message}, namespace='/workflow'))
+            
+            # 关键修复：添加节点状态变化事件转发，这是画布可视化的核心
+            manager.global_bus.on("node_status_change", lambda event_data: 
+                socketio.emit('node_status_change', event_data, namespace='/workflow'))
             
             # 注册工作流
             manager.register_workflows(converted_data["workflows"])
@@ -249,7 +271,7 @@ def handle_debug_command(data):
     logger.info(f"Received command '{command}' for run_id '{run_id}'")
     
     # 根据session类型执行不同的命令
-    if hasattr(session, 'pause'):  # WorkflowEngine
+    if hasattr(session, 'pause') and hasattr(session, 'resume'):  # 支持调试的session
         if command == 'pause':
             session.pause()
         elif command == 'resume':
@@ -258,15 +280,18 @@ def handle_debug_command(data):
             session.step_over()
         elif command == 'terminate':
             session.terminate()
-    elif hasattr(session, 'pause_workflow'):  # WorkflowManager
-        workflow_id = session.main_workflow_id
-        if command == 'pause':
-            session.pause_workflow(workflow_id)
-        elif command == 'resume':
-            session.resume_workflow(workflow_id)
-        elif command == 'terminate':
-            # WorkflowManager目前没有terminate方法，可以考虑实现
-            logger.warning("WorkflowManager does not support terminate command yet")
+    else:
+        logger.warning(f"Session {run_id} does not support debug commands")
+        return
+
+    # 发送命令确认
+    socketio.emit('debug_command_ack', {
+        'run_id': run_id,
+        'command': command,
+        'status': 'executed'
+    }, namespace='/workflow')
+    
+    logger.info(f"Debug command '{command}' executed for run_id '{run_id}'")
 
 # -------------------------------------------------------------------
 #  新增：大模型聊天API路由

@@ -40,6 +40,11 @@ class WorkflowManager:
         
         # 全局事件总线，用于工作流间通信
         self.global_bus = EventBus()
+        
+        # 添加调试支持
+        self.breakpoints = set()  # 断点集合
+        self.debug_mode = False  # 调试模式标志
+        
         self.setup_global_events()
         
         self.logger = logging.getLogger(__name__)
@@ -52,6 +57,11 @@ class WorkflowManager:
         self.global_bus.on("workflow_completed", self.handle_workflow_completion)
         # 监听工作流失败事件
         self.global_bus.on("workflow_failed", self.handle_workflow_failure)
+        
+        # 添加调试事件监听
+        self.global_bus.on("node_status_change", self.handle_node_status_change)
+        self.global_bus.on("execution_paused", self.handle_execution_paused)
+        self.global_bus.on("execution_terminated", self.handle_execution_terminated)
     
     def register_workflows(self, workflows_data: Dict[str, dict]):
         """
@@ -66,16 +76,26 @@ class WorkflowManager:
             }
         }
         """
+        # 清空现有工作流
+        self.workflows.clear()
+        self.workflow_data.clear()
+        self.workflow_types.clear()
+        self.workflow_status.clear()
+        
         self.logger.info(f"注册 {len(workflows_data)} 个工作流")
         
+        # 首先注册所有工作流数据
         for workflow_id, data in workflows_data.items():
-            workflow_type = WorkflowType(data.get("type", "sub"))
-            
-            # 验证主工作流唯一性
-            if workflow_type == WorkflowType.MAIN:
+            # 根据工作流特征确定类型
+            if "main" in workflow_id.lower() or workflow_id == "main_workflow":
+                workflow_type = WorkflowType.MAIN
                 if self.main_workflow_id is not None:
                     raise ValueError(f"已存在主工作流 {self.main_workflow_id}，不能注册新的主工作流 {workflow_id}")
                 self.main_workflow_id = workflow_id
+                self.logger.info(f"注册主工作流: {workflow_id}")
+            else:
+                workflow_type = WorkflowType.SUB
+                self.logger.info(f"注册子工作流: {workflow_id}")
             
             # 存储工作流信息
             self.workflow_data[workflow_id] = data
@@ -83,6 +103,15 @@ class WorkflowManager:
             self.workflow_status[workflow_id] = WorkflowStatus.PENDING
             
             self.logger.info(f"注册工作流: {workflow_id} (类型: {workflow_type.value})")
+        
+        # 在调试模式下，立即创建所有工作流引擎实例
+        if self.debug_mode:
+            self.logger.info("调试模式：立即创建所有工作流引擎实例")
+            for workflow_id in self.workflow_data.keys():
+                self.workflows[workflow_id] = self.create_workflow_engine(workflow_id)
+                self.logger.info(f"为工作流 {workflow_id} 创建引擎实例")
+        
+        self.logger.info(f"工作流注册完成。主工作流: {self.main_workflow_id}")
     
     def create_workflow_engine(self, workflow_id: str) -> WorkflowEngine:
         """创建工作流引擎实例"""
@@ -90,7 +119,10 @@ class WorkflowManager:
             raise ValueError(f"工作流 {workflow_id} 未注册")
         
         data = self.workflow_data[workflow_id]
-        engine = WorkflowEngine(data, self.socketio)
+        engine = WorkflowEngine(data, self.socketio, list(self.breakpoints))
+        
+        # 设置调试模式
+        engine.debug_mode = self.debug_mode
         
         # 注入全局事件总线到工作流引擎
         engine.global_bus = self.global_bus
@@ -101,28 +133,43 @@ class WorkflowManager:
         # 转发节点状态变化事件，添加工作流ID
         def forward_node_status(event_data):
             event_data["workflowId"] = workflow_id
-            self.socketio.emit('node_status_change', event_data, namespace='/workflow')
+            self.global_bus.emit("node_status_change", event_data)
         
         # 转发节点消息事件
         def forward_message(event, nodeId, message):
-            self.socketio.emit(event, {
-                "data": nodeId, 
-                "message": message, 
-                "workflowId": workflow_id
-            }, namespace='/workflow')
+            self.global_bus.emit("message", event, nodeId, message)
         
         # 转发节点输出事件
         def forward_nodes_output(nodeId, message):
-            self.socketio.emit('nodes_output', {
-                "data": nodeId, 
-                "message": message, 
-                "workflowId": workflow_id
-            }, namespace='/workflow')
+            self.global_bus.emit("nodes_output", nodeId, message)
+        
+        # 转发工作流完成事件
+        def forward_over(event_data):
+            self.global_bus.emit("workflow_completed", {
+                "workflow_id": workflow_id,
+                "success": True,
+                "message": event_data.get("message", "")
+            })
+        
+        # 转发调试相关事件
+        def forward_execution_paused(event_data):
+            self.global_bus.emit("execution_paused", event_data)
+        
+        def forward_execution_terminated(event_data):
+            self.global_bus.emit("execution_terminated", event_data)
+        
+        # 关键修复：转发单步执行事件
+        def forward_execution_step_over(event_data):
+            self.global_bus.emit("execution_step_over", event_data)
         
         # 注册事件监听器
         engine.bus.on('node_status_change', forward_node_status)
         engine.bus.on('message', forward_message)
         engine.bus.on('nodes_output', forward_nodes_output)
+        engine.bus.on('over', forward_over)
+        engine.bus.on('execution_paused', forward_execution_paused)
+        engine.bus.on('execution_terminated', forward_execution_terminated)
+        engine.bus.on('execution_step_over', forward_execution_step_over)
         
         return engine
     
@@ -377,3 +424,55 @@ class WorkflowManager:
         """恢复指定工作流"""
         if workflow_id in self.workflow_status:
             self.workflow_status[workflow_id] = WorkflowStatus.RUNNING 
+    
+    def pause(self):
+        """暂停当前工作流（调试命令）"""
+        if self.current_workflow_id and self.current_workflow_id in self.workflows:
+            engine = self.workflows[self.current_workflow_id]
+            if hasattr(engine, 'pause'):
+                engine.pause()
+                self.logger.info(f"暂停工作流 {self.current_workflow_id}")
+    
+    def resume(self):
+        """恢复当前工作流（调试命令）"""
+        if self.current_workflow_id and self.current_workflow_id in self.workflows:
+            engine = self.workflows[self.current_workflow_id]
+            if hasattr(engine, 'resume'):
+                engine.resume()
+                self.logger.info(f"恢复工作流 {self.current_workflow_id}")
+    
+    def step_over(self):
+        """单步执行当前工作流（调试命令）"""
+        if self.current_workflow_id and self.current_workflow_id in self.workflows:
+            engine = self.workflows[self.current_workflow_id]
+            if hasattr(engine, 'step_over'):
+                engine.step_over()
+                self.logger.info(f"单步执行工作流 {self.current_workflow_id}")
+    
+    def terminate(self):
+        """终止当前工作流（调试命令）"""
+        if self.current_workflow_id and self.current_workflow_id in self.workflows:
+            engine = self.workflows[self.current_workflow_id]
+            if hasattr(engine, 'terminate'):
+                engine.terminate()
+                self.logger.info(f"终止工作流 {self.current_workflow_id}")
+        
+        # 同时终止所有工作流
+        for workflow_id, engine in self.workflows.items():
+            if hasattr(engine, 'terminate'):
+                engine.terminate()
+    
+    def handle_node_status_change(self, event_data):
+        """处理节点状态变化事件"""
+        if self.debug_mode:
+            self.logger.info(f"节点状态变化: {event_data}")
+    
+    def handle_execution_paused(self, event_data):
+        """处理执行暂停事件"""
+        if self.debug_mode:
+            self.logger.info(f"执行暂停: {event_data}")
+    
+    def handle_execution_terminated(self, event_data):
+        """处理执行终止事件"""
+        if self.debug_mode:
+            self.logger.info(f"执行终止: {event_data}") 
