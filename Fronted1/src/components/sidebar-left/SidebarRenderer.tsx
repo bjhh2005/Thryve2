@@ -8,6 +8,8 @@ import {
     IconPlusStroked,
     IconFolderStroked,
 } from '@douyinfe/semi-icons';
+import AiIcon from '../../assets/icon-ai-assistant.png'
+import FileIcon from '../../assets/icon-myfile.png'
 import { useLeftSidebar } from './SidebarProvider';
 
 import { AIAssistantPanel } from './AIAssistant/AIAssistantPanel';
@@ -88,10 +90,22 @@ const SidebarContent = () => {
                     onClick={handleNewCanvas}
                 />
                 <ActionBarButton
-                    icon={<IconFolderStroked size="large" />}
+                    icon={<img src={FileIcon} alt="AI" className="action-bar-icon" />}
                     tooltip="我的项目"
                     onClick={handleMyProjects}
                     isActive={activeTab === 'projects'}
+                />
+                <ActionBarButton
+                    icon={<img src={AiIcon} alt="AI" className="action-bar-icon" />}
+                    tooltip="AI 助手"
+                    onClick={() => setActiveTab('ai')}
+                    isActive={activeTab === 'ai'}
+                />
+                <ActionBarButton
+                    icon={<IconTerminal size="large" />}
+                    tooltip="输出控制台"
+                    onClick={() => setActiveTab('console')}
+                    isActive={activeTab === 'console'}
                 />
             </div>
 
