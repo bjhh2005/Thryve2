@@ -39,26 +39,33 @@ const SidebarContent = () => {
     // 2. 使用 useProject hook
     const { createNewProject, getCurrentProjectName, saveCurrentProject, currentProject } = useProject();
 
+
+    const handleClickAndExpand = (action: () => void) => {
+        // 执行按钮本身的功能
+        action();
+        // 如果侧边栏是折叠的，就展开它
+        if (isCollapsed) {
+            toggleSidebar();
+        }
+    };
+
     const handleNewCanvas = () => {
         let projectName = '';
         Modal.confirm({
             title: '新建画布',
             content: (
                 <Input
-                    // 修正 1: autofocus -> autoFocus
                     autoFocus
                     placeholder="请输入项目名称"
-                    // 修正 9: 为参数 value 添加 string 类型
+                    // 为参数 value 添加 string 类型
                     onChange={(value: string) => { projectName = value; }}
                 />
             ),
             onOk: () => {
                 if (!projectName || projectName.trim() === '') {
-                    // 如果用户没有输入，给一个默认名称
                     projectName = `未命名画布 ${new Date().toLocaleTimeString()}`;
                 }
                 createNewProject(projectName);
-                // 创建后自动切换到 AI 助手视图
                 setActiveTab('ai');
             },
         });
@@ -92,19 +99,19 @@ const SidebarContent = () => {
                 <ActionBarButton
                     icon={<img src={FileIcon} alt="AI" className="action-bar-icon" />}
                     tooltip="我的项目"
-                    onClick={handleMyProjects}
+                    onClick={() => handleClickAndExpand(handleMyProjects)}
                     isActive={activeTab === 'projects'}
                 />
                 <ActionBarButton
                     icon={<img src={AiIcon} alt="AI" className="action-bar-icon" />}
                     tooltip="AI 助手"
-                    onClick={() => setActiveTab('ai')}
+                    onClick={() => handleClickAndExpand(() => setActiveTab('ai'))}
                     isActive={activeTab === 'ai'}
                 />
                 <ActionBarButton
                     icon={<IconTerminal size="large" />}
                     tooltip="输出控制台"
-                    onClick={() => setActiveTab('console')}
+                    onClick={() => handleClickAndExpand(() => setActiveTab('console'))}
                     isActive={activeTab === 'console'}
                 />
             </div>
