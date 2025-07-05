@@ -11,11 +11,11 @@ export enum WorkflowNodeType {
   FileInput = 'file-input',
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
-  CreateStringArray = 'create-string-array',
   Scheduler = 'scheduler',
   FuncStart = 'func-start',
   FuncEnd = 'func-end',
   Sleep = 'sleep',
+  // CreateStringArray = 'create-string-array',
 
   // 基础文本处理
   TextProcessor = 'text-processor',

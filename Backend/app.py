@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
 from workflows.WorkflowManager import WorkflowManager
 from workflow_converter import convert_workflow_format
+from config.system_prompt import SYSTEM_PROMPT  # 导入系统提示词
 
 load_dotenv()
 app = Flask(__name__)
@@ -277,15 +278,17 @@ def chat():
     """
     # 1. 从前端请求中获取JSON数据
     data = request.get_json()   
-    print(data)
     api_key = data.get("apiKey")
     base_url = data.get("apiHost")
     model_name = data.get("model")
     temperature = data.get("temperature", 0.7)
     messages = data.get("messages", [])
+    
+    # 确保messages列表中包含系统提示词
+    if messages and messages[0].get("role") != "system":
+        messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
 
     # 2. 对内置模型的特殊处理：如果apiKey为空，则使用服务器的
-    #    这里我们约定，内置模型的apiKey由前端传一个空字符串过来
     if model_name and model_name.startswith('Qwen/'): # 或者其他您定义的内置模型标识
         if not api_key:
             api_key = os.getenv("SILICONFLOW_API_KEY")

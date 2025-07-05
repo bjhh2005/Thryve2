@@ -16,12 +16,12 @@ import { PdfProcessorRegistry } from './pdf-processor';
 import { MarkdownProcessorRegistry } from './markdown-processor';
 import { ImgProcessorRegistry } from './img-processor';
 import { RelocationNodeRegistry } from './relocation';
-import { CreateStringArrayNodeRegistry } from './create-string-array';
 import { SchedulerNodeRegistry } from './scheduler';
 import { CallNodeRegistry } from './call';
 import { FuncStartRegistry } from './func-start';
 import { FuncEndRegistry } from './func-end';
 import { SleepNodeRegistry } from './sleep';
+// import { CreateStringArrayNodeRegistry } from './create-string-array';
 
 export { WorkflowNodeType } from './constants';
 
@@ -43,11 +43,11 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   MarkdownProcessorRegistry,
   ImgProcessorRegistry,
   RelocationNodeRegistry,
-  CreateStringArrayNodeRegistry,
   SchedulerNodeRegistry,
   FuncStartRegistry,
   FuncEndRegistry,
   SleepNodeRegistry,
+  // CreateStringArrayNodeRegistry,
 ];
 
 /**
