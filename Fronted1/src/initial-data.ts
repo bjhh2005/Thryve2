@@ -8,7 +8,7 @@ export const initialData: FlowDocumentJSON = {
             meta: {
                 position: {
                     x: 180,
-                    y: 381.75,
+                    y: 428.2,
                 },
             },
             data: {
@@ -43,51 +43,12 @@ export const initialData: FlowDocumentJSON = {
             },
         },
         {
-            id: 'condition_0',
-            type: 'condition',
-            meta: {
-                position: {
-                    x: 640,
-                    y: 318.25,
-                },
-            },
-            data: {
-                title: 'Condition',
-                conditions: [
-                    {
-                        key: 'if_0',
-                        value: {
-                            left: {
-                                type: 'ref',
-                                content: ['start_0', 'query'],
-                            },
-                            operator: 'contains',
-                            right: {
-                                type: 'constant',
-                                content: 'Hello Flow.',
-                            },
-                        },
-                    },
-                    {
-                        key: 'if_f0rOAt',
-                        value: {
-                            left: {
-                                type: 'ref',
-                                content: ['start_0', 'enable'],
-                            },
-                            operator: 'is_true',
-                        },
-                    },
-                ],
-            },
-        },
-        {
             id: 'end_0',
             type: 'end',
             meta: {
                 position: {
-                    x: 2202.9953917050693,
-                    y: 381.75,
+                    x: 3040,
+                    y: 428.2,
                 },
             },
             data: {
@@ -103,172 +64,264 @@ export const initialData: FlowDocumentJSON = {
             },
         },
         {
-            id: '159623',
-            type: 'comment',
-            meta: {
-                position: {
-                    x: 640,
-                    y: 573.96875,
-                },
-            },
-            data: {
-                size: {
-                    width: 240,
-                    height: 150,
-                },
-                note: 'hi ~\n\nthis is a comment node\n\n- flowgram.ai',
-            },
-        },
-        {
-            id: 'loop_sGybT',
+            id: 'loop_5F6lD',
             type: 'loop',
             meta: {
                 position: {
-                    x: 1373.5714285714287,
-                    y: 394.9758064516129,
+                    x: 970,
+                    y: 105,
                 },
             },
             data: {
                 title: 'Loop_1',
+                mode: 'array',
+                inputs: {
+                    type: 'object',
+                    required: [
+                        'batchFor',
+                    ],
+                    properties: {
+                        batchFor: {
+                            type: 'array',
+                        },
+                    },
+                },
+                batchFor: {
+                    type: 'ref',
+                },
             },
             blocks: [
                 {
-                    id: 'llm_6aSyo',
-                    type: 'llm',
+                    id: 'start_4Y-fU',
+                    type: 'start',
                     meta: {
                         position: {
-                            x: -196.8663594470046,
-                            y: 142.0046082949309,
+                            x: 180,
+                            y: 309.2,
                         },
                     },
                     data: {
-                        title: 'LLM_3',
-                        inputsValues: {
-                            modelName: {
-                                type: 'constant',
-                                content: 'gpt-3.5-turbo',
-                            },
-                            apiKey: {
-                                type: 'constant',
-                                content: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                            },
-                            apiHost: {
-                                type: 'constant',
-                                content: 'https://mock-ai-url/api/v3',
-                            },
-                            temperature: {
-                                type: 'constant',
-                                content: 0.5,
-                            },
-                            systemPrompt: {
-                                type: 'constant',
-                                content: 'You are an AI assistant.',
-                            },
-                            prompt: {
-                                type: 'constant',
-                                content: '',
-                            },
-                        },
-                        inputs: {
-                            type: 'object',
-                            required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
-                            properties: {
-                                modelName: {
-                                    type: 'string',
-                                },
-                                apiKey: {
-                                    type: 'string',
-                                },
-                                apiHost: {
-                                    type: 'string',
-                                },
-                                temperature: {
-                                    type: 'number',
-                                },
-                                systemPrompt: {
-                                    type: 'string',
-                                },
-                                prompt: {
-                                    type: 'string',
-                                },
-                            },
-                        },
+                        title: 'Start_1',
                         outputs: {
                             type: 'object',
                             properties: {
-                                result: {
+                                query: {
                                     type: 'string',
+                                    default: 'Hello Flow.',
+                                },
+                                enable: {
+                                    type: 'boolean',
+                                    default: true,
                                 },
                             },
                         },
                     },
                 },
                 {
-                    id: 'llm_ZqKlP',
-                    type: 'llm',
+                    id: 'condition_LB_U4',
+                    type: 'condition',
                     meta: {
                         position: {
-                            x: 253.1797235023041,
-                            y: 142.00460829493088,
+                            x: 640,
+                            y: 245.59999999999997,
                         },
                     },
                     data: {
-                        title: 'LLM_4',
-                        inputsValues: {
-                            modelName: {
-                                type: 'constant',
-                                content: 'gpt-3.5-turbo',
+                        title: 'Condition_1',
+                        conditions: [
+                            {
+                                value: {
+                                    left: {
+                                        type: 'ref',
+                                    },
+                                },
+                                key: 'if_VjSM0',
                             },
-                            apiKey: {
-                                type: 'constant',
-                                content: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
+                            {
+                                key: 'if_oGx2z',
+                                value: {},
                             },
-                            apiHost: {
-                                type: 'constant',
-                                content: 'https://mock-ai-url/api/v3',
-                            },
-                            temperature: {
-                                type: 'constant',
-                                content: 0.5,
-                            },
-                            systemPrompt: {
-                                type: 'constant',
-                                content: 'You are an AI assistant.',
-                            },
-                            prompt: {
-                                type: 'constant',
-                                content: '',
-                            },
+                        ],
+                    },
+                },
+                {
+                    id: 'pdf_processor_PLAk9',
+                    type: 'pdf-processor',
+                    meta: {
+                        position: {
+                            x: 1100,
+                            y: 0,
                         },
+                    },
+                    data: {
+                        title: 'PDF Processor_1',
+                        mode: 'extract',
                         inputs: {
                             type: 'object',
-                            required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
+                            required: [
+                                'inputFile',
+                                'inputFile',
+                                'pageRange',
+                                'extractImages',
+                                'outputFolder',
+                                'outputName',
+                            ],
                             properties: {
-                                modelName: {
+                                inputFile: {
                                     type: 'string',
+                                    title: 'PDF File',
+                                    description: 'Select PDF file',
                                 },
-                                apiKey: {
+                                pageRange: {
                                     type: 'string',
+                                    title: 'Page Range',
+                                    description: 'Pages to extract (e.g., 1-5)',
+                                    default: '',
                                 },
-                                apiHost: {
+                                extractImages: {
+                                    type: 'boolean',
+                                    title: 'Extract Images',
+                                    description: 'Include images',
+                                    default: false,
+                                },
+                                outputFolder: {
                                     type: 'string',
+                                    title: 'Output Folder',
+                                    description: 'Save location',
                                 },
-                                temperature: {
-                                    type: 'number',
-                                },
-                                systemPrompt: {
+                                outputName: {
                                     type: 'string',
-                                },
-                                prompt: {
-                                    type: 'string',
+                                    title: 'Output Name',
+                                    description: 'File name',
                                 },
                             },
                         },
                         outputs: {
                             type: 'object',
                             properties: {
+                                text: {
+                                    type: 'string',
+                                    description: 'Extracted text content',
+                                },
+                                images: {
+                                    type: 'array',
+                                    description: 'Extracted images (if enabled)',
+                                },
+                            },
+                        },
+                        inputsValues: {
+                            pageRange: '',
+                            extractImages: false,
+                        },
+                    },
+                },
+                {
+                    id: 'img_processor_lXfgI',
+                    type: 'img-processor',
+                    meta: {
+                        position: {
+                            x: 1100,
+                            y: 386.3999999999999,
+                        },
+                    },
+                    data: {
+                        title: 'Image Processor_1',
+                        mode: 'resize',
+                        inputs: {
+                            type: 'object',
+                            required: [
+                                'inputFile',
+                                'inputFile',
+                                'width',
+                                'height',
+                                'maintainAspectRatio',
+                                'outputFolder',
+                                'outputName',
+                            ],
+                            properties: {
+                                inputFile: {
+                                    type: 'string',
+                                    title: 'Input Image',
+                                    description: 'Select image file',
+                                },
+                                width: {
+                                    type: 'number',
+                                    title: 'Width',
+                                    description: 'Width (px) > 0',
+                                    minimum: 1,
+                                },
+                                height: {
+                                    type: 'number',
+                                    title: 'Height',
+                                    description: 'Height (px) > 0',
+                                    minimum: 1,
+                                },
+                                maintainAspectRatio: {
+                                    type: 'boolean',
+                                    title: 'Aspect Ratio',
+                                    description: 'Keep aspect ratio',
+                                },
+                                outputFolder: {
+                                    type: 'string',
+                                    title: 'Output Folder',
+                                    description: 'Save location',
+                                },
+                                outputName: {
+                                    type: 'string',
+                                    title: 'Output Name',
+                                    description: 'File name',
+                                },
+                            },
+                        },
+                        outputs: {
+                            type: 'object',
+                            properties: {
+                                processedImage: {
+                                    type: 'string',
+                                    title: 'Image',
+                                    description: 'Output path',
+                                },
+                                width: {
+                                    type: 'number',
+                                    title: 'Width',
+                                    description: 'Output width',
+                                },
+                                height: {
+                                    type: 'number',
+                                    title: 'Height',
+                                    description: 'Output height',
+                                },
+                                format: {
+                                    type: 'string',
+                                    title: 'Format',
+                                    description: 'Output format',
+                                },
+                                size: {
+                                    type: 'number',
+                                    title: 'Size',
+                                    description: 'File size (bytes)',
+                                },
+                            },
+                        },
+                    },
+                },
+                {
+                    id: 'end_Wg_s3',
+                    type: 'end',
+                    meta: {
+                        position: {
+                            x: 1560,
+                            y: 309.2,
+                        },
+                    },
+                    data: {
+                        title: 'End_1',
+                        inputs: {
+                            type: 'object',
+                            properties: {
                                 result: {
                                     type: 'string',
+                                    description: '工作流的最终结果',
                                 },
                             },
                         },
@@ -277,204 +330,66 @@ export const initialData: FlowDocumentJSON = {
             ],
             edges: [
                 {
-                    sourceNodeID: 'llm_6aSyo',
-                    targetNodeID: 'llm_ZqKlP',
+                    sourceNodeID: 'start_4Y-fU',
+                    targetNodeID: 'condition_LB_U4',
+                },
+                {
+                    sourceNodeID: 'condition_LB_U4',
+                    targetNodeID: 'pdf_processor_PLAk9',
+                    sourcePortID: 'if_VjSM0',
+                },
+                {
+                    sourceNodeID: 'condition_LB_U4',
+                    targetNodeID: 'img_processor_lXfgI',
+                    sourcePortID: 'if_oGx2z',
+                },
+                {
+                    sourceNodeID: 'pdf_processor_PLAk9',
+                    targetNodeID: 'end_Wg_s3',
+                },
+                {
+                    sourceNodeID: 'img_processor_lXfgI',
+                    targetNodeID: 'end_Wg_s3',
                 },
             ],
         },
         {
-            id: 'group_5ci0o',
-            type: 'group',
+            id: 'folder_input_4MNKU',
+            type: 'folder-input',
             meta: {
                 position: {
-                    x: 0,
-                    y: 0,
+                    x: 640,
+                    y: 366.4,
                 },
             },
-            data: {},
-            blocks: [
-                {
-                    id: 'llm_8--A3',
-                    type: 'llm',
-                    meta: {
-                        position: {
-                            x: 1177.8341013824886,
-                            y: 19.25,
-                        },
+            data: {
+                title: 'Folder Input_2',
+                folders: [
+                    {
+                        id: 'folder_XP_0QV',
+                        folder: null,
+                        variableName: 'folder_1',
                     },
-                    data: {
-                        title: 'LLM_1',
-                        inputsValues: {
-                            modelName: {
-                                type: 'constant',
-                                content: 'gpt-3.5-turbo',
-                            },
-                            apiKey: {
-                                type: 'constant',
-                                content: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                            },
-                            apiHost: {
-                                type: 'constant',
-                                content: 'https://mock-ai-url/api/v3',
-                            },
-                            temperature: {
-                                type: 'constant',
-                                content: 0.5,
-                            },
-                            systemPrompt: {
-                                type: 'constant',
-                                content: 'You are an AI assistant.',
-                            },
-                            prompt: {
-                                type: 'constant',
-                                content: '',
-                            },
-                        },
-                        inputs: {
-                            type: 'object',
-                            required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
-                            properties: {
-                                modelName: {
-                                    type: 'string',
-                                },
-                                apiKey: {
-                                    type: 'string',
-                                },
-                                apiHost: {
-                                    type: 'string',
-                                },
-                                temperature: {
-                                    type: 'number',
-                                },
-                                systemPrompt: {
-                                    type: 'string',
-                                },
-                                prompt: {
-                                    type: 'string',
-                                },
-                            },
-                        },
-                        outputs: {
-                            type: 'object',
-                            properties: {
-                                result: {
-                                    type: 'string',
-                                },
-                            },
-                        },
-                    },
+                ],
+                outputs: {
+                    type: 'object',
+                    properties: {},
                 },
-                {
-                    id: 'llm_vTyMa',
-                    type: 'llm',
-                    meta: {
-                        position: {
-                            x: 1625.6221198156682,
-                            y: 19.25,
-                        },
-                    },
-                    data: {
-                        title: 'LLM_2',
-                        inputsValues: {
-                            modelName: {
-                                type: 'constant',
-                                content: 'gpt-3.5-turbo',
-                            },
-                            apiKey: {
-                                type: 'constant',
-                                content: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
-                            },
-                            apiHost: {
-                                type: 'constant',
-                                content: 'https://mock-ai-url/api/v3',
-                            },
-                            temperature: {
-                                type: 'constant',
-                                content: 0.5,
-                            },
-                            systemPrompt: {
-                                type: 'constant',
-                                content: 'You are an AI assistant.',
-                            },
-                            prompt: {
-                                type: 'constant',
-                                content: '',
-                            },
-                        },
-                        inputs: {
-                            type: 'object',
-                            required: ['modelName', 'apiKey', 'apiHost', 'temperature', 'prompt'],
-                            properties: {
-                                modelName: {
-                                    type: 'string',
-                                },
-                                apiKey: {
-                                    type: 'string',
-                                },
-                                apiHost: {
-                                    type: 'string',
-                                },
-                                temperature: {
-                                    type: 'number',
-                                },
-                                systemPrompt: {
-                                    type: 'string',
-                                },
-                                prompt: {
-                                    type: 'string',
-                                },
-                            },
-                        },
-                        outputs: {
-                            type: 'object',
-                            properties: {
-                                result: {
-                                    type: 'string',
-                                },
-                            },
-                        },
-                    },
-                },
-            ],
-            edges: [
-                {
-                    sourceNodeID: 'condition_0',
-                    targetNodeID: 'llm_8--A3',
-                    sourcePortID: 'if_0',
-                },
-                {
-                    sourceNodeID: 'llm_8--A3',
-                    targetNodeID: 'llm_vTyMa',
-                },
-                {
-                    sourceNodeID: 'llm_vTyMa',
-                    targetNodeID: 'end_0',
-                },
-            ],
+            },
         },
     ],
     edges: [
         {
             sourceNodeID: 'start_0',
-            targetNodeID: 'condition_0',
+            targetNodeID: 'folder_input_4MNKU',
         },
         {
-            sourceNodeID: 'condition_0',
-            targetNodeID: 'llm_8--A3',
-            sourcePortID: 'if_0',
-        },
-        {
-            sourceNodeID: 'condition_0',
-            targetNodeID: 'loop_sGybT',
-            sourcePortID: 'if_f0rOAt',
-        },
-        {
-            sourceNodeID: 'llm_vTyMa',
+            sourceNodeID: 'loop_5F6lD',
             targetNodeID: 'end_0',
         },
         {
-            sourceNodeID: 'loop_sGybT',
-            targetNodeID: 'end_0',
+            sourceNodeID: 'folder_input_4MNKU',
+            targetNodeID: 'loop_5F6lD',
         },
     ],
 };

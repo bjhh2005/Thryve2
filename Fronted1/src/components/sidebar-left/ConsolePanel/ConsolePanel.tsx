@@ -1,9 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { useConsole, LogEntry } from '../../../context/ConsoleProvider';
+import React, { useEffect, useRef, memo } from 'react';
+import { useExecution, LogEntry } from '../../../context/ExecutionProvider';
 import { IconTriangleDown } from '@douyinfe/semi-icons';
 import './ConsolePanel.less';
 
-// 单条日志的渲染组件，用于实现不同级别的样式
 const LogEntryView: React.FC<{ log: LogEntry }> = ({ log }) => {
     return (
         <div className={`console-log console-log-${log.level}`}>
@@ -15,11 +14,11 @@ const LogEntryView: React.FC<{ log: LogEntry }> = ({ log }) => {
     );
 };
 
-export const ConsolePanel = () => {
-    const { logs, clearLogs } = useConsole();
+export const ConsolePanel = memo(() => {
+    const { logs, clearLogs } = useExecution();
     const logContainerRef = useRef<HTMLDivElement>(null);
 
-    // 实现自动滚动到底部的效果
+    // 自动滚动逻辑保持不变
     useEffect(() => {
         if (logContainerRef.current) {
             logContainerRef.current.scrollTop = logContainerRef.current.scrollHeight;
@@ -43,4 +42,4 @@ export const ConsolePanel = () => {
             </div>
         </div>
     );
-};
+});

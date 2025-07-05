@@ -1,0 +1,300 @@
+{
+  "workflows": {
+    "main_workflow": {
+      "type": "main",
+      "name": "主工作流",
+      "nodes": [
+        {
+          "id": "start_main",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "主流程开始"
+          }
+        },
+        {
+          "id": "call_text_proc",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "text_processing"
+              }
+            },
+            "outputsValues": {},
+            "title": "调用文本处理"
+          }
+        },
+        {
+          "id": "call_pdf_proc",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "pdf_processing"
+              }
+            },
+            "outputsValues": {},
+            "title": "调用PDF处理"
+          }
+        },
+        {
+          "id": "call_img_proc",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "image_processing"
+              }
+            },
+            "outputsValues": {},
+            "title": "调用图像处理"
+          }
+        },
+        {
+          "id": "end_main",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "主流程结束"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_main",
+          "targetNodeID": "call_text_proc",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_text_proc",
+          "targetNodeID": "call_pdf_proc",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_pdf_proc",
+          "targetNodeID": "call_img_proc",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_img_proc",
+          "targetNodeID": "end_main",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "text_processing": {
+      "type": "sub",
+      "name": "text_processing",
+      "nodes": [
+        {
+          "id": "func_start_text",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "text_processing"
+          }
+        },
+        {
+          "id": "text_processor_node",
+          "type": "text-processor",
+          "data": {
+            "inputsValues": {
+              "inputFile": {
+                "type": "constant",
+                "content": "input.txt"
+              },
+              "content": {
+                "type": "constant",
+                "content": "这是通过文本处理器写入的内容"
+              },
+              "outputFolder": {
+                "type": "constant",
+                "content": "output"
+              },
+              "outputFileName": {
+                "type": "constant",
+                "content": "processed_text"
+              }
+            },
+            "outputsValues": {},
+            "title": "文本处理器"
+          }
+        },
+        {
+          "id": "func_end_text",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "文本处理结束"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_text",
+          "targetNodeID": "text_processor_node",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "text_processor_node",
+          "targetNodeID": "func_end_text",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "pdf_processing": {
+      "type": "sub",
+      "name": "pdf_processing",
+      "nodes": [
+        {
+          "id": "func_start_pdf",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "pdf_processing"
+          }
+        },
+        {
+          "id": "pdf_processor_node",
+          "type": "pdf-processor",
+          "data": {
+            "inputsValues": {
+              "inputFile": {
+                "type": "constant",
+                "content": "sample.pdf"
+              },
+              "pageRange": {
+                "type": "constant",
+                "content": "1-3"
+              },
+              "extractImages": {
+                "type": "constant",
+                "content": false
+              },
+              "outputFolder": {
+                "type": "constant",
+                "content": "output"
+              },
+              "outputName": {
+                "type": "constant",
+                "content": "extracted_pdf"
+              }
+            },
+            "outputsValues": {},
+            "title": "PDF处理器"
+          }
+        },
+        {
+          "id": "func_end_pdf",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "PDF处理结束"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_pdf",
+          "targetNodeID": "pdf_processor_node",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "pdf_processor_node",
+          "targetNodeID": "func_end_pdf",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "image_processing": {
+      "type": "sub",
+      "name": "image_processing",
+      "nodes": [
+        {
+          "id": "func_start_img",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "image_processing"
+          }
+        },
+        {
+          "id": "img_processor_node",
+          "type": "img-processor",
+          "data": {
+            "inputsValues": {
+              "inputFile": {
+                "type": "constant",
+                "content": "sample.jpg"
+              },
+              "width": {
+                "type": "constant",
+                "content": 800
+              },
+              "height": {
+                "type": "constant",
+                "content": 600
+              },
+              "maintainAspectRatio": {
+                "type": "constant",
+                "content": true
+              },
+              "outputFolder": {
+                "type": "constant",
+                "content": "output"
+              },
+              "outputName": {
+                "type": "constant",
+                "content": "resized_image"
+              }
+            },
+            "outputsValues": {},
+            "title": "图像处理器"
+          }
+        },
+        {
+          "id": "func_end_img",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "图像处理结束"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_img",
+          "targetNodeID": "img_processor_node",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "img_processor_node",
+          "targetNodeID": "func_end_img",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    }
+  }
+}

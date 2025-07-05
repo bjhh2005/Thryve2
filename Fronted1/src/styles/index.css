@@ -12,6 +12,10 @@
   --g-workflow-line-color-hover: #37d0ff;
   --g-workflow-line-color-selected: #37d0ff;
   --g-workflow-line-color-error: red;
+
+  /* --g-workflow-line-color-default: #b0b8c4; */
+  --g-workflow-line-color-flowing: #4d53e8;
+  /* 流动时的颜色 */
 }
 
 /*
@@ -85,6 +89,7 @@ textarea:focus-visible,
   height: 100%;
 }
 
+
 .demo-container {
   position: absolute;
   left: 0px;
@@ -109,4 +114,81 @@ textarea:focus-visible,
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* 1. 定义一个用于 "蚂蚁行军" 效果的动画 */
+@keyframes line-flow-animation {
+  to {
+    /* 虚线偏移量不断变化，产生流动效果 */
+    stroke-dashoffset: -20;
+  }
+}
+
+/* 2. 针对 @flowgram.ai 库中连线的默认 class (.workflow-line) 进行样式设置 */
+/* is-flowing 这个 class 是由 use-editor-props.tsx 中的 isFlowingLine 逻辑动态添加的 */
+.workflow-line.is-flowing {
+
+  /* 只有当父容器有 .is-running class 时才应用动画 */
+  .is-running & {
+    /* stroke-dasharray 创建了虚线效果，'8 4' 表示8像素实线，4像素空白 */
+    stroke-dasharray: 8 4;
+    /* 应用动画：名称、时长、线性、无限循环 */
+    animation: line-flow-animation 0.5s linear infinite;
+  }
+}
+
+/* 3. (可选) 您可以为错误状态下的连线也添加样式 */
+.workflow-line.has-error {
+  stroke: red;
+  stroke-width: 2px;
+}
+
+.breakpoint-toggle {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  border: 2px solid white;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.breakpoint-toggle:hover {
+  transform: scale(1.1);
+}
+
+.breakpoint-toggle.active {
+  background-color: #F44336;
+  /* 激活时变为红色 */
+}
+
+#debug-toolbar-container {
+  /* 1. 使用绝对定位，让它脱离文档流，浮动起来 */
+  position: absolute;
+
+  /* 2. 定位到顶部中央 */
+  top: 20px;
+  /* 距离顶部的距离 */
+  left: 50%;
+  /* 将元素的左边界移动到父容器的中心线 */
+
+  /* 3. 使用 transform 将元素向左移动自身宽度的一半，实现完美水平居中 */
+  transform: translateX(-50%);
+
+  /* 4. 确保它在画布之上 */
+  z-index: 20;
+
+  /* 5. 添加一些视觉样式，使其看起来像一个悬浮面板 */
+  padding: 8px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px R12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(5px);
+  /* （可选）为支持的浏览器添加毛玻璃效果 */
 }

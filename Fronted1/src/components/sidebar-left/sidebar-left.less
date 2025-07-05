@@ -16,7 +16,6 @@
     left: 0;
     top: 0;
     height: 100vh;
-
     z-index: 10;
     display: flex;
     flex-direction: row;
@@ -58,13 +57,38 @@
     background-color: @action-bar-bg-color;
 }
 
+.action-bar-button.active {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: #5f6368;
+}
+
 .action-bar-button.semi-button {
     width: 40px;
     height: 40px;
     color: #5f6368;
+    background-color: #fff;
+    border-radius: 10px;
 
     &:hover {
         background-color: rgba(0, 0, 0, 0.05) !important;
+    }
+}
+
+.action-bar-button.semi-button:first-child {
+    border-radius: 20px;
+    color: #fff;
+    background-color: #2966fe;
+
+    transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+
+
+    &:hover {
+        background-color: #2966fe !important;
+
+        transform: scale(1.1);
+
+        transform: rotate(90deg);
+
     }
 }
 
@@ -72,11 +96,20 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    min-width: 0; // ！允许flex子元素收缩，防止内容溢出
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    min-width: 0;
+
+    overflow-x: hidden;
+
+    transition:
+        opacity 0.3s ease-in-out 0.1s,
+        visibility 0s linear,
+        width @transition-speed @transition-curve;
 }
 
 .left-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
     padding: 8px 12px;
     background-color: #fff;
@@ -84,12 +117,24 @@
     border-bottom: 1px solid @border-color;
 }
 
+.current-project-name {
+    font-size: 14px;
+    // font-weight: 600;
+    color: var(--semi-color-text-0);
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    text-align: left;
+}
+
+
 .left-sidebar-content-wrapper {
     flex-grow: 1;
     position: relative;
-    overflow: hidden;
-    transition: opacity @transition-speed ease;
-    background-color: #fff;
+    overflow: auto;
+    // width: 600px !important;
 
     .tab-pane {
         position: absolute;
@@ -102,10 +147,19 @@
         transition: opacity @transition-speed @transition-curve, transform @transition-speed @transition-curve;
         pointer-events: none;
 
+        background-color: #fff;
+        overflow-y: auto;
+
+        box-sizing: border-box;
+
         &.active {
             opacity: 1;
             transform: translateX(0);
             pointer-events: auto;
+        }
+
+        &.projects-active {
+            background-color: #fafafa;
         }
     }
 }

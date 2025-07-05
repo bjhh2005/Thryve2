@@ -7,10 +7,12 @@ import { useNodeRenderContext, usePortClick } from '../../hooks';
 import { SidebarContext } from '../../context';
 import { scrollToView } from './utils';
 import { NodeWrapperStyle } from './styles';
+import { NodeStatus } from '../../context/ExecutionProvider';
 
 export interface NodeWrapperProps {
   isScrollToView?: boolean;
   children: React.ReactNode;
+  reportStatus?: NodeStatus;
 }
 
 /**
@@ -18,7 +20,7 @@ export interface NodeWrapperProps {
  * 用于节点的拖拽/点击事件和点位渲染
  */
 export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
-  const { children, isScrollToView = false } = props;
+  const { children, isScrollToView = false, reportStatus } = props;
   const nodeRender = useNodeRenderContext();
   const { selected, startDrag, ports, selectNode, nodeRef, onFocus, onBlur } = nodeRender;
   const [isDragging, setIsDragging] = useState(false);
@@ -34,6 +36,7 @@ export const NodeWrapper: React.FC<NodeWrapperProps> = (props) => {
   return (
     <>
       <NodeWrapperStyle
+        status={reportStatus}
         className={selected ? 'selected' : ''}
         ref={nodeRef}
         draggable

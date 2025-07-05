@@ -14,8 +14,14 @@ import { CsvProcessorRegistry } from './csv-processor';
 import { JsonProcessorRegistry } from './json-processor';
 import { PdfProcessorRegistry } from './pdf-processor';
 import { MarkdownProcessorRegistry } from './markdown-processor';
-import { ExportVariableRegistry } from './export-variable';
 import { ImgProcessorRegistry } from './img-processor';
+import { RelocationNodeRegistry } from './relocation';
+import { SchedulerNodeRegistry } from './scheduler';
+import { CallNodeRegistry } from './call';
+import { FuncStartRegistry } from './func-start';
+import { FuncEndRegistry } from './func-end';
+import { SleepNodeRegistry } from './sleep';
+// import { CreateStringArrayNodeRegistry } from './create-string-array';
 
 export { WorkflowNodeType } from './constants';
 
@@ -29,13 +35,19 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   LoopNodeRegistry,
   CommentNodeRegistry,
   PrintNodeRegistry,
+  CallNodeRegistry,
   TextProcessorNodeRegistry,
   CsvProcessorRegistry,
   JsonProcessorRegistry,
   PdfProcessorRegistry,
   MarkdownProcessorRegistry,
-  ExportVariableRegistry,
   ImgProcessorRegistry,
+  RelocationNodeRegistry,
+  SchedulerNodeRegistry,
+  FuncStartRegistry,
+  FuncEndRegistry,
+  SleepNodeRegistry,
+  // CreateStringArrayNodeRegistry,
 ];
 
 /**

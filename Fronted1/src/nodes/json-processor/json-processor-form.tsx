@@ -149,23 +149,11 @@ const MODE_INPUTS = {
 
 // Output configurations for different modes
 const MODE_OUTPUTS = {
-  parse: {
-    result: {
-      type: 'object',
-      description: 'Parsed JSON object'
-    },
-    isValid: {
-      type: 'boolean',
-      description: 'Whether the JSON is valid'
-    }
-  },
-  stringify: {
-    result: {
-      type: 'string',
-      description: 'Stringified JSON'
-    }
-  },
   query: {
+    outputFile: {
+      type: 'string',
+      description: 'Query result'
+    },
     result: {
       type: 'any',
       description: 'Query result'
@@ -176,6 +164,10 @@ const MODE_OUTPUTS = {
     }
   },
   update: {
+    outputFile: {
+      type: 'string',
+      description: 'Updated JSON object'
+    },
     result: {
       type: 'object',
       description: 'Updated JSON object'
@@ -186,6 +178,10 @@ const MODE_OUTPUTS = {
     }
   },
   validate: {
+    outputFile: {
+      type: 'string',
+      description: 'Validation result'
+    },
     isValid: {
       type: 'boolean',
       description: 'Validation result'
@@ -196,12 +192,20 @@ const MODE_OUTPUTS = {
     }
   },
   merge: {
+    outputFile: {
+      type: 'string',
+      description: 'Merged JSON object'
+    },
     result: {
       type: 'object',
       description: 'Merged JSON object'
     }
   },
   diff: {
+    outputFile: {
+      type: 'string',
+      description: 'Differences between JSONs'
+    },
     differences: {
       type: 'array',
       description: 'List of differences found'

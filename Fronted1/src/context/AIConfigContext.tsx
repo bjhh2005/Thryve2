@@ -5,22 +5,29 @@ export interface ProviderConfig {
     apiKey: string;
     apiHost: string;
     model: string;
+    systemPrompt?: string;  // 添加系统提示词配置
 }
 
+// 简短的默认系统提示词，仅作为备用
+const DEFAULT_SYSTEM_PROMPT = "你是Thryve项目的专业AI助手，一个专门为可视化工作流设计的智能助手。你需要帮助用户更好地使用Thryve的各项功能。";
+
 // 2. 定义所有预设服务商的默认信息
-export const PRESET_PROVIDERS = { // 注意：这里将 const PRESET_PROVIDERS: Record<string, ...> 改为 const PRESET_PROVIDERS，以便TS能推断出具体的键
+export const PRESET_PROVIDERS = {
     siliconflow: {
         apiHost: "https://api.siliconflow.cn/v1",
         apiKey: "",
         model: 'Qwen/Qwen2-7B-Instruct',
+        systemPrompt: DEFAULT_SYSTEM_PROMPT,
     },
     deepseek: {
         apiHost: "https://api.deepseek.com/v1",
         model: 'deepseek-chat',
+        systemPrompt: DEFAULT_SYSTEM_PROMPT,
     },
     openai: {
         apiHost: "https://api.openai.com/v1",
         model: 'gpt-4-turbo',
+        systemPrompt: DEFAULT_SYSTEM_PROMPT,
     },
 };
 

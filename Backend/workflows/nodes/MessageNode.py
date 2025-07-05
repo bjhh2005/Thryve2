@@ -10,4 +10,6 @@ class MessageNode(Node, ABC):
     def getMessage(self, paramName):
         return self.MessageList[paramName]
     
+    def setMessage(self, paramName, value):
+        self.MessageList[paramName] = value
     

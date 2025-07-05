@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { getAllConversations, getMessagesForConversation, addConversation, addMessage, updateMessage, renameConversation, deleteConversation, Conversation, ChatMessage } from '../utils/db';
 import { v4 as uuidv4 } from 'uuid';
+import { useAIConfig } from './AIConfigContext';  // 添加 AIConfig 引用
 
 interface ChatContextType {
     conversations: Conversation[];
@@ -19,6 +20,7 @@ interface ChatContextType {
     updateMessageContent: (messageId: string, newContent: string) => Promise<void>;
     renameConversation: (id: string, newTitle: string) => Promise<void>;
     deleteConversation: (id: string) => Promise<void>;
+    getMessagesWithSystemPrompt: () => { role: string; content: string; }[];  // 添加新方法
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -30,11 +32,26 @@ export const useChat = () => {
 };
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+    const { getActiveProviderConfig } = useAIConfig();  // 获取 AI 配置
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(true);
     const [isConversationListCollapsed, setIsConversationListCollapsed] = useState(false);
+
+    // 添加获取带系统提示词的消息列表的方法
+    const getMessagesWithSystemPrompt = () => {
+        const config = getActiveProviderConfig();
+        const systemPrompt = config.systemPrompt || "你是Thryve项目的专业AI助手，一个专门为可视化工作流设计的智能助手。你需要帮助用户更好地使用Thryve的各项功能。";
+        
+        return [
+            { role: "system", content: systemPrompt },
+            ...messages.map(msg => ({
+                role: msg.role,
+                content: msg.content
+            }))
+        ];
+    };
 
     const createNewConversation = async () => {
         const newConvo: Conversation = {
@@ -149,6 +166,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         updateMessageContent,
         renameConversation: handleRenameConversation,
         deleteConversation: handleDeleteConversation,
+        getMessagesWithSystemPrompt,  // 添加到 context value 中
     };
 
     return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

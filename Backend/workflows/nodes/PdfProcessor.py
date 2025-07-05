@@ -6,6 +6,8 @@ from PIL import Image
 import fitz  # PyMuPDF
 import io
 import re
+from docx import Document
+from docx.shared import Inches, Pt
 
 class PdfProcessor(MessageNode):
     def __init__(self, id: str, type: str, nextNodes: List, eventBus, data: Dict):
@@ -97,7 +99,7 @@ class PdfProcessor(MessageNode):
             
             # 更新下一个节点
             self.updateNext()
-            return True
+            return self.MessageList
             
         except Exception as e:
             raise Exception(f"PDF处理节点 {self._id} 执行错误: {str(e)}", 10)
@@ -315,36 +317,82 @@ class PdfProcessor(MessageNode):
             output_files = []
             conversion_log = []
             
-            for page_num in range(len(doc)):
-                page = doc[page_num]
-                if output_format in ['png', 'jpg']:
-                    pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
-                    image_filename = f"{self.output_name}_page_{page_num + 1}.{output_format}"
-                    image_path = os.path.join(self.output_dir, image_filename)
-                    image_path = self._get_unique_filename(image_path)
-                    pix.save(image_path)
-                    output_files.append(image_path)
-                    conversion_log.append(f"Page {page_num + 1} converted to {output_format}")
+            if output_format == 'docx':
+                # 创建新的Word文档
+                word_doc = Document()
                 
-                elif output_format == 'text':
+                # 遍历PDF的每一页
+                for page_num in range(len(doc)):
+                    page = doc[page_num]
+                    
+                    # 提取文本
                     text = page.get_text()
-                    text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
-                    text_path = os.path.join(self.output_dir, text_filename)
-                    text_path = self._get_unique_filename(text_path)
-                    with open(text_path, 'w', encoding='utf-8') as f:
-                        f.write(text)
-                    output_files.append(text_path)
-                    conversion_log.append(f"Page {page_num + 1} converted to text")
+                    word_doc.add_paragraph(text)
+                    
+                    # 提取图片
+                    for img_index, img in enumerate(page.get_images()):
+                        try:
+                            xref = img[0]
+                            base_image = doc.extract_image(xref)
+                            image_data = base_image["image"]
+                            
+                            # 保存临时图片文件
+                            temp_img_path = os.path.join(self.output_dir, f"temp_img_{page_num}_{img_index}.png")
+                            with open(temp_img_path, "wb") as img_file:
+                                img_file.write(image_data)
+                            
+                            # 将图片添加到文档
+                            word_doc.add_picture(temp_img_path, width=Inches(6.0))
+                            
+                            # 删除临时图片文件
+                            os.remove(temp_img_path)
+                        except Exception as img_error:
+                            conversion_log.append(f"Warning: Failed to process image on page {page_num + 1}: {str(img_error)}")
+                    
+                    # 在每页之间添加分页符
+                    if page_num < len(doc) - 1:
+                        word_doc.add_page_break()
                 
-                elif output_format == 'html':
-                    html = page.get_text("html")
-                    html_filename = f"{self.output_name}_page_{page_num + 1}.html"
-                    html_path = os.path.join(self.output_dir, html_filename)
-                    html_path = self._get_unique_filename(html_path)
-                    with open(html_path, 'w', encoding='utf-8') as f:
-                        f.write(html)
-                    output_files.append(html_path)
-                    conversion_log.append(f"Page {page_num + 1} converted to HTML")
+                # 保存Word文档
+                docx_filename = f"{self.output_name}.docx"
+                docx_path = os.path.join(self.output_dir, docx_filename)
+                docx_path = self._get_unique_filename(docx_path)
+                word_doc.save(docx_path)
+                
+                output_files.append(docx_path)
+                conversion_log.append(f"PDF converted to DOCX: {docx_path}")
+            
+            else:
+                for page_num in range(len(doc)):
+                    page = doc[page_num]
+                    if output_format in ['png', 'jpg']:
+                        pix = page.get_pixmap(matrix=fitz.Matrix(dpi/72, dpi/72))
+                        image_filename = f"{self.output_name}_page_{page_num + 1}.{output_format}"
+                        image_path = os.path.join(self.output_dir, image_filename)
+                        image_path = self._get_unique_filename(image_path)
+                        pix.save(image_path)
+                        output_files.append(image_path)
+                        conversion_log.append(f"Page {page_num + 1} converted to {output_format}")
+                    
+                    elif output_format == 'text':
+                        text = page.get_text()
+                        text_filename = f"{self.output_name}_page_{page_num + 1}.txt"
+                        text_path = os.path.join(self.output_dir, text_filename)
+                        text_path = self._get_unique_filename(text_path)
+                        with open(text_path, 'w', encoding='utf-8') as f:
+                            f.write(text)
+                        output_files.append(text_path)
+                        conversion_log.append(f"Page {page_num + 1} converted to text")
+                    
+                    elif output_format == 'html':
+                        html = page.get_text("html")
+                        html_filename = f"{self.output_name}_page_{page_num + 1}.html"
+                        html_path = os.path.join(self.output_dir, html_filename)
+                        html_path = self._get_unique_filename(html_path)
+                        with open(html_path, 'w', encoding='utf-8') as f:
+                            f.write(html)
+                        output_files.append(html_path)
+                        conversion_log.append(f"Page {page_num + 1} converted to HTML")
             
             doc.close()
             self._eventBus.emit("message", "info", self._id, "PDF conversion completed successfully!")
