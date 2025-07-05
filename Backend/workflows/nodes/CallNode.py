@@ -21,7 +21,8 @@ class CallNode(Node):
         
         # 获取子工作流ID配置
         inputs_values = data.get("inputsValues", {})
-        self.subworkflow_id_config = inputs_values.get("subworkflow_id")
+        # 支持新的 target_workflow 参数名
+        self.subworkflow_id_config = inputs_values.get("target_workflow") or inputs_values.get("subworkflow_id")
         self.input_data_config = inputs_values.get("input_data")
         
         # 注册监听子工作流返回事件
@@ -35,20 +36,32 @@ class CallNode(Node):
     def run(self):
         """执行调用节点"""
         try:
-            # 获取要调用的子工作流ID
-            subworkflow_id = self._get_config_value(self.subworkflow_id_config)
-            if not subworkflow_id:
-                raise CallNodeError(f"节点 {self._id}: 未指定要调用的子工作流ID")
+            # 获取要调用的子工作流目标（可能是title或ID）
+            target_workflow = self._get_config_value(self.subworkflow_id_config)
+            if not target_workflow:
+                raise CallNodeError(f"节点 {self._id}: 未指定要调用的子工作流")
             
             # 获取传入参数
             input_data = self._get_config_value(self.input_data_config)
             
-            self.logger.info(f"节点 {self._id} 准备调用子工作流: {subworkflow_id}")
+            self.logger.info(f"节点 {self._id} 准备调用子工作流: {target_workflow}")
             
             # 获取全局事件总线
             global_bus = self._get_global_bus()
             if not global_bus:
                 raise CallNodeError(f"节点 {self._id}: 无法获取全局事件总线，请确保使用WorkflowManager执行工作流")
+            
+            # 获取工作流管理器
+            workflow_manager = self._get_workflow_manager()
+            if not workflow_manager:
+                raise CallNodeError(f"节点 {self._id}: 无法获取工作流管理器")
+            
+            # 将目标工作流title转换为工作流ID
+            subworkflow_id = self._resolve_workflow_id(target_workflow, workflow_manager)
+            if not subworkflow_id:
+                raise CallNodeError(f"节点 {self._id}: 找不到目标工作流 '{target_workflow}'")
+            
+            self.logger.info(f"节点 {self._id} 解析到工作流ID: {subworkflow_id}")
             
             # 重要：在调用子工作流之前设置等待状态
             self.is_waiting = True
@@ -108,6 +121,38 @@ class CallNode(Node):
             return global_bus
         except:
             return None
+    
+    def _get_workflow_manager(self):
+        """获取工作流管理器"""
+        try:
+            # 通过事件总线请求工作流管理器
+            workflow_manager = self._eventBus.emit("get_workflow_manager")
+            return workflow_manager
+        except:
+            return None
+    
+    def _resolve_workflow_id(self, target_workflow, workflow_manager):
+        """将目标工作流title转换为工作流ID"""
+        # 首先检查是否直接是工作流ID
+        if target_workflow in workflow_manager.workflow_data:
+            return target_workflow
+        
+        # 如果不是直接ID，则通过工作流名称（title）查找
+        for workflow_id, workflow_data in workflow_manager.workflow_data.items():
+            workflow_name = workflow_data.get("name", "")
+            if workflow_name == target_workflow:
+                return workflow_id
+        
+        # 如果都找不到，尝试通过转换器的ID生成规则查找
+        # 将title转换为ID格式
+        import re
+        potential_id = target_workflow.lower().replace(' ', '_').replace('-', '_')
+        potential_id = re.sub(r'[^a-z0-9_]', '', potential_id)
+        
+        if potential_id in workflow_manager.workflow_data:
+            return potential_id
+        
+        return None
     
     def handle_subworkflow_return(self, event_data):
         """处理子工作流返回事件"""

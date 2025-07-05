@@ -1,0 +1,252 @@
+{
+  "workflows": {
+    "main_workflow": {
+      "type": "main",
+      "name": "主工作流",
+      "nodes": [
+        {
+          "id": "start_vEudc",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Start_1"
+          }
+        },
+        {
+          "id": "call_-PcAk",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "func1"
+              }
+            },
+            "outputsValues": {},
+            "title": "Call_1"
+          }
+        },
+        {
+          "id": "call_4tIJj",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "func2"
+              }
+            },
+            "outputsValues": {},
+            "title": "Call_2"
+          }
+        },
+        {
+          "id": "end_oHeNu",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "End_1"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_vEudc",
+          "targetNodeID": "call_-PcAk",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_-PcAk",
+          "targetNodeID": "call_4tIJj",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_4tIJj",
+          "targetNodeID": "end_oHeNu",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "func1": {
+      "type": "sub",
+      "name": "func1",
+      "nodes": [
+        {
+          "id": "func_start_Kprtq",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "func1"
+          }
+        },
+        {
+          "id": "print_UuH9C",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "来自func1的输出"
+              }
+            },
+            "outputsValues": {},
+            "title": "Print_1"
+          }
+        },
+        {
+          "id": "Func_end_FLDj5",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Function End_1"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_Kprtq",
+          "targetNodeID": "print_UuH9C",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_UuH9C",
+          "targetNodeID": "Func_end_FLDj5",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "func2": {
+      "type": "sub",
+      "name": "func2",
+      "nodes": [
+        {
+          "id": "func_start__Cw6E",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "func2"
+          }
+        },
+        {
+          "id": "print_qW63s",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "来自func2的输出"
+              }
+            },
+            "outputsValues": {},
+            "title": "Print_2"
+          }
+        },
+        {
+          "id": "call_bQ93I",
+          "type": "call",
+          "data": {
+            "inputsValues": {
+              "target_workflow": {
+                "type": "constant",
+                "content": "fun3"
+              }
+            },
+            "outputsValues": {},
+            "title": "Call_3"
+          }
+        },
+        {
+          "id": "Func_end_pbKk_",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Function End_2"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start__Cw6E",
+          "targetNodeID": "print_qW63s",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_qW63s",
+          "targetNodeID": "call_bQ93I",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "call_bQ93I",
+          "targetNodeID": "Func_end_pbKk_",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    },
+    "fun3": {
+      "type": "sub",
+      "name": "fun3",
+      "nodes": [
+        {
+          "id": "func_start_zM0RV",
+          "type": "start",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "fun3"
+          }
+        },
+        {
+          "id": "print_J4Cik",
+          "type": "print",
+          "data": {
+            "inputsValues": {
+              "input": {
+                "type": "constant",
+                "content": "来自fun3的输出"
+              }
+            },
+            "outputsValues": {},
+            "title": "Print_3"
+          }
+        },
+        {
+          "id": "Func_end_RRtKc",
+          "type": "end",
+          "data": {
+            "inputsValues": {},
+            "outputsValues": {},
+            "title": "Function End_3"
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "func_start_zM0RV",
+          "targetNodeID": "print_J4Cik",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        },
+        {
+          "sourceNodeID": "print_J4Cik",
+          "targetNodeID": "Func_end_RRtKc",
+          "sourcePortID": "next_id",
+          "targetPortID": "input"
+        }
+      ]
+    }
+  }
+}

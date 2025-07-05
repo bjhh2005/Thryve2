@@ -97,12 +97,32 @@ class WorkflowManager:
         engine.workflow_id = workflow_id
         engine.workflow_manager = self
         
+        # 设置完整的事件监听器（类似于app.py中的engineConnect）
         # 转发节点状态变化事件，添加工作流ID
         def forward_node_status(event_data):
             event_data["workflowId"] = workflow_id
             self.socketio.emit('node_status_change', event_data, namespace='/workflow')
         
+        # 转发节点消息事件
+        def forward_message(event, nodeId, message):
+            self.socketio.emit(event, {
+                "data": nodeId, 
+                "message": message, 
+                "workflowId": workflow_id
+            }, namespace='/workflow')
+        
+        # 转发节点输出事件
+        def forward_nodes_output(nodeId, message):
+            self.socketio.emit('nodes_output', {
+                "data": nodeId, 
+                "message": message, 
+                "workflowId": workflow_id
+            }, namespace='/workflow')
+        
+        # 注册事件监听器
         engine.bus.on('node_status_change', forward_node_status)
+        engine.bus.on('message', forward_message)
+        engine.bus.on('nodes_output', forward_nodes_output)
         
         return engine
     

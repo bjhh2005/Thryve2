@@ -14,6 +14,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from workflows.Engine import WorkflowEngine
 from workflows.WorkflowManager import WorkflowManager
+from workflow_converter import convert_workflow_format
 
 load_dotenv()
 app = Flask(__name__)
@@ -95,10 +96,36 @@ def handle_disconnect():
 @socketio.on('start_process', namespace='/workflow')
 def handle_start_process(workflow_data):
     
-    logger.info("Hello")
-    # Execute workflow in new thread to avoid blocking WebSocket
-    thread = threading.Thread(target=execute_workflow_task, args=(workflow_data,))
-    thread.start()
+    logger.info("接收到前端工作流数据")
+    
+    try:
+        # 检查是否是前端格式（包含nodes和edges）
+        if isinstance(workflow_data, dict) and 'nodes' in workflow_data and 'edges' in workflow_data:
+            logger.info("检测到前端格式，开始转换...")
+            
+            # 使用转换器将前端格式转换为后端格式
+            backend_format = convert_workflow_format(workflow_data)
+            
+            logger.info(f"转换成功，生成 {len(backend_format['workflows'])} 个工作流")
+            
+            # 使用转换后的格式执行工作流
+            converted_data = backend_format
+        else:
+            # 已经是后端格式，直接使用
+            logger.info("检测到后端格式，直接使用")
+            converted_data = workflow_data
+        
+        # Execute workflow in new thread to avoid blocking WebSocket
+        thread = threading.Thread(target=execute_workflow_task, args=(converted_data,))
+        thread.start()
+        
+    except Exception as e:
+        logger.error(f"工作流数据处理失败: {str(e)}")
+        # 发送错误消息到前端
+        socketio.emit('over', {
+            'message': f'工作流数据处理失败: {str(e)}', 
+            'status': 'error'
+        }, namespace='/workflow')
 
 # -------------------------------------------------------------------
 #  新增：大模型聊天API路由

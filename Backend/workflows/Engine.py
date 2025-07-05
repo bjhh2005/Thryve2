@@ -58,6 +58,7 @@ class WorkflowEngine:
         self.bus.on("cleanupNode", self.cleanupNode)
         self.bus.on("updateMessage", self.updateMessage)
         self.bus.on("get_global_bus", self.get_global_bus)
+        self.bus.on("get_workflow_manager", self.get_workflow_manager)
         self.bus.on("nodes_output", self.nodes_output)
         self.bus.on("message", self.message)
 
@@ -155,29 +156,22 @@ class WorkflowEngine:
         """返回全局事件总线给调用节点使用"""
         return getattr(self, 'global_bus', None)
     
+    def get_workflow_manager(self):
+        """返回工作流管理器给调用节点使用"""
+        return getattr(self, 'workflow_manager', None)
+    
     def nodes_output(self, node_id, output_value):
         """处理节点输出事件"""
         logging.info(f"节点 {node_id} 输出: {output_value}")
-        # 可以在这里添加其他处理逻辑，如发送到前端
-        if self.socketio:
-            self.socketio.emit('node_output', {
-                'nodeId': node_id,
-                'output': output_value,
-                'workflowId': getattr(self, 'workflow_id', 'unknown')
-            })
+        # 注意：不在这里直接发送WebSocket事件，避免与engineConnect的事件监听器冲突
+        # 事件会通过app.py中的engineConnect函数统一处理和转发
     
     def message(self, level, node_id, message):
         """处理节点消息事件"""
         logging.log(getattr(logging, level.upper(), logging.INFO), 
                    f"节点 {node_id}: {message}")
-        # 可以在这里添加其他处理逻辑，如发送到前端
-        if self.socketio:
-            self.socketio.emit('node_message', {
-                'level': level,
-                'nodeId': node_id,
-                'message': message,
-                'workflowId': getattr(self, 'workflow_id', 'unknown')
-            })
+        # 注意：不在这里直接发送WebSocket事件，避免与engineConnect的事件监听器冲突
+        # 事件会通过app.py中的engineConnect函数统一处理和转发
     
     def cleanup_all_nodes(self):
         """清理所有节点实例，释放内存"""
