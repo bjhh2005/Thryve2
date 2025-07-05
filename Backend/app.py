@@ -371,6 +371,118 @@ def generate_title():
     
 
 # -------------------------------------------------------------------
+#  新增：工作流生成API
+# -------------------------------------------------------------------
+@app.route("/api/generate-workflow", methods=["POST"])
+def generate_workflow():
+    """
+    根据用户需求生成工作流JSON配置
+    """
+    data = request.get_json()
+    
+    if not data:
+        return Response(json.dumps({"error": "Request body is missing"}), 
+                       status=400, mimetype='application/json')
+    
+    user_requirement = data.get("requirement")
+    if not user_requirement:
+        return Response(json.dumps({"error": "Missing 'requirement' field"}), 
+                       status=400, mimetype='application/json')
+    
+    # 获取AI配置
+    api_key = data.get("apiKey")
+    base_url = data.get("apiHost")
+    model_name = data.get("model")
+    temperature = data.get("temperature", 0.7)
+    
+    # 对内置模型的特殊处理
+    if model_name and model_name.startswith('Qwen/'):
+        if not api_key:
+            api_key = os.getenv("SILICONFLOW_API_KEY")
+    
+    if not api_key:
+        return Response(json.dumps({"error": "API key is missing"}), 
+                       status=400, mimetype='application/json')
+    if not model_name:
+        return Response(json.dumps({"error": "Model name is missing"}), 
+                       status=400, mimetype='application/json')
+    if not base_url:
+        return Response(json.dumps({"error": "API Host is missing"}), 
+                       status=400, mimetype='application/json')
+    
+    # 构建专门的工作流生成提示
+    workflow_prompt = f"""
+请根据用户需求生成完整的工作流JSON配置。
+
+用户需求：{user_requirement}
+
+请分析用户需求，然后生成一个完整的、可直接导入使用的工作流JSON配置。
+
+要求：
+1. 生成的JSON必须包含nodes和edges数组
+2. 确保所有节点ID唯一
+3. 正确设置节点位置坐标
+4. 确保所有required字段都有值
+5. 使用正确的变量引用格式
+
+请直接输出JSON代码，用```json和```包围。
+"""
+    
+    try:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": workflow_prompt}
+            ],
+            temperature=temperature,
+            stream=False
+        )
+        
+        response_content = completion.choices[0].message.content
+        
+        # 尝试从响应中提取JSON
+        import re
+        json_match = re.search(r'```json\s*\n(.*?)\n```', response_content, re.DOTALL)
+        
+        if json_match:
+            json_str = json_match.group(1)
+            try:
+                # 验证JSON格式
+                workflow_json = json.loads(json_str)
+                
+                # 验证是否包含必要字段
+                if 'nodes' not in workflow_json or 'edges' not in workflow_json:
+                    return Response(json.dumps({
+                        "error": "Generated JSON is missing required fields",
+                        "response": response_content
+                    }), status=400, mimetype='application/json')
+                
+                return Response(json.dumps({
+                    "success": True,
+                    "workflow": workflow_json,
+                    "response": response_content
+                }), status=200, mimetype='application/json')
+                
+            except json.JSONDecodeError as e:
+                return Response(json.dumps({
+                    "error": f"Invalid JSON format: {str(e)}",
+                    "response": response_content
+                }), status=400, mimetype='application/json')
+        else:
+            return Response(json.dumps({
+                "error": "No JSON found in response",
+                "response": response_content
+            }), status=400, mimetype='application/json')
+            
+    except Exception as e:
+        logger.error(f"Error generating workflow: {e}")
+        return Response(json.dumps({"error": str(e)}), 
+                       status=500, mimetype='application/json')
+
+# -------------------------------------------------------------------
 #  新增：断点调试控制API
 # -------------------------------------------------------------------
 
