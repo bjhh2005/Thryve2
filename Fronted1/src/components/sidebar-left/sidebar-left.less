@@ -58,6 +58,11 @@
     background-color: @action-bar-bg-color;
 }
 
+.action-bar-button.active {
+    background-color: var(--semi-color-primary-light-active) !important;
+    color: var(--semi-color-primary) !important;
+}
+
 .action-bar-button.semi-button {
     width: 40px;
     height: 40px;
@@ -77,6 +82,9 @@
 }
 
 .left-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
     padding: 8px 12px;
     background-color: #fff;
@@ -84,12 +92,24 @@
     border-bottom: 1px solid @border-color;
 }
 
+.current-project-name {
+    font-size: 14px;
+    // font-weight: 600;
+    color: var(--semi-color-text-0);
+    padding-left: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    text-align: left;
+}
+
+
 .left-sidebar-content-wrapper {
     flex-grow: 1;
     position: relative;
-    overflow: hidden;
-    transition: opacity @transition-speed ease;
-    background-color: #fff;
+    overflow: auto;
+    // width: 600px !important;
 
     .tab-pane {
         position: absolute;
@@ -102,10 +122,19 @@
         transition: opacity @transition-speed @transition-curve, transform @transition-speed @transition-curve;
         pointer-events: none;
 
+        background-color: #fff;
+        overflow-y: auto;
+
+        box-sizing: border-box;
+
         &.active {
             opacity: 1;
             transform: translateX(0);
             pointer-events: auto;
+        }
+
+        &.projects-active {
+            background-color: #fafafa;
         }
     }
 }

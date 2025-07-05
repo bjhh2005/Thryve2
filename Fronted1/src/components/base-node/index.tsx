@@ -1,49 +1,46 @@
-// base-node/index.tsx (支持高级可视化和结果展示的最终版)
+// base-node/index.tsx (支持暂停状态高亮)
 
-import React, { useCallback } from 'react'; // 导入 React 以使用 Fragment
+import React, { useCallback } from 'react';
 import { FlowNodeEntity, useNodeRender } from '@flowgram.ai/free-layout-editor';
 import { ConfigProvider } from '@douyinfe/semi-ui';
-
-// 1. 导入我们统一的 useExecution Hook
 import { useExecution } from '../../context/ExecutionProvider';
-
-// 2. 导入我们新创建的结果展示组件
-import { NodeResultDisplay } from '../NodeResultDisplay/NodeResultDisplay';
-
+import { NodeResultDisplay } from '../NodeResultDisplay/NodeResultDisplay'; // 确保路径正确
 import { NodeWrapper } from './node-wrapper';
 import { ErrorIcon } from './styles';
 import { NodeRenderContext } from '../../context';
+import { BreakpointToggle } from '../BreakpointToggle/BreakpointToggle'; // 1. 引入断点开关组件
 
 export const BaseNode = ({ node }: { node: FlowNodeEntity }) => {
   const nodeRender = useNodeRender();
   const form = nodeRender.form;
 
-  // 3. 从 Context 中获取包含 status 和 payload 的完整状态对象
-  const { nodeStates } = useExecution();
+  // 2. 获取所有调试相关的状态
+  const { nodeStates, isPaused, pausedOnNodeId } = useExecution();
 
-  // 4. 获取当前节点对应的完整状态对象
   const currentNodeState = nodeStates[node.id];
+  let currentNodeStatus = currentNodeState?.status || 'IDLE';
 
-  // 5. 从中提取出 status，用于驱动样式变化。如果状态不存在，默认为 'IDLE'
-  const currentNodeStatus = currentNodeState?.status || 'IDLE';
+  // 3. 关键逻辑：如果当前工作流已暂停，并且暂停点就是当前节点，
+  //    那么无论它之前的状态是什么，都将其状态覆盖为 'PAUSED'，以应用特殊高亮样式。
+  if (isPaused && pausedOnNodeId === node.id) {
+    currentNodeStatus = 'PAUSED';
+  }
 
   const getPopupContainer = useCallback(() => node.renderData.node || document.body, [node.renderData.node]);
 
   return (
-    // 使用 React.Fragment (<> ... </>) 来包裹两个并列的组件
     <>
-      {/* 节点主体部分 */}
       <ConfigProvider getPopupContainer={getPopupContainer}>
         <NodeRenderContext.Provider value={nodeRender}>
           <NodeWrapper reportStatus={currentNodeStatus}>
+            {/* 在节点上层添加断点开关 */}
+            <BreakpointToggle nodeId={node.id} />
             {form?.state.invalid && <ErrorIcon />}
             {form?.render()}
           </NodeWrapper>
         </NodeRenderContext.Provider>
       </ConfigProvider>
 
-      {/* 6. 在节点主体的下方，渲染新的结果展示组件 */}
-      {/* 并将当前节点的完整状态(包括payload)传递给它 */}
       <NodeResultDisplay nodeState={currentNodeState} />
     </>
   );

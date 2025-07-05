@@ -21,6 +21,7 @@ import { SchedulerNodeRegistry } from './scheduler';
 import { CallNodeRegistry } from './call';
 import { FuncStartRegistry } from './func-start';
 import { FuncEndRegistry } from './func-end';
+import { SleepNodeRegistry } from './sleep';
 
 export { WorkflowNodeType } from './constants';
 
@@ -46,6 +47,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   SchedulerNodeRegistry,
   FuncStartRegistry,
   FuncEndRegistry,
+  SleepNodeRegistry,
 ];
 
 /**

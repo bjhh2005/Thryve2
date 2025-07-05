@@ -2,39 +2,74 @@
 
 import { useCallback } from 'react';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { Button } from '@douyinfe/semi-ui';
-import { IconPlay, IconStop } from '@douyinfe/semi-icons';
-// import { useConsole } from '../../../context/ConsoleProvider';
-// import { useWorkflowState } from '../../../context/WorkflowStateProvider';
+import { Button, ButtonGroup, Popover } from '@douyinfe/semi-ui';
+import {
+  IconPlay,
+  IconPause,
+  IconForward,
+  IconStop,
+  IconClear
+} from '@douyinfe/semi-icons';
 import { useExecution } from '../../../context/ExecutionProvider';
-import { v4 as uuidv4 } from 'uuid';
+import { useBreakpoints } from '../../../context/BreakpointProvider';
 
-export function TestRunButton(props: { disabled: boolean }) {
+export function TestRunButton() {
+  const {
+    isRunning,
+    isPaused,
+    startExecution,
+    resumeExecution,
+    pauseExecution,
+    stepOver,
+    terminateExecution
+  } = useExecution();
+
+  const { breakpoints, clearBreakpoints } = useBreakpoints();
   const clientContext = useClientContext();
 
-  const { isRunning, startExecution } = useExecution();
-
-  const handleTestRun = useCallback(() => {
+  const handleRun = useCallback(() => {
     const documentData = clientContext.document.toJSON();
-    startExecution(documentData);
-  }, [clientContext, startExecution]);
+    const breakpointArray = Array.from(breakpoints);
+    // 调用统一的启动方法，它会根据是否存在断点自动选择模式
+    startExecution(documentData, breakpointArray);
+  }, [clientContext, breakpoints, startExecution]);
 
+
+  // --- UI 渲染逻辑 ---
+
+  // 1. 如果工作流正在运行中
+  if (isRunning) {
+    return (
+      <ButtonGroup>
+        {isPaused ? (
+          <Popover content="继续执行 (Resume)">
+            <Button icon={<IconPlay />} onClick={resumeExecution} />
+          </Popover>
+        ) : (
+          <Popover content="暂停执行 (Pause)">
+            <Button icon={<IconPause />} onClick={pauseExecution} />
+          </Popover>
+        )}
+        <Popover content="单步执行 (Step Over)">
+          <Button icon={<IconForward />} onClick={stepOver} disabled={!isPaused} />
+        </Popover>
+        <Popover content="终止执行 (Terminate)">
+          <Button icon={<IconStop />} type="danger" onClick={terminateExecution} />
+        </Popover>
+      </ButtonGroup>
+    );
+  }
+
+  // 2. 如果工作流未运行
   return (
-    <Button
-      // 4. 使用总体的运行状态来决定按钮是否被禁用
-      disabled={props.disabled || isRunning}
-      onClick={handleTestRun}
-      // 根据总体状态切换“播放”和“停止”图标
-      icon={isRunning ? <IconStop size="small" /> : <IconPlay size="small" />}
-      style={{
-        backgroundColor: isRunning ? 'rgba(255,115,0, 1)' : 'rgba(0,178,60,1)',
-        borderRadius: '8px',
-        color: '#fff'
-      }}
-      type={isRunning ? 'danger' : 'primary'}
-    >
-      {/* 5. 根据总体状态显示不同的按钮文本 */}
-      {isRunning ? 'Running / Stop' : 'Test Run'}
-    </Button>
+    <ButtonGroup>
+      <Button icon={<IconPlay />} onClick={handleRun} type="primary">
+        {/* 如果设置了断点，按钮文本提示为 Debug Run */}
+        {breakpoints.size > 0 ? 'Debug Run' : 'Run'}
+      </Button>
+      <Popover content="清空所有断点">
+        <Button icon={<IconClear />} onClick={clearBreakpoints} type="tertiary" disabled={breakpoints.size === 0} />
+      </Popover>
+    </ButtonGroup>
   );
-}
+};

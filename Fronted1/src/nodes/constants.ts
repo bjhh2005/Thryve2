@@ -15,6 +15,7 @@ export enum WorkflowNodeType {
   Scheduler = 'scheduler',
   FuncStart = 'func-start',
   FuncEnd = 'func-end',
+  Sleep = 'sleep',
 
   // 基础文本处理
   TextProcessor = 'text-processor',
