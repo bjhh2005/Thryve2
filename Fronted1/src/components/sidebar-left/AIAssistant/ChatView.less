@@ -213,7 +213,7 @@
 
 .ai-input-form {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
     gap: 8px;
     padding: 16px;
     border-top: 1px solid #e8eaed;
@@ -222,6 +222,20 @@
     .textarea-wrapper {
         flex-grow: 1;
         position: relative; // 作为内部按钮定位的基准
+    }
+
+    .input-actions {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
     }
 
     textarea {

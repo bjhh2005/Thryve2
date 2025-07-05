@@ -2,30 +2,124 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
-import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
-import { IconMember, IconCommand, IconSetting, IconSend, IconMenu, IconMaximize, IconMinimize } from '@douyinfe/semi-icons';
+import { Spin, Tooltip, Button, Typography, Toast } from '@douyinfe/semi-ui';
+import { IconMember, IconCommand, IconSetting, IconSend, IconMenu, IconMaximize, IconMinimize, IconImport } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
+import { usePlayground, useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
 import { WelcomeScreen } from './WelcomeScreen';
 import './ChatView.less';
 
+// 检测消息中是否包含JSON工作流
+const detectWorkflowJSON = (content: string): { hasJSON: boolean; jsonData?: any } => {
+    try {
+        // 查找代码块中的JSON
+        const jsonBlockRegex = /```json\s*\n([\s\S]*?)\n```/g;
+        const matches = content.match(jsonBlockRegex);
+
+        if (matches) {
+            for (const match of matches) {
+                const jsonStr = match.replace(/```json\s*\n?/, '').replace(/\n?```$/, '');
+                try {
+                    const parsed = JSON.parse(jsonStr);
+                    // 验证是否是工作流JSON格式
+                    if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
+                        return { hasJSON: true, jsonData: parsed };
+                    }
+                } catch (e) {
+                    // 继续尝试其他JSON块
+                }
+            }
+        }
+
+        // 如果没有找到代码块，尝试直接解析整个内容
+        const parsed = JSON.parse(content);
+        if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
+            return { hasJSON: true, jsonData: parsed };
+        }
+
+        return { hasJSON: false };
+    } catch (e) {
+        return { hasJSON: false };
+    }
+};
+
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
-    // 判断当前消息是否是 AI 正在思考的占位消息
-    const isThinking = message.role === 'assistant' && message.content === 'Thinking...';
+    const playground = usePlayground();
+    const document = useService(WorkflowDocument);
+
+    // 检测消息中是否包含工作流JSON
+    const { hasJSON, jsonData } = detectWorkflowJSON(message.content);
+
+    const handleImportWorkflow = useCallback(() => {
+        if (playground.config.readonly) {
+            Toast.warning('当前为只读模式，无法导入工作流');
+            return;
+        }
+
+        if (!jsonData) {
+            Toast.error('未找到有效的工作流JSON数据');
+            return;
+        }
+
+        try {
+            // 1. 先清空当前流程图
+            document.clear();
+
+            // 2. 等待一下确保清空完成
+            setTimeout(() => {
+                try {
+                    // 3. 验证并加载新数据
+                    if (!jsonData || !Array.isArray(jsonData.nodes) || !Array.isArray(jsonData.edges)) {
+                        throw new Error('无效的流程图数据格式');
+                    }
+
+                    // 4. 渲染新的流程图
+                    document.renderJSON(jsonData);
+
+                    // 5. 调整视图以显示完整流程图
+                    document.fitView(false);
+
+                    Toast.success('工作流导入成功！');
+                } catch (error) {
+                    console.error('Error importing workflow:', error);
+                    Toast.error('导入工作流失败，请检查JSON格式是否正确');
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Error importing workflow:', error);
+            Toast.error('导入工作流失败');
+        }
+    }, [jsonData, document, playground.config.readonly]);
 
     return (
         <div className={`message-bubble ${message.role}`}>
-            <div className={`avatar loading-gemini ${isThinking ? 'bouncing-avatar' : ''}`}>
-                {/* <div className={'avatar loading-gemini'}> */}
-                {message.role === 'assistant' ? <IconCommand style={{ color: '#cd5c68' }} /> : <IconMember style={{ color: '#3b68ff' }} />}
-            </div>
+            <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
             <div className="bubble-content">
-                {isThinking ? (
+                {message.content === 'Thinking...' ? (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
+                        <Spin size="small" />
+                        <span style={{ marginLeft: 8 }}>正在思考...</span>
                     </div>
                 ) : (
-                    <MarkdownRenderer content={message.content} />
+                    <>
+                        <MarkdownRenderer content={message.content} />
+                        {message.role === 'assistant' && hasJSON && (
+                            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--semi-color-border)' }}>
+                                <Tooltip content="导入上面的工作流到编辑器">
+                                    <Button
+                                        type="primary"
+                                        size="small"
+                                        icon={<IconImport />}
+                                        onClick={handleImportWorkflow}
+                                        style={{ fontSize: '12px' }}
+                                    >
+                                        导入工作流
+                                    </Button>
+                                </Tooltip>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
