@@ -31,7 +31,7 @@
 
     p {
         margin-top: 0;
-        margin-bottom: 16px;
+        margin-bottom: 1em;
     }
 
     ul,
@@ -91,11 +91,27 @@
         margin: 1.5em 0;
         border-radius: 8px;
         border: 1px solid @code-border-color;
-        overflow: hidden;
-        // 【修改】背景设为纯白，用于制造“间隔”效果
+        overflow-x: auto;
         background-color: #FFFFFF;
-        // 【新增】为所有子元素（头部和代码区）增加一个统一的内边距，形成间隔
         padding: 8px;
+
+        &::-webkit-scrollbar {
+            height: 9px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 4px;
+            border: 2px solid @code-bg;
+
+            &:hover {
+                background-color: #A0AEC0;
+            }
+        }
     }
 
     // --- 2. 标题栏样式 ---
@@ -152,25 +168,6 @@
     div[class*="language-"]>code {
         display: block;
         padding: 16px;
-        overflow-x: auto;
-
-        &::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background-color: #CBD5E1;
-            border-radius: 4px;
-            border: 2px solid @code-bg;
-
-            &:hover {
-                background-color: #A0AEC0;
-            }
-        }
     }
 
 
