@@ -3,7 +3,7 @@ import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
-import { IconMember, IconCommand, IconSetting, IconSend, IconMenu } from '@douyinfe/semi-icons';
+import { IconMember, IconCommand, IconSetting, IconSend, IconMenu, IconMaximize, IconMinimize } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
 import { WelcomeScreen } from './WelcomeScreen';
@@ -36,6 +36,7 @@ export const ChatView = () => {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isSettingsVisible, setSettingsVisible] = useState(false);
+    const [isInputExpanded, setIsInputExpanded] = useState(false);
 
     const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList, activeConversationId, renameConversation } = useChat();
     const { config, getActiveModelName, getActiveProviderConfig } = useAIConfig();
@@ -45,10 +46,16 @@ export const ChatView = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // 初始界面推荐prompt
     const handleSuggestionClick = (prompt: string) => {
         setInput(prompt);
         // 您也可以选择在这里直接发送
         // handleSend(prompt); 
+    };
+
+    // 控制input展开
+    const toggleInputExpansion = () => {
+        setIsInputExpanded(prev => !prev);
     };
 
     const handleSend = useCallback(async () => {
@@ -187,14 +194,21 @@ export const ChatView = () => {
                 )}
                 <div ref={messagesEndRef} />
             </div>
-            <div className="ai-input-form">
-                <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                    disabled={isLoading}
-                    placeholder="直接向AI下达指令或提问..."
-                />
+            <div className={`ai-input-form ${isInputExpanded ? 'expanded' : ''}`}>
+                <div className="textarea-wrapper">
+                    <textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                        disabled={isLoading}
+                        placeholder="问一问 Thryve"
+                    />
+                    <Tooltip content={isInputExpanded ? "收起" : "展开"} position="top">
+                        <button className="expand-toggle-button" onClick={toggleInputExpansion}>
+                            {isInputExpanded ? <IconMinimize /> : <IconMaximize />}
+                        </button>
+                    </Tooltip>
+                </div>
                 <Tooltip content="发送" position="top">
                     <button onClick={handleSend} disabled={isLoading || !input.trim()}>
                         <IconSend />
