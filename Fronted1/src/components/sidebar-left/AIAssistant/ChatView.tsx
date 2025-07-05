@@ -44,6 +44,7 @@ const detectWorkflowJSON = (content: string): { hasJSON: boolean; jsonData?: any
     }
 };
 
+
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     const playground = usePlayground();
     const document = useService(WorkflowDocument);
@@ -56,12 +57,10 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
             Toast.warning('当前为只读模式，无法导入工作流');
             return;
         }
-
         if (!jsonData) {
             Toast.error('未找到有效的工作流JSON数据');
             return;
         }
-
         try {
             // 1. 先清空当前流程图
             document.clear();
@@ -73,13 +72,10 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
                     if (!jsonData || !Array.isArray(jsonData.nodes) || !Array.isArray(jsonData.edges)) {
                         throw new Error('无效的流程图数据格式');
                     }
-
                     // 4. 渲染新的流程图
                     document.renderJSON(jsonData);
-
                     // 5. 调整视图以显示完整流程图
                     document.fitView(false);
-
                     Toast.success('工作流导入成功！');
                 } catch (error) {
                     console.error('Error importing workflow:', error);
@@ -92,14 +88,19 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
         }
     }, [jsonData, document, playground.config.readonly]);
 
+    // 判断当前消息是否是 AI 正在思考的占位消息
+    const isThinking = message.role === 'assistant' && message.content === 'Thinking...';
+
     return (
         <div className={`message-bubble ${message.role}`}>
-            <div className="avatar">{message.role === 'assistant' ? <IconCommand /> : <IconMember />}</div>
+            <div className={`avatar loading-gemini ${isThinking ? 'bouncing-avatar' : ''}`}>
+                {/* <div className={'avatar loading-gemini'}> */}
+                {message.role === 'assistant' ? <IconCommand style={{ color: '#cd5c68' }} /> : <IconMember style={{ color: '#3b68ff' }} />}
+            </div>
             <div className="bubble-content">
-                {message.content === 'Thinking...' ? (
+                {isThinking ? (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Spin size="small" />
-                        <span style={{ marginLeft: 8 }}>正在思考...</span>
+                        <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
                     </div>
                 ) : (
                     <>
