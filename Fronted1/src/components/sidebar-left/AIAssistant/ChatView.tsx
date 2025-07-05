@@ -269,19 +269,6 @@ export const ChatView = () => {
                 <div ref={messagesEndRef} />
             </div>
             <div className="ai-input-form">
-                <div className="input-actions">
-                    <Tooltip content="快速生成工作流">
-                        <Button
-                            type="secondary"
-                            size="small"
-                            icon={<IconBolt />}
-                            onClick={() => setInput('请帮我生成一个工作流，用于：')}
-                            style={{ marginRight: 8 }}
-                        >
-                            生成工作流
-                        </Button>
-                    </Tooltip>
-                </div>
                 <div className="input-container">
                     <textarea
                         value={input}
