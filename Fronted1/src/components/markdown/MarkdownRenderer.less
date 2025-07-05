@@ -2,9 +2,8 @@
 
 .markdown-renderer-container {
     line-height: 1.7;
-    word-break: break-word; // 确保长单词或链接能正常换行
+    word-break: break-word;
 
-    // 标题样式
     h1,
     h2,
     h3,
@@ -30,20 +29,17 @@
         font-size: 1.25em;
     }
 
-    // 段落样式
     p {
         margin-top: 0;
         margin-bottom: 16px;
     }
 
-    // 列表样式
     ul,
     ol {
         padding-left: 2em;
         margin-bottom: 16px;
     }
 
-    // 引用块样式
     blockquote {
         padding: 10px 20px;
         margin: 20px 0;
@@ -56,40 +52,6 @@
         }
     }
 
-    // 代码块的容器样式 (PreTag="div"对应的就是这个)
-    .markdown-renderer-container pre {
-        border-radius: 8px;
-        margin: 16px 0;
-        // 覆盖 react-syntax-highlighter 的默认背景和内边距
-        background-color: #2d2d2d !important; // a11yDark 的背景色
-        padding: 16px !important;
-
-        // 确保内部的 div 也应用样式
-        div {
-            border-radius: 8px !important;
-        }
-    }
-
-    // 行内代码样式
-    code {
-        background-color: var(--semi-color-fill-1);
-        color: var(--semi-color-primary); // 使用主题色
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-        font-size: 0.9em;
-    }
-
-    // 清除代码块内部 code 标签的多余样式，避免双重背景
-    pre code {
-        background-color: transparent;
-        color: inherit;
-        padding: 0;
-        border-radius: 0;
-        font-size: inherit;
-    }
-
-    // 表格样式
     table {
         width: 100%;
         border-collapse: collapse;
@@ -105,5 +67,166 @@
     th {
         font-weight: 600;
         background-color: var(--semi-color-fill-0);
+    }
+
+
+    // 行内代码样式，适配白色主题
+    code:not(pre > code) {
+        background-color: #EFF1F3;
+        color: #D73A49;
+        padding: 3px 6px;
+        border-radius: 6px;
+        font-family: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, 'Courier New', monospace;
+        font-size: 0.9em;
+    }
+
+    @code-bg: #F7F8FA;
+    @code-border-color: #EAECEF;
+    @code-header-bg: #EFF1F3;
+    @code-text-color: #2D3748;
+    @code-font: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, 'Courier New', monospace;
+
+    // --- 1. 最外层包裹容器 ---
+    .code-block-wrapper {
+        margin: 1.5em 0;
+        border-radius: 8px;
+        border: 1px solid @code-border-color;
+        overflow: hidden;
+        // 【修改】背景设为纯白，用于制造“间隔”效果
+        background-color: #FFFFFF;
+        // 【新增】为所有子元素（头部和代码区）增加一个统一的内边距，形成间隔
+        padding: 8px;
+    }
+
+    // --- 2. 标题栏样式 ---
+    .code-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background-color: @code-header-bg;
+        font-size: 12px;
+        margin-bottom: 8px;
+
+        .language-name {
+            color: #64748B;
+            text-transform: lowercase;
+        }
+
+        .copy-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            color: #64748B;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+
+            &:hover {
+                background-color: #E2E8F0;
+                color: #1E293B;
+            }
+        }
+    }
+
+    // --- 代码区 (SyntaxHighlighter 生成的 div) ---
+    div[class*="language-"] {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden;
+        font-family: @code-font;
+        font-size: 14px;
+        line-height: 1.6;
+        background: @code-bg !important;
+        color: @code-text-color;
+        font-variant-ligatures: common-ligatures;
+        border-radius: 4px;
+    }
+
+    // --- 真正的代码载体 <code> ---
+    div[class*="language-"]>code {
+        display: block;
+        padding: 16px;
+        overflow-x: auto;
+
+        &::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 4px;
+            border: 2px solid @code-bg;
+
+            &:hover {
+                background-color: #A0AEC0;
+            }
+        }
+    }
+
+
+    // --- 语法高亮 ---
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: #6A737D;
+    }
+
+    .token.punctuation {
+        color: #6A737D;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+        color: #005CC5;
+    }
+
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+        color: #032F62;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+        color: #D73A49;
+    }
+
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+        color: #D73A49;
+    }
+
+    .token.function,
+    .token.class-name {
+        color: #6F42C1;
+    }
+
+    .token.regex,
+    .token.important,
+    .token.variable {
+        color: #E36209;
     }
 }

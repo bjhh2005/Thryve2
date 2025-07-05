@@ -6,6 +6,7 @@ import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
 import { IconMember, IconCommand, IconSetting, IconSend, IconMenu } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
+import { WelcomeScreen } from './WelcomeScreen';
 import './ChatView.less';
 
 const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
@@ -43,6 +44,12 @@ export const ChatView = () => {
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
+
+    const handleSuggestionClick = (prompt: string) => {
+        setInput(prompt);
+        // 您也可以选择在这里直接发送
+        // handleSend(prompt); 
+    };
 
     const handleSend = useCallback(async () => {
         if (!input.trim() || isLoading) return;
@@ -171,7 +178,13 @@ export const ChatView = () => {
                 <Tooltip content="配置AI模型"><Button icon={<IconSetting />} type="tertiary" theme="borderless" onClick={() => setSettingsVisible(true)} /></Tooltip>
             </div>
             <div className="messages-list">
-                {messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)}
+                {messages.length === 0 ? (
+                    // 如果没有消息，则显示欢迎界面
+                    <WelcomeScreen onPromptClick={handleSuggestionClick} />
+                ) : (
+                    // 如果有消息，则正常渲染消息列表
+                    messages.map((msg) => <MessageBubble key={msg.id} message={msg} />)
+                )}
                 <div ref={messagesEndRef} />
             </div>
             <div className="ai-input-form">
