@@ -94,7 +94,7 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
 
     return (
         <div className={`message-bubble ${message.role}`}>
-            <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
+            <div className="avatar">{message.role === 'assistant' ? <IconCommand /> : <IconMember />}</div>
             <div className="bubble-content">
                 {message.content === 'Thinking...' ? (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
