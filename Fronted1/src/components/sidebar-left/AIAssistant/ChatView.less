@@ -74,6 +74,28 @@
     }
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
 .message-bubble {
     display: flex;
     gap: 12px;
@@ -90,12 +112,22 @@
         justify-content: center;
         background-color: #f0f4f9;
         color: #4a5568;
+
+        img {
+            width: 80%;
+            height: 80%;
+
+            object-fit: cover;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+        }
     }
 
     .bubble-content {
         text-align: left;
-        padding: 10px 14px;
-        border-radius: 12px;
+        padding: 12px 16px;
+        border-radius: 18px;
         line-height: 1.6;
         word-break: break-word;
         font-size: 14px;
@@ -107,10 +139,58 @@
     }
 
     &.assistant {
-        align-self: flex-start;
+        .avatar {
+            &.bouncing-avatar {
+                animation: bounce 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+            }
 
-        .bubble-content {
-            border-top-left-radius: 2px;
+            &.loading-gemini {
+                position: relative;
+                background-color: transparent;
+                will-change: transform;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: -2px;
+                    left: -2px;
+                    right: -2px;
+                    bottom: -2px;
+
+                    /* 使用 conic-gradient (锥形渐变) 来创建多彩的圆形渐变 */
+                    background: conic-gradient(from 90deg,
+                            #4285F4,
+                            /* Google Blue */
+                            #9B72CB,
+                            /* Purple */
+                            #D96570,
+                            /* Red-ish */
+                            #F2A60C,
+                            /* Yellow-ish */
+                            #4285F4
+                            /* Loop back to start color for seamless animation */
+                        );
+
+                    animation: spin 1.3s linear infinite;
+
+                    /* 确保伪元素在头像内容的下方 */
+                    z-index: -1;
+
+                    border-radius: 50%;
+                }
+
+                .semi-icon {
+                    background-color: #fff;
+                    border-radius: 50%;
+                    padding: 6px;
+                    box-sizing: border-box;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
         }
     }
 
@@ -124,8 +204,9 @@
         }
 
         .bubble-content {
-            background-color: #f0f4ff;
-            border-top-right-radius: 2px;
+            background-color: #4E40E5;
+            color: #ffffff;
+            border-top-right-radius: 4px;
         }
     }
 }

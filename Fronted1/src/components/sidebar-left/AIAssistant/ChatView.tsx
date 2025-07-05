@@ -3,23 +3,33 @@ import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 import { Spin, Tooltip, Button, Typography } from '@douyinfe/semi-ui';
-import { IconUser, IconBolt, IconSetting, IconSend, IconSidebar, IconMenu } from '@douyinfe/semi-icons';
+import { IconMember, IconCommand, IconSetting, IconSend, IconMenu } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
 import './ChatView.less';
 
-const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => (
-    <div className={`message-bubble ${message.role}`}>
-        <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
-        <div className="bubble-content">
-            {message.content === 'Thinking...' ? (
-                <div style={{ display: 'flex', alignItems: 'center' }}><Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span></div>
-            ) : (
-                <MarkdownRenderer content={message.content} />
-            )}
+const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
+    // 判断当前消息是否是 AI 正在思考的占位消息
+    const isThinking = message.role === 'assistant' && message.content === 'Thinking...';
+
+    return (
+        <div className={`message-bubble ${message.role}`}>
+            <div className={`avatar loading-gemini ${isThinking ? 'bouncing-avatar' : ''}`}>
+                {/* <div className={'avatar loading-gemini'}> */}
+                {message.role === 'assistant' ? <IconCommand style={{ color: '#cd5c68' }} /> : <IconMember style={{ color: '#3b68ff' }} />}
+            </div>
+            <div className="bubble-content">
+                {isThinking ? (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
+                    </div>
+                ) : (
+                    <MarkdownRenderer content={message.content} />
+                )}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export const ChatView = () => {
     const [input, setInput] = useState('');
