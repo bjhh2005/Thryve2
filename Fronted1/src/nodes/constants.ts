@@ -6,12 +6,15 @@ export enum WorkflowNodeType {
   Loop = 'loop',
   Comment = 'comment',
   Print = 'print',
+  Call = 'call',
   Relocation = 'relocation',
   FileInput = 'file-input',
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
   CreateStringArray = 'create-string-array',
   Scheduler = 'scheduler',
+  FuncStart = 'func-start',
+  FuncEnd = 'func-end',
 
   // 基础文本处理
   TextProcessor = 'text-processor',
