@@ -2,7 +2,7 @@ import React, { useState, useCallback, useContext, createContext, useRef, useEff
 
 // 初始宽度和最小/最大宽度限制
 const INITIAL_WIDTH = 600;
-const MIN_WIDTH = 312;
+const MIN_WIDTH = 600;
 const MAX_WIDTH = 1000;
 const LOCAL_STORAGE_KEY = 'sidebarWidth';
 const PROJECTS_FIXED_WIDTH = 600;
