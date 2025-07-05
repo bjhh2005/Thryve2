@@ -155,7 +155,7 @@ const SidebarContent = () => {
             </Tooltip>
 
             {/* 拖拽缩放区域 */}
-            {!isCollapsed && (
+            {activeTab !== 'projects' && !isCollapsed && (
                 <div className="sidebar-resizer-container">
                     <div
                         className="sidebar-resizer top"
