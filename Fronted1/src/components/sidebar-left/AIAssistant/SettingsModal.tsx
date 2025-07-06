@@ -110,7 +110,7 @@ export const AISettingsModal: React.FC<{ visible: boolean; onClose: () => void }
                                     {isConfigured && <Tag color='green' size='small'>已配置</Tag>}
                                     <Tooltip content="详细配置">
                                         <Button
-                                            icon={<IconSetting />}
+                                            icon={<IconSetting style={{ color: '#8a8a8a' }} />}
                                             type="tertiary"
                                             theme="borderless"
                                             onClick={(e) => {

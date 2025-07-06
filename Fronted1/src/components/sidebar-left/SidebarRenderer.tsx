@@ -5,8 +5,7 @@ import {
     IconChevronRight,
     IconComment,
     IconTerminal,
-    IconPlusStroked,
-    IconFolderStroked,
+    IconGlobeStroke,
 } from '@douyinfe/semi-icons';
 import AiIcon from '../../assets/icon-ai-assistant.png'
 import FileIcon from '../../assets/icon-myfile.png'
@@ -20,6 +19,7 @@ import './sidebar-left.less';
 
 import { AIConfigProvider } from '../../context/AIConfigContext';
 import { ChatProvider } from '../../context/ChatProvider';
+import logo from '../../assets/icon-work.png'
 
 const ActionBarButton: React.FC<{ icon: ReactNode; tooltip: string; onClick?: () => void; isActive?: boolean }> = ({ icon, tooltip, onClick, isActive }) => (
     <Tooltip content={tooltip} position="right" mouseEnterDelay={0}>
@@ -92,7 +92,7 @@ const SidebarContent = () => {
             {/* 操作栏 */}
             <div className="action-bar">
                 <ActionBarButton
-                    icon={<IconPlusStroked size="large" />}
+                    icon={<IconGlobeStroke size="large" />}
                     tooltip="新建画布"
                     onClick={handleNewCanvas}
                 />
@@ -120,32 +120,41 @@ const SidebarContent = () => {
             <div className="main-panel">
                 <div className="left-sidebar-header">
                     {/* 显示当前项目名称 */}
-                    <div className="current-project-name">{currentProjectName}</div>
-                    <Tooltip content="保存当前项目" position="bottom">
-                        <Button
-                            icon={<IconSave />}
-                            onClick={() => saveCurrentProject()}
-                            disabled={!currentProject}
-                            type="tertiary"
-                            theme="borderless"
-                        />
-                    </Tooltip>
-                    <ButtonGroup>
-                        <Tooltip content="AI 助手" position="bottom">
+                    <div className="project-title-container">
+                        <img src={logo} className="project-logo" />
+                        <div className="current-project-name">{currentProjectName || '未命名项目'}</div>
+                    </div>
+
+                    <div className="header-actions">
+                        <Tooltip content="保存当前项目" position="bottom">
                             <Button
-                                icon={<IconComment />}
-                                type={activeTab === 'ai' ? 'primary' : 'tertiary'}
-                                onClick={() => setActiveTab('ai')}
+                                icon={<IconSave />}
+                                onClick={() => saveCurrentProject()}
+                                disabled={!currentProject}
+                                type="tertiary"
+                                theme="borderless"
+                                className='top-button' // 使用新的 class 名
                             />
                         </Tooltip>
-                        <Tooltip content="输出控制台" position="bottom">
-                            <Button
-                                icon={<IconTerminal />}
-                                type={activeTab === 'console' ? 'primary' : 'tertiary'}
-                                onClick={() => setActiveTab('console')}
-                            />
-                        </Tooltip>
-                    </ButtonGroup>
+                        <ButtonGroup>
+                            <Tooltip content="AI 助手" position="bottom">
+                                <Button
+                                    icon={<IconComment />}
+                                    type={activeTab === 'ai' ? 'primary' : 'tertiary'}
+                                    onClick={() => setActiveTab('ai')}
+                                    className='top-button' // 使用新的 class 名
+                                />
+                            </Tooltip>
+                            <Tooltip content="输出控制台" position="bottom">
+                                <Button
+                                    icon={<IconTerminal />}
+                                    type={activeTab === 'console' ? 'primary' : 'tertiary'}
+                                    onClick={() => setActiveTab('console')}
+                                    className='top-button' // 使用新的 class 名
+                                />
+                            </Tooltip>
+                        </ButtonGroup>
+                    </div>
                 </div>
 
                 <div className="left-sidebar-content-wrapper">

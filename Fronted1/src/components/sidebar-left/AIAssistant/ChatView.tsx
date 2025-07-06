@@ -268,7 +268,7 @@ export const ChatView = () => {
                 <div className="header-actions-left">
                     <Tooltip content={isConversationListCollapsed ? "展开会话列表" : "折叠会话列表"} position="right">
                         <Button
-                            icon={<IconMenu />}
+                            icon={<IconMenu style={{ color: '#8a8a8a' }} />}
                             type="tertiary"
                             theme="borderless"
                             onClick={toggleConversationList}
@@ -277,7 +277,7 @@ export const ChatView = () => {
                     </Tooltip>
                 </div>
                 <Typography.Text strong>当前模型: {getActiveModelName()}</Typography.Text>
-                <Tooltip content="配置AI模型"><Button icon={<IconSetting />} type="tertiary" theme="borderless" onClick={() => setSettingsVisible(true)} /></Tooltip>
+                <Tooltip content="配置AI模型"><Button icon={<IconSetting style={{ color: '#8a8a8a' }} />} type="tertiary" theme="borderless" onClick={() => setSettingsVisible(true)} /></Tooltip>
             </div>
             <div className="messages-list">
                 {messages.length === 0 ? (
