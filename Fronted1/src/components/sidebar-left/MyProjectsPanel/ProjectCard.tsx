@@ -38,7 +38,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                     className='project-card-thumbnail'
                 />
             </div>
-            <div className="project-card-footer">
+            <div className="project-card-footer" onClick={() => loadProject(project.id)}>
                 <Text ellipsis={{ showTooltip: true }} className="project-card-name">{project.name}</Text>
                 <Dropdown
                     position="bottomRight"
