@@ -136,7 +136,7 @@ const SidebarContent = () => {
                                 className='top-button' // 使用新的 class 名
                             />
                         </Tooltip>
-                        <ButtonGroup>
+                        <ButtonGroup className='top-group'>
                             <Tooltip content="AI 助手" position="bottom">
                                 <Button
                                     icon={<IconComment />}

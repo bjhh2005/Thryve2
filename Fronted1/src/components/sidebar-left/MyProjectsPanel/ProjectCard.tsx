@@ -14,11 +14,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     const { Text } = Typography;
     const { loadProject, deleteProject, renameProject } = useProject();
 
-    const handleRenameClick = () => {
+    const handleRenameClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
         renameProject(project.id, project.name);
     };
 
-    const handleDeleteClick = () => {
+    const handleDeleteClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
         deleteProject(project.id);
     };
 
@@ -42,6 +44,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
                 <Text ellipsis={{ showTooltip: true }} className="project-card-name">{project.name}</Text>
                 <Dropdown
                     position="bottomRight"
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                     render={
                         <Dropdown.Menu>
                             {/* 修正：彻底移除 itemKey 属性 */}
