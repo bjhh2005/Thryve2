@@ -76,7 +76,7 @@ export const DemoTools = () => {
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <AddNode disabled={playground.config.readonly} />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
-        <TestRunButton disabled={playground.config.readonly} />
+        <TestRunButton />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <Upload />
         <Download />
