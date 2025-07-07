@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
-import { Button, ButtonGroup, Popover } from '@douyinfe/semi-ui';
+import { Button, ButtonGroup, Popover, Tooltip } from '@douyinfe/semi-ui';
 import {
   IconPlay,
   IconPause,
@@ -12,6 +12,8 @@ import {
 } from '@douyinfe/semi-icons';
 import { useExecution } from '../../../context/ExecutionProvider';
 import { useBreakpoints } from '../../../context/BreakpointProvider';
+import { useLeftSidebar } from '../../sidebar-left/SidebarProvider';
+import './testrun-button.less';
 
 export function TestRunButton() {
   const {
@@ -26,13 +28,19 @@ export function TestRunButton() {
 
   const { breakpoints, clearBreakpoints } = useBreakpoints();
   const clientContext = useClientContext();
+  const { setActiveTab, toggleSidebar, isCollapsed } = useLeftSidebar();
 
   const handleRun = useCallback(() => {
+    setActiveTab('console');
+    // 如果侧边栏是折叠的，就展开它
+    if (isCollapsed) {
+      toggleSidebar();
+    }
     const documentData = clientContext.document.toJSON();
     const breakpointArray = Array.from(breakpoints);
     // 调用统一的启动方法，它会根据是否存在断点自动选择模式
     startExecution(documentData, breakpointArray);
-  }, [clientContext, breakpoints, startExecution]);
+  }, [clientContext, breakpoints, startExecution, setActiveTab, toggleSidebar, isCollapsed]);
 
 
   // --- UI 渲染逻辑 ---
@@ -40,36 +48,36 @@ export function TestRunButton() {
   // 1. 如果工作流正在运行中
   if (isRunning) {
     return (
-      <ButtonGroup>
+      <ButtonGroup className="run-controls-group">
         {isPaused ? (
-          <Popover content="继续执行 (Resume)">
+          <Tooltip content="继续执行" position="bottom">
             <Button icon={<IconPlay />} onClick={resumeExecution} />
-          </Popover>
+          </Tooltip>
         ) : (
-          <Popover content="暂停执行 (Pause)">
+          <Tooltip content="暂停执行" position="bottom">
             <Button icon={<IconPause />} onClick={pauseExecution} />
-          </Popover>
+          </Tooltip>
         )}
-        <Popover content="单步执行 (Step Over)">
+        <Tooltip content="单步执行" position="bottom">
           <Button icon={<IconForward />} onClick={stepOver} disabled={!isPaused} />
-        </Popover>
-        <Popover content="终止执行 (Terminate)">
+        </Tooltip>
+        <Tooltip content="终止执行" position="bottom">
           <Button icon={<IconStop />} type="danger" onClick={terminateExecution} />
-        </Popover>
+        </Tooltip>
       </ButtonGroup>
     );
   }
 
   // 2. 如果工作流未运行
   return (
-    <ButtonGroup>
-      <Button icon={<IconPlay />} onClick={handleRun} type="primary">
+    <ButtonGroup className='run-group'>
+      <Button icon={<IconPlay />} onClick={handleRun} className="run-button-primary">
         {/* 如果设置了断点，按钮文本提示为 Debug Run */}
         {breakpoints.size > 0 ? 'Debug Run' : 'Run'}
       </Button>
-      <Popover content="清空所有断点">
-        <Button icon={<IconClear />} onClick={clearBreakpoints} type="tertiary" disabled={breakpoints.size === 0} />
-      </Popover>
+      <Tooltip content="清除所有断点" position="bottom">
+        <Button icon={<IconClear />} onClick={clearBreakpoints} className="run-button-primary" disabled={breakpoints.size === 0} />
+      </Tooltip>
     </ButtonGroup>
   );
 };
