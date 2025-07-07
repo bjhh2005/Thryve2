@@ -75,7 +75,7 @@ export function TestRunButton() {
         {/* 如果设置了断点，按钮文本提示为 Debug Run */}
         {breakpoints.size > 0 ? 'Debug Run' : 'Run'}
       </Button>
-      <Tooltip content="清除所有断点" position="bottom">
+      <Tooltip content="清除所有断点" position="top">
         <Button icon={<IconClear />} onClick={clearBreakpoints} className="run-button-primary" disabled={breakpoints.size === 0} />
       </Tooltip>
     </ButtonGroup>
