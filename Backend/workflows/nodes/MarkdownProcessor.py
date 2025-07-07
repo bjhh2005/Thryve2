@@ -2,7 +2,8 @@ import os
 import markdown
 import frontmatter as fm
 import yaml
-from .Node import Node
+from .MessageNode import MessageNode
+#from ..dict_viewer import pretty_print_dict
 from pygments.formatters import HtmlFormatter
 import pypandoc
 
@@ -16,7 +17,7 @@ def generate_output_path(output_folder: str, output_name: str, ext: str = ".md")
     print(output_folder, output_name)
     return os.path.join(output_folder, output_name)
 
-class MarkdownProcessor(Node):
+class MarkdownProcessor(MessageNode):
     def __init__(self, id, type, nextNodes, eventBus, data):
         super().__init__(id, type, nextNodes, eventBus)
         self.data = data
@@ -24,7 +25,7 @@ class MarkdownProcessor(Node):
         self.inputs = data.get("inputsValues", {})
         self.output = None
         self.MessageList = {}
-        pretty_print_dict(self.data)
+        #pretty_print_dict(self.data)
 
     def _get_input_value(self, value, default=None):
         if isinstance(value, dict):
@@ -36,7 +37,6 @@ class MarkdownProcessor(Node):
                         node_id = node_id[:-7]
                     param_name = content[1]
                     result = self._eventBus.emit("askMessage", node_id, param_name)
-                    self._eventBus.emit("message", "info", self._id, f"获取引用值 {node_id}.{param_name} = {result}")
                     return str(result) if result is not None else default
             elif value.get("type") == "constant":
                 return str(value.get("content", default))
@@ -69,11 +69,10 @@ class MarkdownProcessor(Node):
             else:
                 raise MarkdownProcessorError(f"未知的处理模式: {self.mode}")
             self.output = result
-            self._eventBus.emit("nodes_output", self._id, str(self.MessageList))
         except Exception as e:
             self._eventBus.emit("message", "error", self._id, str(e))
         self.updateNext()
-        return True
+        return self.MessageList
 
     def handle_convert(self):
         input_file = self._get_input_value(self.inputs.get("inputFile"), "")
@@ -104,7 +103,7 @@ class MarkdownProcessor(Node):
         if target_format == "html":
             with open(output_file, "w", encoding="utf-8") as f:
                 f.write(html)
-            self._eventBus.emit("message", "info", self._id, f"已转换为HTML: {output_file}")
+            self._eventBus.emit("message", "info", self._id, "Markdown conversion to HTML completed successfully!")
             return {"filePath": output_file, "html": html}
         elif target_format == "pdf":
             try:
@@ -122,7 +121,7 @@ class MarkdownProcessor(Node):
                 )
             except Exception as e:
                 raise MarkdownProcessorError(f"PDF 生成失败: {str(e)}。请确保 pandoc、xelatex 及中文字体已安装。")
-            self._eventBus.emit("message", "info", self._id, f"已转换为PDF: {output_file}")
+            self._eventBus.emit("message", "info", self._id, "Markdown conversion to PDF completed successfully!")
             return {"filePath": output_file}
         else:
             raise MarkdownProcessorError(f"暂不支持的目标格式: {target_format}")
@@ -135,7 +134,7 @@ class MarkdownProcessor(Node):
         output_file = generate_output_path(output_folder, output_name, ".md")
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(content)
-        self._eventBus.emit("message", "info", self._id, f"已写入Markdown文件: {output_file}")
+        self._eventBus.emit("message", "info", self._id, "Markdown write completed successfully!")
         return {"filePath": output_file}
 
     def handle_append(self):
@@ -145,7 +144,7 @@ class MarkdownProcessor(Node):
             raise MarkdownProcessorError("未指定或找不到输入文件")
         with open(input_file, "a", encoding="utf-8") as f:
             f.write("\n" + content)
-        self._eventBus.emit("message", "info", self._id, f"已追加内容到: {input_file}")
+        self._eventBus.emit("message", "info", self._id, "Markdown append completed successfully!")
         return {"filePath": input_file}
 
     def handle_front_matter(self):
@@ -160,7 +159,7 @@ class MarkdownProcessor(Node):
             post.metadata.update(fm_dict)
             with open(input_file, "w", encoding="utf-8") as f:
                 f.write(fm.dumps(post))
-        self._eventBus.emit("message", "info", self._id, f"已更新front matter: {input_file}")
+        self._eventBus.emit("message", "info", self._id, "Markdown front matter update completed successfully!")
         return {"filePath": input_file, "frontMatter": post.metadata}
 
     def handle_toc(self):
@@ -171,7 +170,7 @@ class MarkdownProcessor(Node):
             lines = f.readlines()
         # 只识别以 # 开头且后面有空格的 Markdown 标题
         toc = [line.strip() for line in lines if line.lstrip().startswith('#') and len(line.lstrip()) > 1 and line.lstrip()[1] == ' ']
-        self._eventBus.emit("message", "info", self._id, f"已生成目录，共{len(toc)}项")
+        self._eventBus.emit("message", "info", self._id, "Markdown TOC generation completed successfully!")
         return {"toc": toc}
 
     def handle_lint(self):
@@ -184,7 +183,7 @@ class MarkdownProcessor(Node):
         for i, line in enumerate(lines):
             if line.startswith("#") and line.strip() == "#":
                 issues.append(f"Line {i+1}: 空标题")
-        self._eventBus.emit("message", "info", self._id, f"lint完成，发现{len(issues)}个问题")
+        self._eventBus.emit("message", "info", self._id, "Markdown lint completed successfully!")
         return {"lintIssues": issues}
 
     def updateNext(self):

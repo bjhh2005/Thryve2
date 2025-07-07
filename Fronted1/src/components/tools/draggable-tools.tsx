@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { ToolContainer } from './styles';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import styled from 'styled-components';
 
 interface Position {
   x: number;
@@ -8,12 +8,29 @@ interface Position {
 
 interface DraggableToolsProps {
   children: React.ReactNode;
+  className?: string;
 }
 
-export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
+const DraggableContainer = styled.div<{ isDragging: boolean }>`
+  position: fixed;
+  z-index: 1000;
+  transition: ${props => props.isDragging ? 'none' : 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'};
+  
+  /* 默认位置在底部中间 */
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  /* 当被拖动时的样式会通过 style 属性覆盖这些默认值 */
+  &[style*="left"] {
+    bottom: auto;
+    transform: none;
+  }
+`;
+
+export const DraggableTools: React.FC<DraggableToolsProps> = ({ children, className }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState<Position | null>(() => {
-    // 在初始化时就读取localStorage，避免后续状态更新导致的闪现
     const savedPosition = localStorage.getItem('toolbarPosition');
     if (savedPosition) {
       try {
@@ -27,6 +44,7 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
     }
     return null;
   });
+
   const dragRef = useRef<HTMLDivElement>(null);
   const initialMousePos = useRef<Position>({ x: 0, y: 0 });
   const initialElementPos = useRef<Position>({ x: 0, y: 0 });
@@ -39,16 +57,21 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (!dragRef.current) return;
-    e.preventDefault(); // 防止拖动时选中文本
-
-    setIsDragging(true);
-    const rect = dragRef.current.getBoundingClientRect();
     
+    // 如果点击的是按钮或其他交互元素，不启动拖拽
+    if ((e.target as HTMLElement).tagName === 'BUTTON' || 
+        (e.target as HTMLElement).closest('button')) {
+      return;
+    }
+
+    e.preventDefault();
+    setIsDragging(true);
+    
+    const rect = dragRef.current.getBoundingClientRect();
     initialMousePos.current = {
       x: e.clientX,
       y: e.clientY
     };
-    
     initialElementPos.current = {
       x: rect.left,
       y: rect.top
@@ -91,8 +114,10 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <ToolContainer
+    <DraggableContainer
       ref={dragRef}
+      className={className}
+      isDragging={isDragging}
       onMouseDown={handleMouseDown}
       style={position ? {
         left: `${position.x}px`,
@@ -100,6 +125,6 @@ export const DraggableTools: React.FC<DraggableToolsProps> = ({ children }) => {
       } : undefined}
     >
       {children}
-    </ToolContainer>
+    </DraggableContainer>
   );
 }; 

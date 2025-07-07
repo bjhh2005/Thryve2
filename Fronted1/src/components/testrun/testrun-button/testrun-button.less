@@ -1,0 +1,67 @@
+// /testrun-button/testrun-button.less
+
+/* --- 主要运行按钮样式 --- */
+.run-group.semi-button-group {
+    background-color: #36b233;
+    border-radius: 20px;
+
+    /* --- 修复方案 --- */
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+.run-button-primary.semi-button {
+    background-color: #36b233;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+
+    // 为图标也设置白色
+    .semi-icon-play {
+        color: #ffffff !important;
+    }
+
+    // 添加一个简洁的悬浮和点击效果，提升基础体验
+    transition: background-color 0.2s ease;
+
+    &:hover:not(:disabled) {
+        // 悬浮时颜色轻微变深
+        background-color: #2f9a2c;
+    }
+
+    &:active:not(:disabled) {
+        // 点击时颜色变得更深
+        background-color: #288325;
+    }
+}
+
+
+/* --- 运行中控件组的样式 --- */
+.run-controls-group.semi-button-group {
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+
+    .semi-button {
+        background-color: #f0fdf4;
+        color: #329b2f;
+        border-color: #bbf7d0;
+
+        &:hover:not(:disabled) {
+            background-color: #dcfce7;
+            border-color: #86efac;
+        }
+
+        // 终止按钮保持其危险状态的颜色，但我们可以统一样式
+        &.semi-button-danger {
+            background-color: #fef2f2;
+            color: #ef4444;
+            border-color: #fee2e2;
+
+            &:hover:not(:disabled) {
+                background-color: #fee2e2;
+                border-color: #fca5a5;
+                color: #b91c1c;
+            }
+        }
+    }
+}

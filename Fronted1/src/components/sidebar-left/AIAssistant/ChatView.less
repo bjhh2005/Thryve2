@@ -16,6 +16,31 @@
     border-bottom: 1px solid #e8eaed;
     flex-shrink: 0;
 
+    .header-actions-left {
+        flex-shrink: 0;
+    }
+
+    .header-center {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+
+        .mode-selector {
+            .semi-select {
+                border-radius: 16px;
+                border: 1px solid #e8eaed;
+                
+                .semi-select-selection {
+                    border: none;
+                    background: transparent;
+                    padding: 2px 8px;
+                }
+            }
+        }
+    }
+
     .model-name-display {
         flex-grow: 1;
         text-align: center;
@@ -35,6 +60,10 @@
     .semi-typography {
         font-weight: 500;
         color: #5f6368;
+
+        strong {
+            font-weight: normal;
+        }
     }
 }
 
@@ -70,6 +99,28 @@
     }
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
 .message-bubble {
     display: flex;
     gap: 12px;
@@ -86,40 +137,81 @@
         justify-content: center;
         background-color: #f0f4f9;
         color: #4a5568;
-        
-        .ai-avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
+
+        img {
+            width: 80%;
+            height: 80%;
+
             object-fit: cover;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
         }
     }
 
     .bubble-content {
         text-align: left;
-        padding: 10px 14px;
-        border-radius: 12px;
+        padding: 12px 16px;
+        border-radius: 18px;
         line-height: 1.6;
         word-break: break-word;
         font-size: 14px;
         min-width: 0;
-
-        p {
-            margin: 0;
-        }
     }
 
     &.assistant {
-        align-self: flex-start;
-
         .avatar {
-            background-color: #e8f5ff;
-        }
+            &.bouncing-avatar {
+                animation: bounce 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+            }
 
-        .bubble-content {
-            background-color: #f6f9fd;
-            border-top-left-radius: 2px;
-            border: 1px solid #e8f0fe;
+            &.loading-gemini {
+                position: relative;
+                background-color: transparent;
+                will-change: transform;
+
+                &::before {
+                    content: '';
+                    position: absolute;
+                    top: -2px;
+                    left: -2px;
+                    right: -2px;
+                    bottom: -2px;
+
+                    /* 使用 conic-gradient (锥形渐变) 来创建多彩的圆形渐变 */
+                    background: conic-gradient(from 90deg,
+                            #4285F4,
+                            /* Google Blue */
+                            #9B72CB,
+                            /* Purple */
+                            #D96570,
+                            /* Red-ish */
+                            #F2A60C,
+                            /* Yellow-ish */
+                            #4285F4
+                            /* Loop back to start color for seamless animation */
+                        );
+
+                    animation: spin 1.3s linear infinite;
+
+                    /* 确保伪元素在头像内容的下方 */
+                    z-index: -1;
+
+                    border-radius: 50%;
+                }
+
+                .semi-icon {
+                    background-color: #fff;
+                    border-radius: 50%;
+                    padding: 6px;
+                    box-sizing: border-box;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            }
         }
     }
 
@@ -127,42 +219,149 @@
         align-self: flex-end;
         flex-direction: row-reverse;
 
+        p {
+            margin: 0;
+        }
+
         .avatar {
             background-color: #e3e8ff;
             color: #4353a8;
         }
 
         .bubble-content {
-            background-color: #f0f4ff;
-            border-top-right-radius: 2px;
-            border: 1px solid #e3e8ff;
+            background-color: #4E40E5;
+            color: #ffffff;
+            border-top-right-radius: 4px;
         }
     }
 }
 
 .ai-input-form {
     display: flex;
-    align-items: flex-start;
+    flex-direction: column;
     gap: 8px;
     padding: 16px;
     border-top: 1px solid #e8eaed;
     flex-shrink: 0;
 
+    .mode-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 4px;
+        
+        .semi-tag {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+    }
+
+    .input-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .textarea-wrapper {
+        flex-grow: 1;
+        position: relative; // 作为内部按钮定位的基准
+    }
+
+    .input-actions {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .input-container {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
     textarea {
+        width: 100%;
         background-color: #fff;
         color: #1f1f1f;
         flex-grow: 1;
         border: 0.9px solid #d1d1d1;
         border-radius: 18px;
-        padding: 8px 16px;
+        padding: 8px 40px 8px 16px;
         font-size: 14px;
         font-family: inherit;
         resize: none;
-        min-height: 38px;
+        height: 60px;
+        min-height: 60px;
         max-height: 150px;
         line-height: 1.5;
-        transition: border-color 0.2s, box-shadow 0.2s;
         outline: none;
+        box-sizing: border-box;
+        transition:
+            height 0.4s ease-in-out,
+            max-height 0.4s ease-in-out,
+            border-color 0.2s ease-in-out,
+            box-shadow 0.2s ease-in-out;
+    }
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 8px 0;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: #d1d5db;
+        border-radius: 4px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+
+        &:hover {
+            background-color: #a7abb0;
+        }
+    }
+
+    .expand-toggle-button {
+        position: absolute;
+        top: 7px;
+        right: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background-color: transparent;
+        color: #9ca3af;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        // 默认隐藏，在 hover 或 focus 时显示，体验更佳
+        opacity: 0;
+
+        &:hover {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+    }
+
+    // 当鼠标悬浮在 wrapper 上，或 textarea 处于焦点时，显示按钮
+    .textarea-wrapper:hover .expand-toggle-button,
+    .textarea-wrapper:focus-within .expand-toggle-button {
+        opacity: 1;
+    }
+
+    // --- 展开状态下的样式 ---
+    &.expanded {
+        textarea {
+            height: 300px;
+            max-height: 300px;
+        }
     }
 
     button {
