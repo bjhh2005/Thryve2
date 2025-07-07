@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-
 # 1. 必须在所有其他导入之前执行猴子补丁
 import eventlet
 eventlet.monkey_patch()
+import sys
+
 
 # 2. 导入其他模块
 import os
