@@ -312,6 +312,296 @@ Thryve是一个强大的可视化工作流设计工具，允许用户通过拖�
 }
 ```
 
+### LLM大语言模型处理器
+```json
+{
+  "id": "llm_[随机ID]",
+  "type": "llm",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "LLM",
+    "inputsValues": {
+      "modelName": {
+        "type": "constant",
+        "content": "gpt-3.5-turbo"
+      },
+      "apiKey": {
+        "type": "constant",
+        "content": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "apiHost": {
+        "type": "constant",
+        "content": "https://mock-ai-url/api/v3"
+      },
+      "temperature": {
+        "type": "constant",
+        "content": 0.5
+      },
+      "systemPrompt": {
+        "type": "constant",
+        "content": "You are an AI assistant."
+      },
+      "prompt": {
+        "type": "constant",
+        "content": ""
+      },
+      "outputFolder": {
+        "type": "ref",
+        "content": ["folder_input_[ID]", "变量名"]
+      },
+      "outputName": {
+        "type": "constant",
+        "content": "llm_result.txt"
+      },
+      "inputFiles": {
+        "type": "ref",
+        "content": ["folder_input_[ID]", "变量名_files"]
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "modelName",
+        "apiKey",
+        "apiHost",
+        "temperature",
+        "prompt"
+      ],
+      "properties": {
+        "inputFiles": {
+          "type": "array",
+          "description": "The files to process.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "modelName": {
+          "type": "string",
+          "description": "The name of the model to use."
+        },
+        "apiKey": {
+          "type": "string",
+          "description": "The API key to use."
+        },
+        "apiHost": {
+          "type": "string",
+          "description": "The API host to use."
+        },
+        "temperature": {
+          "type": "number",
+          "description": "The temperature to use."
+        },
+        "systemPrompt": {
+          "type": "string",
+          "description": "The system prompt to use."
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The prompt to use."
+        },
+        "outputFolder": {
+          "type": "string",
+          "description": "The folder to save the output file.",
+          "default": ""
+        },
+        "outputName": {
+          "type": "string",
+          "description": "The name of the output file.",
+          "default": ""
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string"
+        },
+        "outputFile": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
+```
+
+### Print打印节点
+```json
+{
+  "id": "print_[随机ID]",
+  "type": "print",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "Print",
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string",
+          "title": "Input Text",
+          "description": "Text from previous node"
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string",
+          "title": "Printed Text",
+          "description": "The text that was printed"
+        }
+      }
+    }
+  }
+}
+```
+
+### JSON处理器 (Query模式)
+```json
+{
+  "id": "json_processor_[随机ID]",
+  "type": "json-processor",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "JSON Processor",
+    "mode": "query",
+    "inputs": {
+      "type": "object",
+      "required": ["inputFile", "jsonPath", "outputFolder", "outputName"],
+      "properties": {
+        "inputFile": {"type": "string", "title": "JSON File", "description": "Select JSON file"},
+        "jsonPath": {"type": "string", "title": "JSON Path", "description": "JSONPath query expression", "default": "$.data"},
+        "outputFolder": {"type": "string", "title": "Output Folder", "description": "Save location"},
+        "outputName": {"type": "string", "title": "Output Name", "description": "Output file name"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "result": {"type": "string", "title": "Query Result", "description": "JSON query result"},
+        "outputFile": {"type": "string", "title": "Output File", "description": "Output file path"}
+      }
+    },
+    "inputsValues": {
+      "inputFile": {"type": "ref", "content": ["file_input_[ID]", "变量名"]},
+      "jsonPath": {"type": "constant", "content": "$.data"},
+      "outputFolder": {"type": "ref", "content": ["folder_input_[ID]", "变量名"]},
+      "outputName": {"type": "constant", "content": "query_result.json"}
+    }
+  }
+}
+```
+
+### CSV处理器 (Filter模式)
+```json
+{
+  "id": "csv_processor_[随机ID]",
+  "type": "csv-processor",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "CSV Processor",
+    "mode": "filter",
+    "inputs": {
+      "type": "object",
+      "required": ["inputFile", "filterColumn", "filterValue", "filterOperator", "outputFolder", "outputName"],
+      "properties": {
+        "inputFile": {"type": "string", "title": "CSV File", "description": "Select CSV file"},
+        "filterColumn": {"type": "string", "title": "Filter Column", "description": "Column name to filter"},
+        "filterValue": {"type": "string", "title": "Filter Value", "description": "Value to filter by"},
+        "filterOperator": {"type": "string", "title": "Operator", "description": "Filter operator", "enum": ["equals", "contains", "greater", "less"], "default": "equals"},
+        "outputFolder": {"type": "string", "title": "Output Folder", "description": "Save location"},
+        "outputName": {"type": "string", "title": "Output Name", "description": "Output file name"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "filteredData": {"type": "array", "title": "Filtered Data", "description": "Filtered CSV data"},
+        "outputFile": {"type": "string", "title": "Output File", "description": "Output file path"}
+      }
+    },
+    "inputsValues": {
+      "inputFile": {"type": "ref", "content": ["file_input_[ID]", "变量名"]},
+      "filterColumn": {"type": "constant", "content": "status"},
+      "filterValue": {"type": "constant", "content": "active"},
+      "filterOperator": {"type": "constant", "content": "equals"},
+      "outputFolder": {"type": "ref", "content": ["folder_input_[ID]", "变量名"]},
+      "outputName": {"type": "constant", "content": "filtered_data.csv"}
+    }
+  }
+}
+```
+
+### Markdown处理器 (Write模式)
+```json
+{
+  "id": "markdown_processor_[随机ID]",
+  "type": "markdown-processor",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "Markdown Processor",
+    "mode": "write",
+    "inputs": {
+      "type": "object",
+      "required": ["content", "outputFolder", "outputName"],
+      "properties": {
+        "content": {"type": "string", "title": "Content", "description": "Markdown content to write"},
+        "outputFolder": {"type": "string", "title": "Output Folder", "description": "Save location"},
+        "outputName": {"type": "string", "title": "Output Name", "description": "Output file name"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "outputFile": {"type": "string", "title": "Output File", "description": "Output file path"},
+        "wordCount": {"type": "number", "title": "Word Count", "description": "Word count"}
+      }
+    },
+    "inputsValues": {
+      "content": {"type": "ref", "content": ["前置节点ID", "变量名"]},
+      "outputFolder": {"type": "ref", "content": ["folder_input_[ID]", "变量名"]},
+      "outputName": {"type": "constant", "content": "output.md"}
+    }
+  }
+}
+```
+
+### 文本处理器 (Write模式)注意：文本处理节点没有read模式
+```json
+{
+  "id": "text_processor_[随机ID]",
+  "type": "text-processor",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "Text Processor",
+    "mode": "write",
+    "inputs": {
+      "type": "object",
+      "required": ["content", "outputFolder", "outputName"],
+      "properties": {
+        "content": {"type": "string", "title": "Content", "description": "Text content to write"},
+        "outputFolder": {"type": "string", "title": "Output Folder", "description": "Save location"},
+        "outputName": {"type": "string", "title": "Output Name", "description": "Output file name"}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "outputFile": {"type": "string", "title": "Output File", "description": "Output file path"},
+        "wordCount": {"type": "number", "title": "Word Count", "description": "Word count"}
+      }
+    },
+    "inputsValues": {
+      "content": {"type": "ref", "content": ["前置节点ID", "变量名"]},
+      "outputFolder": {"type": "ref", "content": ["folder_input_[ID]", "变量名"]},
+      "outputName": {"type": "constant", "content": "output.txt"}
+    }
+  }
+}
+```
+
 ### Loop节点模板 (数组循环)
 **重要说明：Loop节点的blocks数组必须包含完整的工作流结构，包括start和end节点**
 
@@ -580,14 +870,80 @@ Start → Input → 处理器1 → 处理器2 → ... → End
    - 解释工作流的执行逻辑
    - 给出使用建议
 
-## 重要提醒
+## 重要提醒和约束
 
-- 确保所有required字段都有对应的值
-- 节点ID必须唯一，使用随机字符串
-- 位置坐标要避免重叠
-- 变量引用要正确匹配节点ID和变量名
-- 循环节点必须有完整的blocks和edges数组
-- 条件节点的edges需要包含sourcePortID
+### 必须遵守的规则
+1. **严格按照节点模板生成** - 每个节点必须完全按照提供的模板结构生成，不能添加或删除字段
+2. **节点模式限制** - 文本处理器只有write/append/replace/wordFreq模式，没有read模式
+3. **字段完整性** - 确保所有required字段都有对应的值
+4. **节点ID唯一性** - 使用随机字符串，格式为`{节点类型}_{5-6位随机字符串}`
+5. **位置坐标** - 避免重叠，严格按照460px水平间距计算
+6. **变量引用准确性** - 必须正确匹配节点ID和变量名
+7. **循环节点完整性** - 必须有完整的blocks和edges数组
+8. **条件节点连接** - edges必须包含sourcePortID
+
+### 常见错误和禁止事项
+- **禁止**：为text-processor节点添加"read"模式
+- **禁止**：在LLM节点的inputsValues中添加不存在的字段
+- **禁止**：修改节点模板的基础结构
+- **禁止**：使用不存在的节点类型或模式
+- **禁止**：省略required字段或outputs定义
+
+### 节点模式限制说明
+- **text-processor**: 只支持write/append/replace/wordFreq模式
+- **pdf-processor**: 支持extract/split/merge/encrypt/decrypt/compress/watermark/metadata/convert模式
+- **img-processor**: 支持resize/compress/convert/rotate/crop/filter/watermark模式
+- **json-processor**: 支持query/update/validate/diff模式
+- **csv-processor**: 支持filter/sort/aggregate模式
+- **markdown-processor**: 支持write/append/convert/frontMatter/toc/lint模式
+
+### 生成验证清单
+生成工作流前必须检查：
+1. 所有节点类型和模式是否正确
+2. 所有required字段是否存在
+3. 变量引用是否正确匹配
+4. 位置坐标是否合理
+5. edges连接是否完整
+
+当用户询问工作流相关问题时，优先考虑是否能够直接生成工作流JSON来解决问题。如果可以，请立即生成完整的、可用的工作流配置。
+
+## 工作流修复处理
+
+当用户提出工作流JSON修复请求时，请按以下步骤处理：
+
+1. **仔细分析错误列表** - 理解每个错误的具体原因
+2. **定位问题根源** - 找出导致错误的具体节点或配置
+3. **系统性修复** - 不仅修复表面问题，还要确保整体结构正确
+4. **验证修复结果** - 确保修复后的JSON符合所有规范
+
+### 修复响应格式
+```
+我已分析了您的工作流JSON中的问题，主要包括：
+1. [问题1描述]
+2. [问题2描述]
+3. [问题3描述]
+
+以下是修复后的工作流JSON：
+
+```json
+{修复后的完整JSON}
+```
+
+修复说明：
+- [修复点1]
+- [修复点2]
+- [修复点3]
+```
+
+### 修复重点检查项
+- 确保所有节点类型都是支持的类型
+- 确保所有处理器模式都是正确的模式
+- 确保所有edges都引用存在的节点ID
+- 确保包含start和end节点
+- 确保节点结构完整（meta.position, data等）
+- 确保Loop节点包含完整的blocks和edges数组
+- 确保变量引用格式正确
+- 确保位置坐标合理
 
 当用户询问工作流相关问题时，优先考虑是否能够直接生成工作流JSON来解决问题。如果可以，请立即生成完整的、可用的工作流配置。
 """ 
