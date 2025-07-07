@@ -1,74 +1,66 @@
 import styled from 'styled-components';
-
 import { IconMinimap } from '../../assets/icon-minimap';
-import { IconUndo, IconRedo, IconChevronRight, IconChevronLeft, IconIndentLeft, IconIndentRight } from '@douyinfe/semi-icons';
 
-export const ToolContainer = styled.div`
+// 顶层容器，负责固定定位在右下角
+export const ToolsContainer = styled.div`
   position: fixed;
-  display: flex;
-  justify-content: center;
-  min-width: 360px;
-  gap: 8px;
-  z-index: 99;
-  cursor: move;
-  user-select: none;
-  
-  /* 默认位置在底部中间 */
+  right: 24px;
   bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
+  z-index: 99;
+`;
 
-  /* 当被拖动时的样式会通过 style 属性覆盖这些默认值 */
-  &[style*="left"] {
-    bottom: auto;
-    transform: none;
-  }
+// 包裹所有可折叠工具的容器
+export const ToolsContentWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 1000px;
+  opacity: 1;
+  overflow: hidden;
+  transition: max-width 0.4s cubic-bezier(0.65, 0, 0.35, 1),
+              opacity 0.2s cubic-bezier(0.65, 0, 0.35, 1) 0.1s;
 
-  /* 折叠状态时移除最小宽度限制 */
-  &.collapsed {
-    min-width: auto;
+  > * {
+    margin-right: 8px;
   }
 `;
 
+// 为 ToolSection 组件定义 props 类型
 interface ToolSectionProps {
   isCollapsed: boolean;
 }
 
+// 工具栏的主体部分
 export const ToolSection = styled.div<ToolSectionProps>`
   display: flex;
   align-items: center;
-  justify-content: space-between; /* 让内容和按钮分布在两端 */
+  justify-content: flex-start;
   background: #fff;
-  height: 44px; /* 固定高度 */
-  padding: 0 8px 0 16px; /* 调整内边距 */
-  border-radius: 50px; /* 默认使用胶囊形状，过渡到圆形更自然 */
+  height: 44px;
+  padding: 0 8px 0 16px;
+  border-radius: 50px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  overflow: hidden; /* 必须有这个，配合 content wrapper 的动画 */
+  overflow: hidden;
   
-  /* 关键改动：过渡动画的目标属性更明确 */
   transition: width 0.4s cubic-bezier(0.65, 0, 0.35, 1), 
               border-radius 0.4s cubic-bezier(0.65, 0, 0.35, 1),
               padding 0.4s cubic-bezier(0.65, 0, 0.35, 1);
 
   .collapse-button {
-    flex-shrink: 0; /* 防止按钮被压缩 */
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    
-    .semi-icon {
-      transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1); /* 图标旋转动画 */
-    }
 
     &:hover {
       background-color: var(--semi-color-fill-0);
     }
   }
 
-  /* 关键改动：折叠状态的样式 */
+  // 折叠状态下的样式
   ${({ isCollapsed }) => isCollapsed && `
     width: 44px;
     min-width: 44px;
@@ -76,17 +68,23 @@ export const ToolSection = styled.div<ToolSectionProps>`
     padding: 0;
     justify-content: center;
 
+    // 隐藏内容区域
     ${ToolsContentWrapper} {
       max-width: 0;
       opacity: 0;
       pointer-events: none;
     }
 
-    .collapse-button .semi-icon {
-      transform: rotate(180deg);
-    }
+    .collapse-button {
+      width: 100%;  /* 新增：让按钮宽度填满父容器（44px）*/
+      height: 100%; /* 新增：让按钮高度填满父容器（44px）*/
+    } 
+
   `}
 `;
+
+
+/* 其他未改动的样式组件保持不变 */
 
 export const SelectZoom = styled.div`
   padding: 4px 8px;
@@ -113,19 +111,4 @@ export const MinimapContainer = styled.div`
 
 export const UIIconMinimap = styled(IconMinimap) <{ visible: boolean }>`
   opacity: ${(props) => (props.visible ? 1 : 0.5)};
-`;
-
-export const ToolsContentWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  flex-shrink: 0; /* 防止在 flex 容器中被压缩 */
-  max-width: 1000px; /* 设定一个足够大的最大宽度 */
-  opacity: 1;
-  overflow: hidden;
-  transition: max-width 0.4s cubic-bezier(0.65, 0, 0.35, 1),
-              opacity 0.2s cubic-bezier(0.65, 0, 0.35, 1) 0.1s; /* 动画效果 */
-
-  > * {
-    margin-right: 8px; /* 保持元素间距 */
-  }
 `;

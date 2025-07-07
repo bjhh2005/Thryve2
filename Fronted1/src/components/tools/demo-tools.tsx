@@ -9,7 +9,7 @@ import { TestRunButton } from '../testrun/testrun-button';
 import { AddNode } from '../add-node';
 import { ZoomSelect } from './zoom-select';
 import { SwitchLine } from './switch-line';
-import { ToolSection, ToolsContentWrapper } from './styles';
+import { ToolsContainer, ToolSection, ToolsContentWrapper } from './styles';
 import { Readonly } from './readonly';
 import { MinimapSwitch } from './minimap-switch';
 import { Minimap } from './minimap';
@@ -19,8 +19,6 @@ import { Comment } from './comment';
 import { AutoLayout } from './auto-layout';
 import { Upload } from './upload';
 import { Download } from './download';
-import { DraggableTools } from './draggable-tools';
-import { Handle } from './handle';
 
 export const DemoTools = () => {
   const { history, playground } = useClientContext();
@@ -31,7 +29,7 @@ export const DemoTools = () => {
   // 从 localStorage 读取初始折叠状态
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('toolbarCollapsed');
-    return saved ? JSON.parse(saved) : false;
+    return saved ? JSON.parse(saved) : true;
   });
 
   // 当折叠状态改变时保存到 localStorage
@@ -55,13 +53,12 @@ export const DemoTools = () => {
   }, [playground]);
 
   return (
-    <DraggableTools>
+    <ToolsContainer>
       <ToolSection isCollapsed={isCollapsed}>
         <ToolsContentWrapper>
 
           {/* 工具栏内容 */}
-          <Handle />
-          <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
+          {/* <Divider layout="vertical" style={{ height: '16px' }} margin={3} /> */}
           <Interactive />
           <AutoLayout />
           <SwitchLine />
@@ -106,6 +103,6 @@ export const DemoTools = () => {
           onClick={() => setIsCollapsed(!isCollapsed)}
         />
       </ToolSection>
-    </DraggableTools>
+    </ToolsContainer>
   );
 }; 
