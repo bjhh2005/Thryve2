@@ -38,7 +38,7 @@ export const ConsolePanel = memo(() => {
                 )}
             </div>
             <div className="left-sidebar-panel-footer">
-                <button className="sidebar-button" onClick={clearLogs}>Clear Logs</button>
+                <button className="sidebar-button" onClick={clearLogs} >清空日志</button>
             </div>
         </div>
     );
