@@ -17,23 +17,23 @@ interface SuggestionCard {
 const suggestionCards: SuggestionCard[] = [
     {
         icon: <IconTerminal />,
-        title: '编写代码',
-        prompt: '用 Python 写一个贪吃蛇游戏',
+        title: '生成工作流',
+        prompt: '帮我生成一个批量处理PDF文件的工作流，需要从文件夹读取所有PDF文件，提取文本内容并保存到输出文件夹',
     },
     {
         icon: <IconEdit />,
-        title: '文案润色',
-        prompt: '帮我润色一下这段关于产品发布的营销文案：...',
+        title: '节点配置',
+        prompt: '如何配置图像处理节点来批量调整图片尺寸？我需要将文件夹中的所有图片调整为800x600像素',
     },
     {
         icon: <IconArticle />,
-        title: '总结文章',
-        prompt: '总结一下这篇关于人工智能最新进展的文章的核心观点：[粘贴文章链接或内容]',
+        title: 'LLM文本总结',
+        prompt: '帮我生成一个使用LLM节点对文件夹中的文本文件进行总结的工作流，需要读取所有文本文件并生成总结报告',
     },
     {
         icon: <IconComment />,
-        title: '头脑风暴',
-        prompt: '我们来为一个新的咖啡品牌进行头脑风暴，需要一些创新的品牌名称',
+        title: '问题排查',
+        prompt: '我的工作流在执行时出现错误，节点之间的数据传递好像有问题，应该如何排查？',
     },
 ];
 
