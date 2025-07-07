@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRefresh } from '@flowgram.ai/free-layout-editor';
 import { useClientContext } from '@flowgram.ai/free-layout-editor';
 import { Tooltip, IconButton, Divider } from '@douyinfe/semi-ui';
-import { IconUndo, IconRedo } from '@douyinfe/semi-icons';
+import { IconUndo, IconRedo, IconChevronRight, IconChevronLeft, IconIndentLeft, IconIndentRight } from '@douyinfe/semi-icons';
 
 import { TestRunButton } from '../testrun/testrun-button';
 import { AddNode } from '../add-node';
@@ -27,6 +27,18 @@ export const DemoTools = () => {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
   const [minimapVisible, setMinimapVisible] = useState(true);
+  
+  // 从 localStorage 读取初始折叠状态
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('toolbarCollapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  // 当折叠状态改变时保存到 localStorage
+  useEffect(() => {
+    localStorage.setItem('toolbarCollapsed', JSON.stringify(isCollapsed));
+  }, [isCollapsed]);
+
   useEffect(() => {
     const disposable = history.undoRedoService.onChange(() => {
       setCanUndo(history.canUndo());
@@ -34,6 +46,7 @@ export const DemoTools = () => {
     });
     return () => disposable.dispose();
   }, [history]);
+
   const refresh = useRefresh();
 
   useEffect(() => {
@@ -43,7 +56,10 @@ export const DemoTools = () => {
 
   return (
     <DraggableTools>
-      <ToolSection>
+      <ToolSection className={isCollapsed ? 'collapsed' : ''}>
+        
+
+        {/* 工具栏内容 */}
         <Handle />
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <Interactive />
@@ -80,6 +96,17 @@ export const DemoTools = () => {
         <Divider layout="vertical" style={{ height: '16px' }} margin={3} />
         <Upload />
         <Download />
+        {/* 折叠按钮 - 交换图标方向 */}
+        <Tooltip content={isCollapsed ? "展开工具栏" : "折叠工具栏"} position="right">
+          <IconButton
+            className="collapse-button"
+            type="tertiary"
+            theme="borderless"
+            size="small"
+            icon={isCollapsed ? <IconIndentRight size="small" /> : <IconIndentLeft size="small" />}
+            onClick={() => setIsCollapsed(!isCollapsed)}
+          />
+        </Tooltip>
       </ToolSection>
     </DraggableTools>
   );

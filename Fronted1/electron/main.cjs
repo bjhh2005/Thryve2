@@ -3,8 +3,11 @@ const path = require('path');
 const fs = require('fs');
 const isDev = process.env.NODE_ENV === 'development';
 
+const { Menu } = require('electron');
+
 function createWindow() {
     const mainWindow = new BrowserWindow({
+        menu: null,
         width: 1200,
         height: 800,
         webPreferences: {
@@ -13,6 +16,8 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.cjs')
         }
     });
+
+    Menu.setApplicationMenu(null);
 
     // 在开发环境中加载 Vite 开发服务器
     if (isDev) {

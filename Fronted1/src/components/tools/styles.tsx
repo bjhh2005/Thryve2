@@ -1,6 +1,7 @@
 import styled from 'styled-components';
 
 import { IconMinimap } from '../../assets/icon-minimap';
+import { IconUndo, IconRedo, IconChevronRight, IconChevronLeft, IconIndentLeft, IconIndentRight } from '@douyinfe/semi-icons';
 
 export const ToolContainer = styled.div`
   position: fixed;
@@ -22,33 +23,91 @@ export const ToolContainer = styled.div`
     bottom: auto;
     transform: none;
   }
+
+  /* 折叠状态时移除最小宽度限制 */
+  &.collapsed {
+    min-width: auto;
+  }
 `;
 
 export const ToolSection = styled.div`
   display: flex;
   align-items: center;
-  background-color: #fff;
-  border: 1px solid rgba(68, 83, 130, 0.25);
-  border-radius: 10px;
-  box-shadow: rgba(0, 0, 0, 0.04) 0px 2px 6px 0px, rgba(0, 0, 0, 0.02) 0px 4px 12px 0px;
-  column-gap: 2px;
-  height: 40px;
-  padding: 0 4px;
-  pointer-events: auto;
+  background: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
   
-  &:hover {
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px 0px;
+  /* 工具栏内容的过渡动画 */
+  > * {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 1;
+    width: auto;
+    margin-right: 8px;
+    
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .collapse-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 4px;
+    border-radius: 4px;
+    
+    .semi-icon {
+      font-size: 14px;
+    }
+  }
+
+  /* 折叠状态样式 */
+  &.collapsed {
+    padding: 4px;
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    
+    /* 保持折叠按钮可见 */
+    .collapse-button {
+      margin: 0;
+      opacity: 1;
+      width: 24px;
+      height: 24px;
+      
+      &:hover {
+        background-color: var(--semi-color-fill-0);
+      }
+    }
+    
+    /* 隐藏其他所有内容 */
+    > *:not(.collapse-button) {
+      width: 0;
+      opacity: 0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      pointer-events: none;
+      display: none;
+    }
   }
 `;
 
-export const SelectZoom = styled.span`
-  padding: 4px;
-  border-radius: 8px;
-  color: #474a4d;
-  border: 1px solid rgba(68, 83, 130, 0.25);
-  font-size: 12px;
-  width: 50px;
+export const SelectZoom = styled.div`
+  padding: 4px 8px;
+  border-radius: 4px;
   cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--semi-color-fill-0);
+  }
 `;
 
 export const MinimapContainer = styled.div`
@@ -57,6 +116,6 @@ export const MinimapContainer = styled.div`
   width: 198px;
 `;
 
-export const UIIconMinimap = styled(IconMinimap) <{ visible: boolean }>`
-  color: ${(props) => (props.visible ? undefined : '#060709cc')};
+export const UIIconMinimap = styled(IconMinimap)<{ visible: boolean }>`
+  opacity: ${(props) => (props.visible ? 1 : 0.5)};
 `;
