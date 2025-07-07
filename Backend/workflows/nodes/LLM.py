@@ -270,7 +270,7 @@ class LLMProcessor(MessageNode):
             log_messages.append(log_msg)
         
         # 打印简化后的消息内容以便调试
-        self._eventBus.emit("message", "info", self._id, f"准备发送的消息: {json.dumps(log_messages, ensure_ascii=False)}")
+        # self._eventBus.emit("message", "info", self._id, f"准备发送的消息: {json.dumps(log_messages, ensure_ascii=False)}")
         
         return messages
 
