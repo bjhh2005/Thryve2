@@ -64,6 +64,10 @@ export const ToolSection = styled.div`
     .semi-icon {
       font-size: 14px;
     }
+
+    &:hover {
+      background-color: var(--semi-color-fill-0);
+    }
   }
 
   /* 折叠状态样式 */
@@ -79,10 +83,6 @@ export const ToolSection = styled.div`
       opacity: 1;
       width: 24px;
       height: 24px;
-      
-      &:hover {
-        background-color: var(--semi-color-fill-0);
-      }
     }
     
     /* 隐藏其他所有内容 */
@@ -103,10 +103,15 @@ export const SelectZoom = styled.div`
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  color: #333;
+  font-size: 12px;
+  background-color: var(--semi-color-fill-0);
+  min-width: 60px;
+  text-align: center;
 
   &:hover {
-    background-color: var(--semi-color-fill-0);
+    background-color: var(--semi-color-fill-1);
   }
 `;
 

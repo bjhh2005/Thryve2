@@ -2,6 +2,19 @@ import styled, { keyframes, css } from 'styled-components';
 import { IconInfoCircle } from '@douyinfe/semi-icons';
 import { NodeStatus } from '../../context/ExecutionProvider';
 
+const innerPulse = keyframes`
+  0% {
+    box-shadow: inset 0 0 5px rgba(124, 58, 237, 0.4);
+  }
+  50% {
+    box-shadow: inset 0 0 14px rgba(124, 58, 237, 0.8);
+  }
+  100% {
+    box-shadow: inset 0 0 5px rgba(124, 58, 237, 0.4);
+  }
+`;
+
+
 // 流光动画 (Iridescent Glow / Aurora)
 const auroraAnimation = keyframes`
   0% { background-position: 0% 50% }
@@ -61,7 +74,9 @@ export const NodeWrapperStyle = styled.div<{ status?: NodeStatus }>`
     switch (status) {
       case 'PROCESSING':
         return css`
-          border-color: #A49BFF; // 换一个更亮的边框色
+          animation: ${innerPulse} 2s ease-in-out infinite;
+          border-color: transparent; // 换一个更亮的边框色
+
           &::before {
             opacity: 1;
             // 应用流光动画
@@ -72,7 +87,7 @@ export const NodeWrapperStyle = styled.div<{ status?: NodeStatus }>`
         `;
       case 'SUCCEEDED':
         return css`
-          border-color: #4CAF50;
+          border-color: #10b981;
           &::before {
             opacity: 0.7;
             // 静态的成功光晕
@@ -81,7 +96,7 @@ export const NodeWrapperStyle = styled.div<{ status?: NodeStatus }>`
         `;
       case 'FAILED':
         return css`
-          border-color: #F44336;
+          border-color: #ef4444;
           // 应用抖动动画
           animation: ${shakeAnimation} 0.7s cubic-bezier(.36,.07,.19,.97) both;
           &::before {

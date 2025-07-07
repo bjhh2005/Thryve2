@@ -11,7 +11,7 @@ export enum WorkflowNodeType {
   FileInput = 'file-input',
   FolderInput = 'folder-input',
   ExportVariable = 'export-variable',
-  Scheduler = 'scheduler',
+  // Scheduler = 'scheduler',
   FuncStart = 'func-start',
   FuncEnd = 'func-end',
   Sleep = 'sleep',

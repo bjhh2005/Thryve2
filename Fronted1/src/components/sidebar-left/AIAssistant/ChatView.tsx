@@ -8,6 +8,7 @@ import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
 import { usePlayground, useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
 import { WelcomeScreen } from './WelcomeScreen';
+import { ThinkingRings } from '../../loading/ThinkingRings';
 import './ChatView.less';
 
 // 检测消息中是否包含JSON工作流
@@ -99,9 +100,7 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
             </div>
             <div className="bubble-content">
                 {isThinking ? (
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <Spin size="small" /> <span style={{ marginLeft: 8 }}>正在思考...</span>
-                    </div>
+                    <ThinkingRings visible={true} />
                 ) : (
                     <>
                         <MarkdownRenderer content={message.content} />

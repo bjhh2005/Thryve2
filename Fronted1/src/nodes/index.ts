@@ -16,7 +16,7 @@ import { PdfProcessorRegistry } from './pdf-processor';
 import { MarkdownProcessorRegistry } from './markdown-processor';
 import { ImgProcessorRegistry } from './img-processor';
 import { RelocationNodeRegistry } from './relocation';
-import { SchedulerNodeRegistry } from './scheduler';
+// import { SchedulerNodeRegistry } from './scheduler';
 import { CallNodeRegistry } from './call';
 import { FuncStartRegistry } from './func-start';
 import { FuncEndRegistry } from './func-end';
@@ -43,7 +43,7 @@ export const nodeRegistries: FlowNodeRegistry[] = [
   MarkdownProcessorRegistry,
   ImgProcessorRegistry,
   RelocationNodeRegistry,
-  SchedulerNodeRegistry,
+  // SchedulerNodeRegistry,
   FuncStartRegistry,
   FuncEndRegistry,
   SleepNodeRegistry,
