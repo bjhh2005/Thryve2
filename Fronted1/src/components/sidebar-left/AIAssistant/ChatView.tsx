@@ -3,7 +3,7 @@ import { useChat } from '../../../context/ChatProvider';
 import { useAIConfig } from '../../../context/AIConfigContext';
 import { MarkdownRenderer } from '../../markdown/MarkdownRenderer';
 import { Spin, Tooltip, Button, Typography, Toast, Select, Tag } from '@douyinfe/semi-ui';
-import { IconMember, IconCommand, IconSetting, IconSend, IconMenu, IconMaximize, IconMinimize, IconImport, IconCode, IconComment } from '@douyinfe/semi-icons';
+import { IconMember, IconCommand, IconSetting, IconSend, IconMenu, IconMaximize, IconMinimize, IconImport, IconCode, IconComment, IconBulb } from '@douyinfe/semi-icons';
 import { AISettingsModal } from './SettingsModal';
 import { ChatMessage } from '../../../utils/db';
 import { usePlayground, useService, WorkflowDocument } from '@flowgram.ai/free-layout-editor';
@@ -195,33 +195,33 @@ export const ChatView = () => {
                     const data = line.substring(6);
                     try {
                         const parsed = JSON.parse(data);
-                        
+
                         if (parsed.error) {
                             throw new Error(parsed.error);
                         }
-                        
+
                         if (parsed.end) {
                             break;
                         }
-                        
+
                         // 处理流式内容
                         if (parsed.content) {
                             aiFullResponse += parsed.content;
                             await updateMessageContent(aiPlaceholder.id, aiFullResponse);
                         }
-                        
+
                         // 处理工作流数据
                         if (parsed.workflow && parsed.success) {
                             workflowData = parsed.workflow;
                         }
-                        
+
                         // 处理警告信息
                         if (parsed.warning) {
                             console.warn('Workflow generation warning:', parsed.warning);
                         }
 
-                    } catch (e) { 
-                        console.error("Failed to parse stream data:", data, e); 
+                    } catch (e) {
+                        console.error("Failed to parse stream data:", data, e);
                     }
                 }
             }
@@ -232,7 +232,7 @@ export const ChatView = () => {
             // 如果AI回复中包含JSON，将其替换为格式化的版本
             const jsonRegex = /```json\s*\n(.*?)\n```/gs;
             const formattedJSON = JSON.stringify(workflowData, null, 2);
-            
+
             if (jsonRegex.test(aiFullResponse)) {
                 // 替换原有的JSON为格式化版本
                 aiFullResponse = aiFullResponse.replace(jsonRegex, `\`\`\`json\n${formattedJSON}\n\`\`\``);
@@ -240,7 +240,7 @@ export const ChatView = () => {
                 // 如果AI回复中没有JSON，则添加格式化的JSON
                 aiFullResponse += `\n\n\`\`\`json\n${formattedJSON}\n\`\`\`\n\n您可以直接复制上面的JSON配置导入到Thryve中使用。`;
             }
-            
+
             await updateMessageContent(aiPlaceholder.id, aiFullResponse);
         }
 
@@ -322,9 +322,9 @@ export const ChatView = () => {
         const messagesForApi = getMessagesWithSystemPrompt([userMessage]);
 
         // 3. 添加一个AI占位消息，并获取其ID
-        const aiPlaceholder = await addMessageToActiveConversation({ 
-            role: 'assistant', 
-            content: aiMode === 'agent' ? '正在生成工作流...' : 'Thinking...' 
+        const aiPlaceholder = await addMessageToActiveConversation({
+            role: 'assistant',
+            content: aiMode === 'agent' ? '正在生成工作流...' : 'Thinking...'
         });
 
         const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
@@ -339,7 +339,7 @@ export const ChatView = () => {
                 shouldGenerateTitle,
                 currentConversationTitle: currentConversation?.title
             });
-            
+
             fetch(`${apiBaseUrl}/api/generate-title`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -419,36 +419,13 @@ export const ChatView = () => {
                 </div>
                 <div className="header-center">
                     <Typography.Text strong>当前模型: {getActiveModelName()}</Typography.Text>
-                    {/* <div className="mode-selector">
-                        <Select
-                            value={aiMode}
-                            onChange={(value) => setAIMode(value as AIMode)}
-                            style={{ width: 140 }}
-                            size="small"
-                            renderSelectedItem={(option: any) => (
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    {option.icon}
-                                    <span>{option.label}</span>
-                                </div>
-                            )}
-                        >
-                            {modeOptions.map(option => (
-                                <Select.Option key={option.value} value={option.value}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        {option.icon}
-                                        <span>{option.label}</span>
-                                    </div>
-                                </Select.Option>
-                            ))}
-                        </Select>
-                    </div> */}
                 </div>
                 <Tooltip content="配置AI模型">
-                    <Button 
-                        icon={<IconSetting style={{ color: '#8a8a8a' }} />} 
-                        type="tertiary" 
-                        theme="borderless" 
-                        onClick={() => setSettingsVisible(true)} 
+                    <Button
+                        icon={<IconSetting style={{ color: '#8a8a8a' }} />}
+                        type="tertiary"
+                        theme="borderless"
+                        onClick={() => setSettingsVisible(true)}
                     />
                 </Tooltip>
             </div>
@@ -464,22 +441,20 @@ export const ChatView = () => {
             </div>
             <div className={`ai-input-form ${isInputExpanded ? 'expanded' : ''}`}>
                 <div className="input-actions">
-                        <div className="mode-selector">
-                            <div className="mode-toggle">
-                                <button
-                                    className={`toggle-button ${aiMode === 'ask' ? 'active' : ''}`}
-                                    onClick={() => setAIMode('ask')}
-                                >
-                                    <span className="icon">💬</span>
-                                </button>
-                                <button
-                                    className={`toggle-button ${aiMode === 'agent' ? 'active' : ''}`}
-                                    onClick={() => setAIMode('agent')}
-                                >
-                                    <span className="icon">🤖</span>
-                                </button>
-                            </div>
+                    <div className="mode-selector">
+                        <div className={`mode-toggle ${aiMode === 'ask' ? 'ask-active' : 'agent-active'}`}>
+                            <Button
+                                icon={<IconComment />}
+                                className={`toggle-button ${aiMode === 'ask' ? 'active' : ''}`}
+                                onClick={() => setAIMode('ask')}
+                            />
+                            <Button
+                                icon={<IconBulb />}
+                                className={`toggle-button ${aiMode === 'agent' ? 'active' : ''}`}
+                                onClick={() => setAIMode('agent')}
+                            />
                         </div>
+                    </div>
                 </div>
                 <div className="input-container">
                     <div className="textarea-wrapper">
@@ -489,9 +464,9 @@ export const ChatView = () => {
                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             disabled={isLoading}
                             placeholder={aiMode === 'agent' ? "描述您想要的工作流..." : "问一问 Thryve"}
-                            
+
                         />
-                        
+
                         <Tooltip content={isInputExpanded ? "收起" : "展开"} position="top">
                             <button className="expand-toggle-button" onClick={toggleInputExpansion}>
                                 {isInputExpanded ? <IconMinimize /> : <IconMaximize />}
@@ -504,7 +479,7 @@ export const ChatView = () => {
                         </button>
                     </Tooltip>
                 </div>
-                
+
             </div>
             <AISettingsModal visible={isSettingsVisible} onClose={() => setSettingsVisible(false)} />
         </div>
