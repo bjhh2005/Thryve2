@@ -10,6 +10,7 @@ import {
 import AiIcon from '../../assets/icon-ai-assistant.png'
 import FileIcon from '../../assets/icon-myfile.png'
 import { useLeftSidebar } from './SidebarProvider';
+import QuestionIcon from '../../assets/icon_question.svg';
 
 import { AIAssistantPanel } from './AIAssistant/AIAssistantPanel';
 import { ConsolePanel } from './ConsolePanel/ConsolePanel';
@@ -80,6 +81,10 @@ const SidebarContent = () => {
         }
     };
 
+    const handleHelpClick = () => {
+        window.open('https://github.com/bjhh2005/Thryve2/blob/main/Thryve2%E7%94%A8%E6%88%B7%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E4%B9%A6.md', '_blank', 'noopener,noreferrer');
+    };
+
     // 我们还需要一个地方显示当前项目名称, 可以在这里，也可以在主界面顶部
     const currentProjectName = getCurrentProjectName();
 
@@ -114,6 +119,11 @@ const SidebarContent = () => {
                     onClick={() => handleClickAndExpand(() => setActiveTab('console'))}
                     isActive={activeTab === 'console'}
                 />
+                <ActionBarButton
+                    icon={<img src={QuestionIcon} alt="AI" className="action-bar-icon" />}
+                    tooltip="帮助"
+                    onClick={handleHelpClick}
+                />
             </div>
 
             {/* 主面板 */}
@@ -136,6 +146,7 @@ const SidebarContent = () => {
                                 className='top-button' // 使用新的 class 名
                             />
                         </Tooltip>
+                        
                         <ButtonGroup className='top-group'>
                             <Tooltip content="AI 助手" position="bottom">
                                 <Button
