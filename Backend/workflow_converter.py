@@ -39,6 +39,15 @@ class WorkflowConverter:
             
             logger.info(f"开始转换工作流，节点数: {len(nodes)}, 边数: {len(edges)}")
             
+            # 记录所有Loop节点的信息
+            for node in nodes:
+                if node.get('type') == 'loop':
+                    logger.info(f"发现Loop节点: {node.get('id')}")
+                    if 'blocks' in node:
+                        logger.info(f"Loop节点blocks数量: {len(node['blocks'])}")
+                        for block in node['blocks']:
+                            logger.info(f"Loop块节点: id={block.get('id')}, type={block.get('type')}")
+            
             # 第一步：识别所有func-start节点，创建子工作流映射
             self._identify_func_starts(nodes)
             
@@ -47,6 +56,18 @@ class WorkflowConverter:
             
             # 第三步：生成后端格式
             backend_json = self._generate_backend_format()
+            
+            # 添加Loop节点的blocks验证
+            for workflow_name, workflow in backend_json['workflows'].items():
+                for node in workflow['nodes']:
+                    if node.get('type') == 'loop':
+                        logger.info(f"验证转换后的Loop节点 {node.get('id')} 的blocks")
+                        if 'blocks' in node:
+                            logger.info(f"转换后blocks数量: {len(node['blocks'])}")
+                            for block in node['blocks']:
+                                logger.info(f"转换后块节点: id={block.get('id')}, type={block.get('type')}")
+                        else:
+                            logger.error(f"转换后的Loop节点 {node.get('id')} 缺少blocks字段")
             
             logger.info(f"转换完成，生成 {len(backend_json['workflows'])} 个工作流")
             return backend_json
@@ -233,6 +254,17 @@ class WorkflowConverter:
                 converted_node['data']['inputsValues'] = {}
             if 'outputsValues' not in converted_node['data']:
                 converted_node['data']['outputsValues'] = {}
+            
+            # 特殊处理Loop节点
+            if node.get('type') == 'loop':
+                logger.info(f"处理Loop节点 {node.get('id')} 的blocks和edges")
+                # 保留blocks和edges
+                if 'blocks' in node:
+                    converted_node['blocks'] = node['blocks']
+                    logger.info(f"保留了 {len(node['blocks'])} 个blocks")
+                if 'edges' in node:
+                    converted_node['edges'] = node['edges']
+                    logger.info(f"保留了 {len(node['edges'])} 个edges")
             
             converted_nodes.append(converted_node)
         
