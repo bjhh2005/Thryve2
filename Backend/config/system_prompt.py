@@ -739,6 +739,7 @@ Thryve是一个强大的可视化工作流设计工具，允许用户通过拖�
 ```
 
 **重要说明：**
+- 文件操作块在处理了错误类型文件时会抛出error，所以在不确定输入的item是否为所需文件类型时，需要使用condition节点进行筛选
 - Loop内部的节点能够引用loop节点本身的item属性，item属性是当前循环中数组被遍历的元素，引用格式为：`{"type": "ref", "content": ["loop_节点ID", "item"]}`
 - 例如：`{"type": "ref", "content": ["loop_ghi789", "item"]}`
 - 不要引用loop内部start节点的变量
@@ -797,7 +798,7 @@ Start → File Input → Folder Input → 处理器 → End
 
 ### 2. 批量文件处理模板
 ```
-Start → Input Folder → Output Folder → Loop(包含处理器) → End
+Start → Input Folder → Output Folder → Loop(包含Condition筛选 → 处理器) → End
 ```
 
 **完整JSON示例：**
@@ -831,25 +832,32 @@ Start → Input Folder → Output Folder → Loop(包含处理器) → End
         {
           "id": "loop_start_jkl012",
           "type": "start",
-          "meta": {"position": {"x": 50, "y": 100}},
+          "meta": {"position": {"x": 180, "y": 100}},
           "data": {"title": "Loop Start", "outputs": {"type": "object", "properties": {"item": {"type": "string", "title": "Current Item", "description": "Current loop item", "isOutput": true}}}}
         },
         {
-          "id": "pdf_processor_mno345",
+          "id": "condition_mno345",
+          "type": "condition",
+          "meta": {"position": {"x": 640, "y": 100}},
+          "data": {"title": "File Type Check", "conditions": [{"value": {"left": {"type": "ref", "content": ["loop_ghi789", "item"]}, "operator": "contains", "right": {"type": "constant", "content": ".pdf"}}, "key": "if_pdf_pqr678"}]}
+        },
+        {
+          "id": "pdf_processor_stu901",
           "type": "pdf-processor",
-          "meta": {"position": {"x": 250, "y": 100}},
+          "meta": {"position": {"x": 1100, "y": 100}},
           "data": {"title": "PDF Processor", "mode": "extract", "inputs": {"type": "object", "required": ["inputFile", "outputFolder", "outputName"], "properties": {"inputFile": {"type": "string"}, "outputFolder": {"type": "string"}, "outputName": {"type": "string"}}}, "inputsValues": {"inputFile": {"type": "ref", "content": ["loop_ghi789", "item"]}, "outputFolder": {"type": "ref", "content": ["folder_input_xyz789", "outputFolder"]}, "outputName": {"type": "constant", "content": "extracted_text.txt"}}}
         },
         {
-          "id": "loop_end_pqr678",
+          "id": "loop_end_vwx234",
           "type": "end",
-          "meta": {"position": {"x": 450, "y": 100}},
+          "meta": {"position": {"x": 1560, "y": 100}},
           "data": {"title": "Loop End", "inputs": {"type": "object", "properties": {"result": {"type": "string", "title": "Result", "description": "Loop result"}}}}}
         }
       ],
       "edges": [
-        {"sourceNodeID": "loop_start_jkl012", "targetNodeID": "pdf_processor_mno345"},
-        {"sourceNodeID": "pdf_processor_mno345", "targetNodeID": "loop_end_pqr678"}
+        {"sourceNodeID": "loop_start_jkl012", "targetNodeID": "condition_mno345"},
+        {"sourceNodeID": "condition_mno345", "targetNodeID": "pdf_processor_stu901", "sourcePortID": "if_pdf_pqr678"},
+        {"sourceNodeID": "pdf_processor_stu901", "targetNodeID": "loop_end_vwx234"}
       ]
     },
     {
@@ -987,7 +995,15 @@ Start → Input Folder → Output Folder → LLM → End
 ```
 
 ### 6. 函数化工作流模板
+
 ```
+请严格遵守以下规则：
+1. 函数化工作流需要先在主工作流中使用call节点调用函数(调用的函数名需要与子工作流中的func-start节点title一致)，然后子工作流另外以func-start节点开始，以func-end节点结束
+2. func-start节点和func-end节点需要成对出现，且func-start节点和func-end节点之间可以有多个处理器节点
+3. func-start节点没有输入，func-end节点没有输出
+4. 主工作流中的call节点的参数需要与子工作流中的func-start节点的title相同
+5. func-start节点和func-end节点的出现，不影响主工作流的结构
+
 主工作流: Start → Call → End
 子工作流: Function Start → 处理器 → Function End
 ```
