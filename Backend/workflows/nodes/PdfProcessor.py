@@ -48,6 +48,11 @@ class PdfProcessor(MessageNode):
             return None
         
         value_data = data['inputsValues'][key]
+        
+        # 如果value_data不是字典类型，直接返回其值
+        if not isinstance(value_data, dict):
+            return value_data
+        
         if value_data.get("type") == "constant":
             return value_data.get("content")
         elif value_data.get("type") == "ref":
