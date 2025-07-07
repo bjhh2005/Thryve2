@@ -27,7 +27,7 @@
         align-items: center;
         gap: 6px;
 
-        
+
     }
 
     .model-name-display {
@@ -237,7 +237,7 @@
         display: flex;
         justify-content: center;
         margin-bottom: 4px;
-        
+
         .semi-tag {
             font-size: 12px;
             padding: 2px 8px;
@@ -379,60 +379,71 @@
 }
 
 .mode-selector {
-    .mode-toggle {
-        display: flex;
-        background: rgba(0, 0, 0, 0.05);
-        padding: 2px;
-        border-radius: 20px;
-        gap: 2px;
-        position: relative;
-        
-        .toggle-button {
-            position: relative;
-            z-index: 1;
-            border: none;
-            background: none;
-            padding: 6px 12px;
-            border-radius: 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #666;
-            transition: all 0.3s ease;
-            
-            .icon {
-                font-size: 16px;
-                transition: transform 0.3s ease;
-            }
-            
-            .text {
-                font-size: 13px;
-                font-weight: 500;
-            }
-            
-            &:hover:not(.active) {
-                color: #333;
-                background: rgba(0, 0, 0, 0.05);
-                
-                .icon {
-                    transform: scale(1.1);
-                }
-            }
-            
-            &.active {
-                color: #fff;
-                background: linear-gradient(135deg, #4E40E5 0%, #6E5FF5 100%);
-                box-shadow: 0 2px 4px rgba(78, 64, 229, 0.2);
-                
-                .icon {
-                    transform: scale(1.1);
-                }
-                
-                &:hover {
-                    background: linear-gradient(135deg, #5D4FE5 0%, #7D6EF5 100%);
-                }
-            }
-        }
-    }
+    --toggle-bg: #f0f2f5;
+    --toggle-slider-bg: #007bff;
+    --icon-inactive-color: #8c8c8c;
+    --icon-active-color: #ffffff;
+    --transition-speed: 0.3s;
+}
+
+.mode-toggle {
+    display: flex;
+    position: relative;
+    background-color: var(--toggle-bg);
+    border-radius: 20px;
+    padding: 4px;
+    width: fit-content;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) inset;
+}
+
+.mode-toggle::before {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 32px;
+    height: 32px;
+    background-color: var(--toggle-slider-bg);
+    border-radius: 50%;
+    z-index: 1;
+
+    transition: transform var(--transition-speed) ease-in-out;
+}
+
+.mode-toggle.ask-active::before {
+    transform: translateX(0%);
+}
+
+.mode-toggle.agent-active::before {
+    transform: translateX(calc(100% + 4px));
+}
+
+.toggle-button {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    transition:
+        color var(--btn-transition-speed) ease-in-out,
+}
+
+.toggle-button:not(:last-child) {
+    margin-right: 4px;
+}
+
+.toggle-button .anticon {
+    font-size: 18px;
+    color: var(--icon-inactive-color);
+    transition: color var(--transition-speed) ease-in-out;
+}
+
+.toggle-button.active {
+    color: var(--icon-active-color) !important;
 }
