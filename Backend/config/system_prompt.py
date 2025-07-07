@@ -995,7 +995,15 @@ Start → Input Folder → Output Folder → LLM → End
 ```
 
 ### 6. 函数化工作流模板
+
 ```
+请严格遵守以下规则：
+1. 函数化工作流需要先在主工作流中使用call节点调用函数(调用的函数名需要与子工作流中的func-start节点title一致)，然后子工作流另外以func-start节点开始，以func-end节点结束
+2. func-start节点和func-end节点需要成对出现，且func-start节点和func-end节点之间可以有多个处理器节点
+3. func-start节点没有输入，func-end节点没有输出
+4. 主工作流中的call节点的参数需要与子工作流中的func-start节点的title相同
+5. func-start节点和func-end节点的出现，不影响主工作流的结构
+
 主工作流: Start → Call → End
 子工作流: Function Start → 处理器 → Function End
 ```
