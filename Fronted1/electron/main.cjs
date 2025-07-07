@@ -56,7 +56,7 @@ function startPythonBackend() {
             backendPath = pythonCommand;
             
             // 使用绝对路径，避免相对路径的问题
-            const backendLauncherPath = path.resolve(process.cwd(), '..', 'Backend', 'backend_launcher.py');
+            const backendLauncherPath = path.resolve(process.cwd(), '..', 'Backend', 'app.py');
             args = [backendLauncherPath, backendPort];
             
             console.log(`Running backend in dev mode: ${backendPath} ${args.join(' ')}`);
