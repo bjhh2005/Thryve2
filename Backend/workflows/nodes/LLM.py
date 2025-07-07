@@ -180,7 +180,8 @@ class LLMProcessor(MessageNode):
         """
         messages: List[Message] = [{"role": "system", "content": system_prompt}]
         
-        # 处理文件
+        # 处理文件，同时记录文件名信息用于日志显示
+        processed_files_info = []  # 记录处理的文件信息
         if files:
             file_contents = []
             for file_data in files:
@@ -211,10 +212,21 @@ class LLMProcessor(MessageNode):
                                 }
                             ]
                         })
+                        # 记录图片文件信息
+                        processed_files_info.append({
+                            "type": "image",
+                            "name": processed_file['name'],
+                            "message_index": len(messages) - 1
+                        })
                         file_contents.append(f"[图片: {processed_file['name']}]")
                     else:
                         # 对于文本文件，我们收集其内容
                         file_contents.append(f"文件 '{processed_file['name']}' 的内容：\n{processed_file['content']}\n")
+                        # 记录文本文件信息
+                        processed_files_info.append({
+                            "type": "text",
+                            "name": processed_file['name']
+                        })
                 except Exception as e:
                     self._eventBus.emit("message", "error", self._id, f"处理文件失败: {str(e)}")
             
@@ -229,8 +241,36 @@ class LLMProcessor(MessageNode):
         # 添加用户提示
         messages.append({"role": "user", "content": prompt})
         
-        # 打印消息内容以便调试
-        self._eventBus.emit("message", "info", self._id, f"准备发送的消息: {json.dumps(messages, ensure_ascii=False)}")
+        # 创建用于日志显示的消息副本（简化图片内容）
+        log_messages = []
+        for i, msg in enumerate(messages):
+            log_msg = {"role": msg["role"]}
+            if isinstance(msg["content"], list):
+                # 处理包含图片的消息
+                simplified_descriptions = []
+                for item in msg["content"]:
+                    if item.get("type") == "image_url":
+                        # 查找对应的文件名信息
+                        file_name = "[图片文件]"  # 默认描述
+                        for file_info in processed_files_info:
+                            if file_info["type"] == "image" and file_info["message_index"] == i:
+                                file_name = f"[图片: {file_info['name']}]"
+                                break
+                        simplified_descriptions.append(file_name)
+                    else:
+                        simplified_descriptions.append(str(item))
+                log_msg["content"] = " ".join(simplified_descriptions)
+            else:
+                # 对于文本内容，如果太长则截断
+                content = str(msg["content"])
+                if len(content) > 500:
+                    log_msg["content"] = content[:500] + "... (内容已截断)"
+                else:
+                    log_msg["content"] = content
+            log_messages.append(log_msg)
+        
+        # 打印简化后的消息内容以便调试
+        self._eventBus.emit("message", "info", self._id, f"准备发送的消息: {json.dumps(log_messages, ensure_ascii=False)}")
         
         return messages
 
