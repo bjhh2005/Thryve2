@@ -419,7 +419,7 @@ export const ChatView = () => {
                 </div>
                 <div className="header-center">
                     <Typography.Text strong>当前模型: {getActiveModelName()}</Typography.Text>
-                    <div className="mode-selector">
+                    {/* <div className="mode-selector">
                         <Select
                             value={aiMode}
                             onChange={(value) => setAIMode(value as AIMode)}
@@ -441,7 +441,7 @@ export const ChatView = () => {
                                 </Select.Option>
                             ))}
                         </Select>
-                    </div>
+                    </div> */}
                 </div>
                 <Tooltip content="配置AI模型">
                     <Button 
@@ -463,13 +463,23 @@ export const ChatView = () => {
                 <div ref={messagesEndRef} />
             </div>
             <div className={`ai-input-form ${isInputExpanded ? 'expanded' : ''}`}>
-                <div className="mode-indicator">
-                    <Tag 
-                        color={aiMode === 'agent' ? 'blue' : 'green'} 
-                        size="small"
-                    >
-                        {aiMode === 'agent' ? '🤖 Agent模式' : '💬 Ask模式'}
-                    </Tag>
+                <div className="input-actions">
+                        <div className="mode-selector">
+                            <div className="mode-toggle">
+                                <button
+                                    className={`toggle-button ${aiMode === 'ask' ? 'active' : ''}`}
+                                    onClick={() => setAIMode('ask')}
+                                >
+                                    <span className="icon">💬</span>
+                                </button>
+                                <button
+                                    className={`toggle-button ${aiMode === 'agent' ? 'active' : ''}`}
+                                    onClick={() => setAIMode('agent')}
+                                >
+                                    <span className="icon">🤖</span>
+                                </button>
+                            </div>
+                        </div>
                 </div>
                 <div className="input-container">
                     <div className="textarea-wrapper">
@@ -479,7 +489,9 @@ export const ChatView = () => {
                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             disabled={isLoading}
                             placeholder={aiMode === 'agent' ? "描述您想要的工作流..." : "问一问 Thryve"}
+                            
                         />
+                        
                         <Tooltip content={isInputExpanded ? "收起" : "展开"} position="top">
                             <button className="expand-toggle-button" onClick={toggleInputExpansion}>
                                 {isInputExpanded ? <IconMinimize /> : <IconMaximize />}
@@ -492,6 +504,7 @@ export const ChatView = () => {
                         </button>
                     </Tooltip>
                 </div>
+                
             </div>
             <AISettingsModal visible={isSettingsVisible} onClose={() => setSettingsVisible(false)} />
         </div>

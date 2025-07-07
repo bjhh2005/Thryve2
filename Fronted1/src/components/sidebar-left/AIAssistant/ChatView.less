@@ -27,18 +27,7 @@
         align-items: center;
         gap: 6px;
 
-        .mode-selector {
-            .semi-select {
-                border-radius: 16px;
-                border: 1px solid #e8eaed;
-                
-                .semi-select-selection {
-                    border: none;
-                    background: transparent;
-                    padding: 2px 8px;
-                }
-            }
-        }
+        
     }
 
     .model-name-display {
@@ -385,6 +374,65 @@
         &:disabled {
             background-color: #dcdcdc;
             cursor: not-allowed;
+        }
+    }
+}
+
+.mode-selector {
+    .mode-toggle {
+        display: flex;
+        background: rgba(0, 0, 0, 0.05);
+        padding: 2px;
+        border-radius: 20px;
+        gap: 2px;
+        position: relative;
+        
+        .toggle-button {
+            position: relative;
+            z-index: 1;
+            border: none;
+            background: none;
+            padding: 6px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #666;
+            transition: all 0.3s ease;
+            
+            .icon {
+                font-size: 16px;
+                transition: transform 0.3s ease;
+            }
+            
+            .text {
+                font-size: 13px;
+                font-weight: 500;
+            }
+            
+            &:hover:not(.active) {
+                color: #333;
+                background: rgba(0, 0, 0, 0.05);
+                
+                .icon {
+                    transform: scale(1.1);
+                }
+            }
+            
+            &.active {
+                color: #fff;
+                background: linear-gradient(135deg, #4E40E5 0%, #6E5FF5 100%);
+                box-shadow: 0 2px 4px rgba(78, 64, 229, 0.2);
+                
+                .icon {
+                    transform: scale(1.1);
+                }
+                
+                &:hover {
+                    background: linear-gradient(135deg, #5D4FE5 0%, #7D6EF5 100%);
+                }
+            }
         }
     }
 }
