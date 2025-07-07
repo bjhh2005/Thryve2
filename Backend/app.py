@@ -441,71 +441,77 @@ def generate_workflow():
 
 用户需求：{user_requirement}
 
-请分析用户需求，然后生成一个完整的、可直接导入使用的工作流JSON配置。
+请按照以下格式回复：
+1. 首先分析用户需求，说明工作流的目的和主要功能
+2. 然后详细描述工作流的执行步骤和节点配置
+3. 最后提供完整的JSON配置
 
-要求：
+技术要求：
 1. 生成的JSON必须包含nodes和edges数组
 2. 确保所有节点ID唯一
 3. 正确设置节点位置坐标
 4. 确保所有required字段都有值
 5. 使用正确的变量引用格式
 
-请直接输出JSON代码，用```json和```包围。
+请用```json和```包围JSON代码块。
 """
     
-    try:
-        client = OpenAI(api_key=api_key, base_url=base_url)
-        
-        completion = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": workflow_prompt}
-            ],
-            temperature=temperature,
-            stream=False
-        )
-        
-        response_content = completion.choices[0].message.content
-        
-        # 尝试从响应中提取JSON
-        import re
-        json_match = re.search(r'```json\s*\n(.*?)\n```', response_content, re.DOTALL)
-        
-        if json_match:
-            json_str = json_match.group(1)
-            try:
-                # 验证JSON格式
-                workflow_json = json.loads(json_str)
-                
-                # 验证是否包含必要字段
-                if 'nodes' not in workflow_json or 'edges' not in workflow_json:
-                    return Response(json.dumps({
-                        "error": "Generated JSON is missing required fields",
-                        "response": response_content
-                    }), status=400, mimetype='application/json')
-                
-                return Response(json.dumps({
-                    "success": True,
-                    "workflow": workflow_json,
-                    "response": response_content
-                }), status=200, mimetype='application/json')
-                
-            except json.JSONDecodeError as e:
-                return Response(json.dumps({
-                    "error": f"Invalid JSON format: {str(e)}",
-                    "response": response_content
-                }), status=400, mimetype='application/json')
-        else:
-            return Response(json.dumps({
-                "error": "No JSON found in response",
-                "response": response_content
-            }), status=400, mimetype='application/json')
+    def stream_generator():
+        try:
+            client = OpenAI(api_key=api_key, base_url=base_url)
             
-    except Exception as e:
-        logger.error(f"Error generating workflow: {e}")
-        return Response(json.dumps({"error": str(e)}), 
-                       status=500, mimetype='application/json')
+            stream = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": workflow_prompt}
+                ],
+                temperature=temperature,
+                stream=True
+            )
+            
+            full_response = ""
+            for chunk in stream:
+                content = chunk.choices[0].delta.content or ""
+                if content:
+                    full_response += content
+                    yield f"data: {json.dumps({'content': content})}\n\n"
+            
+            # 流式输出结束后，尝试提取和验证JSON
+            import re
+            json_match = re.search(r'```json\s*\n(.*?)\n```', full_response, re.DOTALL)
+            
+            if json_match:
+                json_str = json_match.group(1)
+                try:
+                    # 验证JSON格式
+                    workflow_json = json.loads(json_str)
+                    
+                    # 验证是否包含必要字段
+                    if 'nodes' in workflow_json and 'edges' in workflow_json:
+                        # 发送成功的工作流数据
+                        yield f"data: {json.dumps({'workflow': workflow_json, 'success': True})}\n\n"
+                    else:
+                        yield f"data: {json.dumps({'error': 'Generated JSON is missing required fields'})}\n\n"
+                        
+                except json.JSONDecodeError as e:
+                    yield f"data: {json.dumps({'error': f'Invalid JSON format: {str(e)}'})}\n\n"
+            else:
+                yield f"data: {json.dumps({'warning': 'No valid JSON found in response'})}\n\n"
+            
+            # 发送结束信号
+            yield f"data: {json.dumps({'end': True})}\n\n"
+            
+        except Exception as e:
+            logger.error(f"Error generating workflow: {e}")
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return Response(stream_generator(), mimetype="text/event-stream", headers={
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    })
 
 # -------------------------------------------------------------------
 #  新增：断点调试控制API
