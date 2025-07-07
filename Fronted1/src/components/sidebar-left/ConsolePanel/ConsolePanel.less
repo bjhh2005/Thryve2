@@ -40,7 +40,7 @@
 }
 
 
-// --- 页脚样式 ---
+// --- 页脚样式 (优化版) ---
 .left-sidebar-panel-footer {
     flex-shrink: 0;
     padding: 8px 12px;
@@ -48,14 +48,27 @@
     text-align: right;
 
     .sidebar-button {
-        // 您可以为按钮添加更具体的样式，例如
-        padding: 4px 12px;
+        position: relative;
+        overflow: hidden;
+
+        padding: 6px 16px;
         border-radius: 6px;
         border: 1px solid #d1d5db;
         cursor: pointer;
-        background-color: #f9fafb;
+        background-color: #ffffff;
+        color: #4b5563;
+        font-weight: 500;
+        font-size: 13px;
+
+        transition: all 0.2s ease-in-out;
 
         &:hover {
+            border-color: #6367f9;
+            color: #6367f9;
+        }
+
+        &:active {
+            transform: scale(0.97);
             background-color: #f3f4f6;
         }
     }
