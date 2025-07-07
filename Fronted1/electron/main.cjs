@@ -476,9 +476,52 @@ ipcMain.handle('select-folder', async () => {
         });
 
         if (!result.canceled && result.filePaths.length > 0) {
+            const folderPath = result.filePaths[0];
+            let files = [];
+            
+            try {
+                // 递归扫描函数
+                const scanDirectory = (dir, recursive = false, fileList = []) => {
+                    try {
+                        const entries = fs.readdirSync(dir, { withFileTypes: true });
+                        
+                        for (const entry of entries) {
+                            const fullPath = path.join(dir, entry.name);
+                            
+                            try {
+                                if (entry.isFile()) {
+                                    fileList.push(fullPath);
+                                } else if (entry.isDirectory() && recursive) {
+                                    scanDirectory(fullPath, recursive, fileList);
+                                }
+                            } catch (err) {
+                                console.error(`Error processing ${fullPath}:`, err);
+                            }
+                        }
+                        
+                        return fileList;
+                    } catch (err) {
+                        console.error(`Error reading directory ${dir}:`, err);
+                        return fileList;
+                    }
+                };
+                
+                // 仅扫描顶层文件
+                files = scanDirectory(folderPath, false);
+                
+                // 记录文件数量
+                console.log(`Found ${files.length} files in folder: ${folderPath}`);
+            } catch (err) {
+                console.error('Error reading folder contents:', err);
+                // 即使读取文件列表失败，仍然返回文件夹信息
+                files = [];
+            }
+            
             return {
                 canceled: false,
-                folderPath: result.filePaths[0]
+                folderPath: folderPath,
+                folderName: path.basename(folderPath),
+                files: files
             };
         }
 
@@ -486,6 +529,61 @@ ipcMain.handle('select-folder', async () => {
     } catch (error) {
         console.error('Error selecting folder:', error);
         return { canceled: true, error: error.message };
+    }
+});
+
+// 添加新的递归文件夹扫描功能
+ipcMain.handle('scan-folder', async (event, { folderPath, recursive = false }) => {
+    try {
+        if (!folderPath) {
+            throw new Error('Folder path is required');
+        }
+        
+        const scanDirectory = (dir, recursive = false, fileList = []) => {
+            try {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    
+                    try {
+                        if (entry.isFile()) {
+                            fileList.push(fullPath);
+                        } else if (entry.isDirectory() && recursive) {
+                            scanDirectory(fullPath, recursive, fileList);
+                        }
+                    } catch (err) {
+                        console.error(`Error processing ${fullPath}:`, err);
+                    }
+                }
+                
+                return fileList;
+            } catch (err) {
+                console.error(`Error reading directory ${dir}:`, err);
+                return fileList;
+            }
+        };
+        
+        // 执行扫描
+        const files = scanDirectory(folderPath, recursive);
+        
+        console.log(`Scanned folder ${folderPath}, recursive=${recursive}, found ${files.length} files`);
+        
+        return {
+            success: true,
+            folderPath: folderPath,
+            folderName: path.basename(folderPath),
+            files: files,
+            count: files.length
+        };
+    } catch (error) {
+        console.error('Error scanning folder:', error);
+        return { 
+            success: false, 
+            error: error.message,
+            files: [],
+            count: 0
+        };
     }
 });
 
