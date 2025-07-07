@@ -136,7 +136,7 @@ export const ChatView = () => {
     const [isInputExpanded, setIsInputExpanded] = useState(false);
     const [aiMode, setAIMode] = useState<AIMode>('ask'); // 新增：AI模式状态
 
-    const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList, activeConversationId, renameConversation, getMessagesWithSystemPrompt } = useChat();
+    const { messages, addMessageToActiveConversation, updateMessageContent, isConversationListCollapsed, toggleConversationList, activeConversationId, renameConversation, getMessagesWithSystemPrompt, conversations } = useChat();
     const { config, getActiveModelName, getActiveProviderConfig } = useAIConfig();
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -310,8 +310,10 @@ export const ChatView = () => {
         setInput('');
         setIsLoading(true);
 
-        // 在添加新消息之前，判断这是否是新会话的第一条用户消息
-        const isFirstUserMessage = messages.filter(m => m.role === 'user').length === 0;
+
+        // 检查是否需要生成标题：当前会话标题是默认的"新的对话"时就生成标题
+        const currentConversation = conversations.find(c => c.id === activeConversationId);
+        const shouldGenerateTitle = currentConversation?.title === '新的对话';
 
         // 1. 先将用户消息添加到Context和数据库
         const userMessage = await addMessageToActiveConversation({ role: 'user', content: userMessageContent });
@@ -329,19 +331,25 @@ export const ChatView = () => {
 
         // --- 在此处异步地、非阻塞地生成标题 ---
         // 我们只对新会话的第一条用户消息执行此操作
-        if (isFirstUserMessage && activeConversationId) {
-            // 注意：这里没有使用 await，所以它不会阻塞下面的代码执行
-
+        if (shouldGenerateTitle && activeConversationId) {
             console.log('✅ [ChatView] 触发了标题生成，用户消息:', userMessageContent);
+            console.log('✅ [ChatView] 当前会话ID:', activeConversationId);
+            console.log('✅ [ChatView] 消息历史长度:', messages.length);
+            console.log('✅ [ChatView] 标题生成条件:', {
+                shouldGenerateTitle,
+                currentConversationTitle: currentConversation?.title
+            });
+            
             fetch(`${apiBaseUrl}/api/generate-title`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: userMessageContent }),
             })
                 .then(res => {
+                    console.log('✅ [ChatView] 标题生成API响应状态:', res.status);
                     if (res.ok) return res.json();
                     // 如果API返回错误，则不继续执行
-                    return Promise.reject('Failed to generate title');
+                    return Promise.reject(`API returned status ${res.status}`);
                 })
                 .then(data => {
                     console.log('✅ [ChatView] 收到后端生成的标题:', data);
@@ -349,9 +357,25 @@ export const ChatView = () => {
                         console.log(`✅ [ChatView] 正在调用 renameConversation，ID: ${activeConversationId}, 新标题: ${data.title}`);
                         // 调用 renameConversation 更新UI和数据库中的标题
                         renameConversation(activeConversationId, data.title);
+                    } else {
+                        console.warn('✅ [ChatView] 后端返回的数据中没有title字段:', data);
                     }
                 })
-                .catch(err => console.error("Title generation error:", err)); // 只在控制台打印错误，不影响主流程
+                .catch(err => {
+                    console.error("❌ [ChatView] 标题生成错误:", err);
+                    // 尝试获取更详细的错误信息
+                    if (err instanceof Response) {
+                        err.text().then(text => console.error("❌ [ChatView] 错误详情:", text));
+                    }
+                });
+        } else {
+            console.log('🔍 [ChatView] 跳过标题生成:', {
+                shouldGenerateTitle,
+                activeConversationId,
+                currentConversationTitle: currentConversation?.title,
+                messagesCount: messages.length,
+                userMessagesCount: messages.filter(m => m.role === 'user').length
+            });
         }
 
         try {
@@ -371,7 +395,7 @@ export const ChatView = () => {
             setIsLoading(false);
         }
 
-    }, [input, isLoading, messages, config, addMessageToActiveConversation, updateMessageContent, getActiveProviderConfig, activeConversationId, renameConversation, aiMode, getMessagesWithSystemPrompt]);
+    }, [input, isLoading, messages, config, addMessageToActiveConversation, updateMessageContent, getActiveProviderConfig, activeConversationId, renameConversation, aiMode, getMessagesWithSystemPrompt, conversations]);
 
     // 新增：模式切换选项
     const modeOptions = [
@@ -395,7 +419,7 @@ export const ChatView = () => {
                 </div>
                 <div className="header-center">
                     <Typography.Text strong>当前模型: {getActiveModelName()}</Typography.Text>
-                    <div className="mode-selector">
+                    {/* <div className="mode-selector">
                         <Select
                             value={aiMode}
                             onChange={(value) => setAIMode(value as AIMode)}
@@ -417,7 +441,7 @@ export const ChatView = () => {
                                 </Select.Option>
                             ))}
                         </Select>
-                    </div>
+                    </div> */}
                 </div>
                 <Tooltip content="配置AI模型">
                     <Button 
@@ -439,13 +463,23 @@ export const ChatView = () => {
                 <div ref={messagesEndRef} />
             </div>
             <div className={`ai-input-form ${isInputExpanded ? 'expanded' : ''}`}>
-                <div className="mode-indicator">
-                    <Tag 
-                        color={aiMode === 'agent' ? 'blue' : 'green'} 
-                        size="small"
-                    >
-                        {aiMode === 'agent' ? '🤖 Agent模式' : '💬 Ask模式'}
-                    </Tag>
+                <div className="input-actions">
+                        <div className="mode-selector">
+                            <div className="mode-toggle">
+                                <button
+                                    className={`toggle-button ${aiMode === 'ask' ? 'active' : ''}`}
+                                    onClick={() => setAIMode('ask')}
+                                >
+                                    <span className="icon">💬</span>
+                                </button>
+                                <button
+                                    className={`toggle-button ${aiMode === 'agent' ? 'active' : ''}`}
+                                    onClick={() => setAIMode('agent')}
+                                >
+                                    <span className="icon">🤖</span>
+                                </button>
+                            </div>
+                        </div>
                 </div>
                 <div className="input-container">
                     <div className="textarea-wrapper">
@@ -455,7 +489,9 @@ export const ChatView = () => {
                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                             disabled={isLoading}
                             placeholder={aiMode === 'agent' ? "描述您想要的工作流..." : "问一问 Thryve"}
+                            
                         />
+                        
                         <Tooltip content={isInputExpanded ? "收起" : "展开"} position="top">
                             <button className="expand-toggle-button" onClick={toggleInputExpansion}>
                                 {isInputExpanded ? <IconMinimize /> : <IconMaximize />}
@@ -468,6 +504,7 @@ export const ChatView = () => {
                         </button>
                     </Tooltip>
                 </div>
+                
             </div>
             <AISettingsModal visible={isSettingsVisible} onClose={() => setSettingsVisible(false)} />
         </div>

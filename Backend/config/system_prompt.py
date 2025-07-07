@@ -91,6 +91,9 @@ Thryve是一个强大的可视化工作流设计工具，允许用户通过拖�
 - **condition**: 条件判断节点
 - **relocation**: 重定位节点
 - **print**: 打印节点
+- **call**: 调用子工作流节点
+- **func-start**: 函数开始节点
+- **func-end**: 函数结束节点
 
 ### 位置坐标计算
 - **水平间距**: 相邻节点x坐标差460
@@ -419,6 +422,93 @@ Thryve是一个强大的可视化工作流设计工具，允许用户通过拖�
         },
         "outputFile": {
           "type": "string"
+        }
+      }
+    }
+  }
+}
+```
+
+### Call调用节点
+```json
+{
+  "id": "call_[随机ID]",
+  "type": "call",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "Call",
+    "inputs": {
+      "type": "object",
+      "required": ["target_workflow"],
+      "properties": {
+        "target_workflow": {
+          "type": "string",
+          "title": "Target Workflow",
+          "description": "The title of the start node of the subworkflow to call"
+        },
+        "input_data": {
+          "type": "string",
+          "title": "Input Data",
+          "description": "Data to pass to the subworkflow (optional)"
+        }
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "output": {
+          "type": "string",
+          "title": "Output",
+          "description": "Result returned from the subworkflow"
+        }
+      }
+    },
+    "inputsValues": {
+      "target_workflow": {"type": "constant", "content": "函数名"}
+    }
+  }
+}
+```
+
+### Function Start节点
+```json
+{
+  "id": "func_start_[随机ID]",
+  "type": "func-start",
+  "meta": {"position": {"x": 180, "y": 100}},
+  "data": {
+    "title": "函数名",
+    "outputs": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "default": "Hello Flow."
+        },
+        "enable": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}
+```
+
+### Function End节点
+```json
+{
+  "id": "func_end_[随机ID]",
+  "type": "func-end",
+  "meta": {"position": {"x": 1000, "y": 100}},
+  "data": {
+    "title": "Function End",
+    "inputs": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "string",
+          "description": "The result of the function"
         }
       }
     }
@@ -845,6 +935,111 @@ Start → Input → Condition → 分支处理器1/2 → End
 ### 4. 连续处理模板
 ```
 Start → Input → 处理器1 → 处理器2 → ... → End
+```
+
+### 5. LLM文件批量总结模板
+```
+Start → Input Folder → Output Folder → LLM → End
+```
+
+**完整JSON示例：**
+```json
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {"position": {"x": 180, "y": 100}},
+      "data": {"title": "Start", "outputs": {"type": "object", "properties": {"query": {"type": "string", "default": "Hello Flow."}, "enable": {"type": "boolean", "default": true}}}}
+    },
+    {
+      "id": "folder_input_abc123",
+      "type": "folder-input",
+      "meta": {"position": {"x": 640, "y": 100}},
+      "data": {"title": "Input Folder", "folders": [{"id": "folder_def456", "folder": {"folderPath": "/path/to/input", "folderName": "input", "files": []}, "variableName": "inputFolder"}], "outputs": {"type": "object", "properties": {"inputFolder": {"type": "string", "title": "Input Folder", "description": "Folder path", "isOutput": true, "default": "/path/to/input"}, "inputFolder_files": {"type": "array", "items": {"type": "string"}, "title": "File List", "description": "File list in the folder", "isOutput": true}}}}
+    },
+    {
+      "id": "folder_input_ghi789",
+      "type": "folder-input",
+      "meta": {"position": {"x": 1100, "y": 100}},
+      "data": {"title": "Output Folder", "folders": [{"id": "folder_jkl012", "folder": {"folderPath": "/path/to/output", "folderName": "output", "files": []}, "variableName": "outputFolder"}], "outputs": {"type": "object", "properties": {"outputFolder": {"type": "string", "title": "Output Folder", "description": "Folder path", "isOutput": true, "default": "/path/to/output"}}}}
+    },
+    {
+      "id": "llm_mno345",
+      "type": "llm",
+      "meta": {"position": {"x": 1560, "y": 100}},
+      "data": {"title": "LLM", "inputsValues": {"modelName": {"type": "constant", "content": "gpt-3.5-turbo"}, "apiKey": {"type": "constant", "content": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}, "apiHost": {"type": "constant", "content": "https://mock-ai-url/api/v3"}, "temperature": {"type": "constant", "content": 0.5}, "systemPrompt": {"type": "constant", "content": "You are an AI assistant that specializes in summarizing and analyzing text files."}, "prompt": {"type": "constant", "content": "Please read and summarize the following files, highlighting key points and main topics."}, "outputFolder": {"type": "ref", "content": ["folder_input_ghi789", "outputFolder"]}, "outputName": {"type": "constant", "content": "files_summary.txt"}, "inputFiles": {"type": "ref", "content": ["folder_input_abc123", "inputFolder_files"]}}, "inputs": {"type": "object", "required": ["modelName", "apiKey", "apiHost", "temperature", "prompt"], "properties": {"inputFiles": {"type": "array", "description": "The files to process.", "items": {"type": "string"}}, "modelName": {"type": "string", "description": "The name of the model to use."}, "apiKey": {"type": "string", "description": "The API key to use."}, "apiHost": {"type": "string", "description": "The API host to use."}, "temperature": {"type": "number", "description": "The temperature to use."}, "systemPrompt": {"type": "string", "description": "The system prompt to use."}, "prompt": {"type": "string", "description": "The prompt to use."}, "outputFolder": {"type": "string", "description": "The folder to save the output file.", "default": ""}, "outputName": {"type": "string", "description": "The name of the output file.", "default": ""}}}, "outputs": {"type": "object", "properties": {"result": {"type": "string"}, "outputFile": {"type": "string"}}}}
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {"position": {"x": 2020, "y": 100}},
+      "data": {"title": "End", "inputs": {"type": "object", "properties": {"result": {"type": "string"}}}}
+    }
+  ],
+  "edges": [
+    {"sourceNodeID": "start_0", "targetNodeID": "folder_input_abc123"},
+    {"sourceNodeID": "folder_input_abc123", "targetNodeID": "folder_input_ghi789"},
+    {"sourceNodeID": "folder_input_ghi789", "targetNodeID": "llm_mno345"},
+    {"sourceNodeID": "llm_mno345", "targetNodeID": "end_0"}
+  ]
+}
+```
+
+### 6. 函数化工作流模板
+```
+主工作流: Start → Call → End
+子工作流: Function Start → 处理器 → Function End
+```
+
+**完整JSON示例：**
+```json
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {"position": {"x": 180, "y": 100}},
+      "data": {"title": "Start", "outputs": {"type": "object", "properties": {"query": {"type": "string", "default": "Hello Flow."}, "enable": {"type": "boolean", "default": true}}}}
+    },
+    {
+      "id": "call_abc123",
+      "type": "call",
+      "meta": {"position": {"x": 640, "y": 100}},
+      "data": {"title": "Call", "inputs": {"type": "object", "required": ["target_workflow"], "properties": {"target_workflow": {"type": "string", "title": "Target Workflow", "description": "The title of the start node of the subworkflow to call"}, "input_data": {"type": "string", "title": "Input Data", "description": "Data to pass to the subworkflow (optional)"}}}, "outputs": {"type": "object", "properties": {"output": {"type": "string", "title": "Output", "description": "Result returned from the subworkflow"}}}, "inputsValues": {"target_workflow": {"type": "constant", "content": "processFiles"}}}
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {"position": {"x": 1100, "y": 100}},
+      "data": {"title": "End", "inputs": {"type": "object", "properties": {"result": {"type": "string"}}}}
+    },
+    {
+      "id": "func_start_def456",
+      "type": "func-start",
+      "meta": {"position": {"x": 180, "y": 300}},
+      "data": {"title": "processFiles", "outputs": {"type": "object", "properties": {"query": {"type": "string", "default": "Hello Flow."}, "enable": {"type": "boolean", "default": true}}}}
+    },
+    {
+      "id": "print_ghi789",
+      "type": "print",
+      "meta": {"position": {"x": 640, "y": 300}},
+      "data": {"title": "Print", "inputs": {"type": "object", "properties": {"input": {"type": "string", "title": "Input Text", "description": "Text from previous node"}}}, "outputs": {"type": "object", "properties": {"result": {"type": "string", "title": "Printed Text", "description": "The text that was printed"}}}, "inputsValues": {"input": {"type": "constant", "content": "Processing files..."}}}
+    },
+    {
+      "id": "func_end_jkl012",
+      "type": "func-end",
+      "meta": {"position": {"x": 1100, "y": 300}},
+      "data": {"title": "Function End", "inputs": {"type": "object", "properties": {"result": {"type": "string", "description": "The result of the function"}}}}
+    }
+  ],
+  "edges": [
+    {"sourceNodeID": "start_0", "targetNodeID": "call_abc123"},
+    {"sourceNodeID": "call_abc123", "targetNodeID": "end_0"},
+    {"sourceNodeID": "func_start_def456", "targetNodeID": "print_ghi789"},
+    {"sourceNodeID": "print_ghi789", "targetNodeID": "func_end_jkl012"}
+  ]
+}
 ```
 
 ## 工作流生成流程

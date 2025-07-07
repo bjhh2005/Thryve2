@@ -23,6 +23,7 @@ from workflows.Engine import WorkflowEngine
 from workflows.WorkflowManager import WorkflowManager
 from workflow_converter import convert_workflow_format
 from config.system_prompt import SYSTEM_PROMPT  # 导入系统提示词
+from config.system_prompt_ask import SYSTEM_PROMPT_ASK  # 导入Ask模式系统提示词
 
 # 设置详细的日志记录
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -83,6 +84,8 @@ def setup_encoding():
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-here'
+
+os.environ['SILICONFLOW_API_KEY'] = 'sk-vfbdqsriwgipimrmiyqrfeispjclvpwklqlnediqbhaxiuoy'
 
 # 简化并加强 CORS 配置，应用于所有路由
 CORS(app) 
@@ -376,9 +379,13 @@ def chat():
     temperature = data.get("temperature", 0.7)
     messages = data.get("messages", [])
     
-    # 确保messages列表中包含系统提示词
-    if messages and messages[0].get("role") != "system":
-        messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT})
+    # 为Ask模式强制使用专门的系统提示词
+    if messages and messages[0].get("role") == "system":
+        # 如果已经有system消息，替换为Ask模式的系统提示词
+        messages[0] = {"role": "system", "content": SYSTEM_PROMPT_ASK}
+    else:
+        # 如果没有system消息，添加Ask模式的系统提示词
+        messages.insert(0, {"role": "system", "content": SYSTEM_PROMPT_ASK})
 
     # 2. 对内置模型的特殊处理：如果apiKey为空，则使用服务器的
     if model_name and model_name.startswith('Qwen/'): # 或者其他您定义的内置模型标识
@@ -426,49 +433,84 @@ def chat():
 # -------------------------------------------------------------------
 @app.route("/api/generate-title", methods=["POST"])
 def generate_title():
-    # try:
-    data = request.get_json()
-    if not data:
-        raise ValueError("Request body is not a valid JSON.")
+    try:
+        data = request.get_json()
+        if not data:
+            raise ValueError("Request body is not a valid JSON.")
 
-    user_message = data.get("message")
-    if not user_message:
-        raise ValueError("Missing 'message' field in request body.")
+        user_message = data.get("message")
+        if not user_message:
+            raise ValueError("Missing 'message' field in request body.")
 
-    api_key = os.getenv("SILICONFLOW_API_KEY")
-    base_url = "https://api.siliconflow.cn/v1"
-    model_name = "Qwen/Qwen2-7B-Instruct" 
+        api_key = os.getenv("SILICONFLOW_API_KEY")
+        base_url = "https://api.siliconflow.cn/v1"
+        model_name = "Qwen/Qwen2-7B-Instruct" 
 
-    if not api_key:
+        if not api_key:
             raise ValueError("Server API key (SILICONFLOW_API_KEY) is not configured.")
 
-    client = OpenAI(api_key=api_key, base_url=base_url)
-    
-    completion = client.chat.completions.create(
-        model=model_name,
-        messages=[
-            {
-                "role": "system", 
-                "content": "你是一个文本摘要专家，请根据用户输入，为这段对话生成一个非常简短、不超过8个字的精炼标题。请不要添加任何多余的解释或标点符号，直接输出标题本身。"
-            },
-            {
-                "role": "user", 
-                "content": user_message
-            }
-        ],
-        temperature=0.2,
-        stream=False
-    )
-    
-    title = completion.choices[0].message.content.strip().replace("\"", "").replace(""", "").replace(""", "")
-    
-    logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
-    return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
+        client = OpenAI(api_key=api_key, base_url=base_url)
+        
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {
+                    "role": "system", 
+                    "content": "你是一个文本摘要专家，请根据用户输入，为这段对话生成一个非常简短、不超过8个字的精炼标题。请不要添加任何多余的解释或标点符号，直接输出标题本身。"
+                },
+                {
+                    "role": "user", 
+                    "content": user_message
+                }
+            ],
+            temperature=0.2,
+            stream=False
+        )
+        
+        title = completion.choices[0].message.content.strip().replace("\"", "").replace(""", "").replace(""", "")
+        
+        logger.info(f"Generated title: '{title}' for message: '{user_message[:30]}...'")
+        return Response(json.dumps({"title": title}), status=200, mimetype='application/json')
 
-    # except Exception as e:
-    #     logger.error(f"An error occurred in /api/generate-title: {e}")
-    #     return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"An error occurred in /api/generate-title: {e}")
+        return Response(json.dumps({"error": f"Failed to generate title: {str(e)}"}), status=500, mimetype='application/json')
     
+
+# -------------------------------------------------------------------
+#  新增：获取系统提示词API (用于验证)
+# -------------------------------------------------------------------
+@app.route("/api/system-prompt/ask", methods=["GET"])
+def get_ask_system_prompt():
+    """
+    获取Ask模式的系统提示词，用于验证配置
+    """
+    try:
+        return Response(json.dumps({
+            "systemPrompt": SYSTEM_PROMPT_ASK,
+            "mode": "ask",
+            "length": len(SYSTEM_PROMPT_ASK)
+        }), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting Ask system prompt: {e}")
+        return Response(json.dumps({"error": f"Failed to get system prompt: {str(e)}"}), 
+                       status=500, mimetype='application/json')
+
+@app.route("/api/system-prompt/agent", methods=["GET"])
+def get_agent_system_prompt():
+    """
+    获取Agent模式的系统提示词，用于验证配置
+    """
+    try:
+        return Response(json.dumps({
+            "systemPrompt": SYSTEM_PROMPT,
+            "mode": "agent", 
+            "length": len(SYSTEM_PROMPT)
+        }), status=200, mimetype='application/json')
+    except Exception as e:
+        logger.error(f"Error getting Agent system prompt: {e}")
+        return Response(json.dumps({"error": f"Failed to get system prompt: {str(e)}"}), 
+                       status=500, mimetype='application/json')
 
 # -------------------------------------------------------------------
 #  新增：工作流生成API

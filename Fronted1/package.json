@@ -15,7 +15,8 @@
     "type-check": "tsc --noEmit",
     "preview": "vite preview",
     "electron:dev": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron .\"",
-    "electron:zrx": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron . --disable-gpu-sandbox\"",
+    "electron:no-gpu": "cross-env NODE_ENV=development concurrently \"npm run dev\" \"electron . --disable-gpu-sandbox\"",
+    
     "electron:build": "vite build && electron-builder",
     "electron:build:zrx": "vite build && cross-env ELECTRON_EXTRA_LAUNCH_ARGS=\"--disable-gpu-sandbox\" electron-builder",
     "electron:build:portable": "vite build && cross-env ELECTRON_EXTRA_LAUNCH_ARGS=\"--disable-gpu-sandbox\" electron-builder --win portable",
