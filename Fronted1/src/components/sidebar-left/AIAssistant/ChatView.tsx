@@ -90,10 +90,23 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
             Toast.error('导入工作流失败');
         }
     }, [jsonData, document, playground.config.readonly]);
+<<<<<<< Updated upstream
     
     return (
         <div className={`message-bubble ${message.role}`}>
             <div className="avatar">{message.role === 'assistant' ? <IconBolt /> : <IconUser />}</div>
+=======
+
+    // 判断当前消息是否是 AI 正在思考的占位消息
+    const isThinking = message.role === 'assistant' &&
+        (message.content === 'Thinking...' || message.content === '正在生成工作流...');
+
+    return (
+        <div className={`message-bubble ${message.role}`}>
+            <div className={`avatar loading-gemini ${isThinking ? 'bouncing-avatar' : ''}`}>
+                {message.role === 'assistant' ? <IconCommand style={{ color: '#cd5c68' }} /> : <IconMember style={{ color: '#3b68ff' }} />}
+            </div>
+>>>>>>> Stashed changes
             <div className="bubble-content">
                 {message.content === 'Thinking...' ? (
                     <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -246,6 +259,13 @@ export const ChatView = () => {
 
     }, [input, isLoading, messages, config, addMessageToActiveConversation, updateMessageContent, getActiveProviderConfig, activeConversationId, renameConversation]);
 
+<<<<<<< Updated upstream
+=======
+    const modeOptions = [
+        { value: 'ask', label: 'Ask 问答', icon: <IconComment /> },
+        { value: 'agent', label: 'Agent 工作流', icon: <IconCode /> }
+    ];
+>>>>>>> Stashed changes
 
     return (
         <div className="chat-view-panel">

@@ -31,15 +31,14 @@ export const PRESET_PROVIDERS = {
     },
 };
 
-// --- 核心修改：在这里定义并导出 ProviderId 类型 ---
+
 // 它会自动包含 'siliconflow', 'deepseek', 'openai'，并额外加上 'custom'
 export type ProviderId = keyof typeof PRESET_PROVIDERS | 'custom';
 
 
-// 3. 定义新的全局配置状态结构，并使用 ProviderId 类型
 export interface AIConfig {
-    activeProviderId: ProviderId; // <-- 使用更严格的 ProviderId 类型
-    providers: Record<ProviderId, ProviderConfig>; // <-- 使用更严格的 ProviderId 类型
+    activeProviderId: ProviderId;
+    providers: Record<ProviderId, ProviderConfig>;
     temperature: number;
 }
 
