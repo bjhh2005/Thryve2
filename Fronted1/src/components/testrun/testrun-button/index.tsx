@@ -41,33 +41,18 @@ export function TestRunButton() {
     return (
       <ButtonGroup>
         {isPaused ? (
-<<<<<<< Updated upstream
           <Popover content="继续执行 (Resume)">
-=======
-          <Tooltip content="继续执行" position="top">
->>>>>>> Stashed changes
             <Button icon={<IconPlay />} onClick={resumeExecution} />
           </Popover>
         ) : (
-<<<<<<< Updated upstream
           <Popover content="暂停执行 (Pause)">
-=======
-          <Tooltip content="暂停执行" position="top">
->>>>>>> Stashed changes
             <Button icon={<IconPause />} onClick={pauseExecution} />
           </Popover>
         )}
-<<<<<<< Updated upstream
         <Popover content="单步执行 (Step Over)">
           <Button icon={<IconForward />} onClick={stepOver} disabled={!isPaused} />
         </Popover>
         <Popover content="终止执行 (Terminate)">
-=======
-        <Tooltip content="单步执行" position="top">
-          <Button icon={<IconForward />} onClick={stepOver} disabled={!isPaused} />
-        </Tooltip>
-        <Tooltip content="终止执行" position="top">
->>>>>>> Stashed changes
           <Button icon={<IconStop />} type="danger" onClick={terminateExecution} />
         </Popover>
       </ButtonGroup>
