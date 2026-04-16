@@ -1,0 +1,344 @@
+{
+  "nodes": [
+    {
+      "id": "start_0",
+      "type": "start",
+      "meta": {
+        "position": {
+          "x": 180,
+          "y": 244.6
+        }
+      },
+      "data": {
+        "title": "Start",
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "default": "Hello Flow."
+            },
+            "enable": {
+              "type": "boolean",
+              "default": true
+            },
+            "array_obj": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "int": {
+                    "type": "number"
+                  },
+                  "str": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "end_0",
+      "type": "end",
+      "meta": {
+        "position": {
+          "x": 2623,
+          "y": 265
+        }
+      },
+      "data": {
+        "title": "End",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "folder_input_NlUv5",
+      "type": "folder-input",
+      "meta": {
+        "position": {
+          "x": 640,
+          "y": 118.9
+        }
+      },
+      "data": {
+        "title": "Folder Input_1",
+        "folders": [
+          {
+            "id": "folder_9DfFhF",
+            "folder": {
+              "folderPath": "C:\\Users\\bjhh2005\\Downloads\\hhy",
+              "folderName": "hhy",
+              "files": [
+                {
+                  "path": "C:\\Users\\bjhh2005\\Downloads\\hhy\\extracted_text.txt",
+                  "name": "extracted_text.txt",
+                  "isDirectory": false
+                }
+              ]
+            },
+            "variableName": "hhy"
+          }
+        ],
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "hhy": {
+              "type": "string",
+              "title": "hhy",
+              "description": "Folder path",
+              "isOutput": true,
+              "default": "C:\\Users\\bjhh2005\\Downloads\\hhy"
+            },
+            "hhy_files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "title": "hhy File List",
+              "description": "File list in the folder",
+              "isOutput": true,
+              "default": [
+                {
+                  "path": "C:\\Users\\bjhh2005\\Downloads\\hhy\\extracted_text.txt",
+                  "name": "extracted_text.txt",
+                  "isDirectory": false
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "loop_sEfcx",
+      "type": "loop",
+      "meta": {
+        "position": {
+          "x": 970,
+          "y": 105
+        }
+      },
+      "data": {
+        "title": "Loop_1",
+        "mode": "times",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "times"
+          ],
+          "properties": {
+            "times": {
+              "type": "number"
+            }
+          }
+        },
+        "times": 5
+      },
+      "blocks": [
+        {
+          "id": "start_4-_7d",
+          "type": "start",
+          "meta": {
+            "position": {
+              "x": 180,
+              "y": 160
+            }
+          },
+          "data": {
+            "title": "Start_1",
+            "outputs": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "default": "Hello Flow."
+                },
+                "enable": {
+                  "type": "boolean",
+                  "default": true
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "llm_1YfXj",
+          "type": "llm",
+          "meta": {
+            "position": {
+              "x": 661.5,
+              "y": 0
+            }
+          },
+          "data": {
+            "title": "LLM_1",
+            "inputsValues": {
+              "modelName": {
+                "type": "constant",
+                "content": "THUDM/GLM-4.1V-9B-Thinking"
+              },
+              "apiKey": {
+                "type": "constant",
+                "content": "sk-vfbdqsriwgipimrmiyqrfeispjclvpwklqlnediqbhaxiuoy"
+              },
+              "apiHost": {
+                "type": "constant",
+                "content": "https://api.siliconflow.cn/v1"
+              },
+              "temperature": {
+                "type": "constant",
+                "content": 0.5
+              },
+              "systemPrompt": {
+                "type": "constant",
+                "content": "按照文件里的要求来对诗歌进行文学美化，然后给出进一步的优化建议"
+              },
+              "prompt": {
+                "type": "constant",
+                "content": "每次都严格按照诗歌内容、改进意见"
+              },
+              "outputFolder": {
+                "type": "ref",
+                "content": [
+                  "folder_input_NlUv5",
+                  "hhy"
+                ]
+              },
+              "outputName": {
+                "type": "constant",
+                "content": "extracted_text.txt"
+              },
+              "inputFiles": {
+                "type": "ref",
+                "content": [
+                  "folder_input_NlUv5",
+                  "hhy_files"
+                ]
+              }
+            },
+            "inputs": {
+              "type": "object",
+              "required": [
+                "modelName",
+                "apiKey",
+                "apiHost",
+                "temperature",
+                "prompt"
+              ],
+              "properties": {
+                "inputFiles": {
+                  "type": "array",
+                  "description": "The files to process.",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "modelName": {
+                  "type": "string",
+                  "description": "The name of the model to use."
+                },
+                "apiKey": {
+                  "type": "string",
+                  "description": "The API key to use."
+                },
+                "apiHost": {
+                  "type": "string",
+                  "description": "The API host to use."
+                },
+                "temperature": {
+                  "type": "number",
+                  "description": "The temperature to use."
+                },
+                "systemPrompt": {
+                  "type": "string",
+                  "description": "The system prompt to use."
+                },
+                "prompt": {
+                  "type": "string",
+                  "description": "The prompt to use."
+                },
+                "outputFolder": {
+                  "type": "string",
+                  "description": "The folder to save the output file.",
+                  "default": ""
+                },
+                "outputName": {
+                  "type": "string",
+                  "description": "The name of the output file.",
+                  "default": ""
+                }
+              }
+            },
+            "outputs": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "string"
+                },
+                "outputFile": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "end_pWsdl",
+          "type": "end",
+          "meta": {
+            "position": {
+              "x": 1143,
+              "y": 160
+            }
+          },
+          "data": {
+            "title": "End_1",
+            "inputs": {
+              "type": "object",
+              "properties": {
+                "result": {
+                  "type": "string",
+                  "description": "工作流的最终结果"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "edges": [
+        {
+          "sourceNodeID": "start_4-_7d",
+          "targetNodeID": "llm_1YfXj"
+        },
+        {
+          "sourceNodeID": "llm_1YfXj",
+          "targetNodeID": "end_pWsdl"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "sourceNodeID": "start_0",
+      "targetNodeID": "folder_input_NlUv5"
+    },
+    {
+      "sourceNodeID": "loop_sEfcx",
+      "targetNodeID": "end_0"
+    },
+    {
+      "sourceNodeID": "folder_input_NlUv5",
+      "targetNodeID": "loop_sEfcx"
+    }
+  ]
+}

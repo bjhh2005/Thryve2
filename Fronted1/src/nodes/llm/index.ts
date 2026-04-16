@@ -35,7 +35,7 @@ export const LLMNodeRegistry: FlowNodeRegistry = {
           },
           apiHost: {
             type: 'constant',
-            content: 'https://mock-ai-url/api/v3',
+            content: 'https://api.siliconflow.cn/v1',
           },
           temperature: {
             type: 'constant',

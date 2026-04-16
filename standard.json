@@ -1,0 +1,515 @@
+{
+  "nodes": [
+    {
+      "id": "start_xIbK9",
+      "type": "start",
+      "meta": {
+        "position": {
+          "x": 883.4500192050738,
+          "y": 213.70414614285568
+        }
+      },
+      "data": {
+        "title": "Start_1",
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "default": "Hello Flow."
+            },
+            "enable": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "folder_input_lVj4m",
+      "type": "folder-input",
+      "meta": {
+        "position": {
+          "x": 1442.51444894081,
+          "y": 151.70414614285568
+        }
+      },
+      "data": {
+        "title": "Folder Input_1",
+        "folders": [
+          {
+            "id": "folder_H0Zcu8",
+            "folder": null,
+            "variableName": "folder_1"
+          }
+        ],
+        "outputs": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    },
+    {
+      "id": "llm_Eu4cQ",
+      "type": "llm",
+      "meta": {
+        "position": {
+          "x": 1278.5132706995144,
+          "y": 553.8981604624759
+        }
+      },
+      "data": {
+        "title": "LLM_1",
+        "inputsValues": {
+          "modelName": {
+            "type": "constant",
+            "content": "gpt-3.5-turbo"
+          },
+          "apiKey": {
+            "type": "constant",
+            "content": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          },
+          "apiHost": {
+            "type": "constant",
+            "content": "https://mock-ai-url/api/v3"
+          },
+          "temperature": {
+            "type": "constant",
+            "content": 0.5
+          },
+          "systemPrompt": {
+            "type": "constant",
+            "content": "You are an AI assistant."
+          },
+          "prompt": {
+            "type": "constant",
+            "content": ""
+          },
+          "outputFolder": {
+            "type": "constant",
+            "content": ""
+          },
+          "outputName": {
+            "type": "constant",
+            "content": ""
+          }
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "modelName",
+            "apiKey",
+            "apiHost",
+            "temperature",
+            "prompt"
+          ],
+          "properties": {
+            "inputFiles": {
+              "type": "array",
+              "description": "The files to process.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "modelName": {
+              "type": "string",
+              "description": "The name of the model to use."
+            },
+            "apiKey": {
+              "type": "string",
+              "description": "The API key to use."
+            },
+            "apiHost": {
+              "type": "string",
+              "description": "The API host to use."
+            },
+            "temperature": {
+              "type": "number",
+              "description": "The temperature to use."
+            },
+            "systemPrompt": {
+              "type": "string",
+              "description": "The system prompt to use."
+            },
+            "prompt": {
+              "type": "string",
+              "description": "The prompt to use."
+            },
+            "outputFolder": {
+              "type": "string",
+              "description": "The folder to save the output file.",
+              "default": ""
+            },
+            "outputName": {
+              "type": "string",
+              "description": "The name of the output file.",
+              "default": ""
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string"
+            },
+            "outputFile": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "loop_oGQ8f",
+      "type": "loop",
+      "meta": {
+        "position": {
+          "x": 1794.9136749138427,
+          "y": 525.4351460569616
+        }
+      },
+      "data": {
+        "title": "Loop_1",
+        "mode": "array",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "batchFor"
+          ],
+          "properties": {
+            "batchFor": {
+              "type": "array"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "text_processor_XLV8_",
+      "type": "text-processor",
+      "meta": {
+        "position": {
+          "x": 1712.2353949740157,
+          "y": 425.1369048184832
+        }
+      },
+      "data": {
+        "title": "Text Processor_1",
+        "mode": "append",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "content",
+            "outputFolder",
+            "outputFileName"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input File",
+              "description": "Select the text file to process"
+            },
+            "content": {
+              "type": "string",
+              "title": "Content to Append",
+              "description": "Content to be appended at the end of the file"
+            },
+            "outputFolder": {
+              "type": "string",
+              "title": "Output Folder",
+              "description": "Folder to write the appended content to"
+            },
+            "outputFileName": {
+              "type": "string",
+              "title": "Output File Name",
+              "description": "Name of the file to write the appended content to"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "outputFile": {
+              "type": "string",
+              "description": "File to write the appended content to"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "condition_GwxqM",
+      "type": "condition",
+      "meta": {
+        "position": {
+          "x": 996.5938899210884,
+          "y": 549.8320155474023
+        }
+      },
+      "data": {
+        "title": "Condition_1",
+        "conditions": [
+          {
+            "key": "if_w7rvb",
+            "value": {}
+          },
+          {
+            "key": "if_q0MfC",
+            "value": {}
+          }
+        ]
+      }
+    },
+    {
+      "id": "pdf_processor_-GFrg",
+      "type": "pdf-processor",
+      "meta": {
+        "position": {
+          "x": 1034.5445757951072,
+          "y": 492.905986736374
+        }
+      },
+      "data": {
+        "title": "PDF Processor_1",
+        "mode": "extract",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "inputFile",
+            "pageRange",
+            "extractImages",
+            "outputFolder",
+            "outputName"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "PDF File",
+              "description": "Select PDF file"
+            },
+            "pageRange": {
+              "type": "string",
+              "title": "Page Range",
+              "description": "Pages to extract (e.g., 1-5)",
+              "default": ""
+            },
+            "extractImages": {
+              "type": "boolean",
+              "title": "Extract Images",
+              "description": "Include images",
+              "default": false
+            },
+            "outputFolder": {
+              "type": "string",
+              "title": "Output Folder",
+              "description": "Save location"
+            },
+            "outputName": {
+              "type": "string",
+              "title": "Output Name",
+              "description": "File name"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "Extracted text content"
+            },
+            "images": {
+              "type": "array",
+              "description": "Extracted images (if enabled)"
+            }
+          }
+        },
+        "inputsValues": {
+          "pageRange": "",
+          "extractImages": false
+        }
+      }
+    },
+    {
+      "id": "json_processor_Krm_Z",
+      "type": "json-processor",
+      "meta": {
+        "position": {
+          "x": 1166.0165947158155,
+          "y": 425.1369048184832
+        }
+      },
+      "data": {
+        "title": "JSON Processor",
+        "mode": "query",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "inputFile",
+            "path",
+            "outputFolder",
+            "outputName"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "JSON Data",
+              "description": "Data to query",
+              "format": "json"
+            },
+            "path": {
+              "type": "string",
+              "title": "JSON Path",
+              "description": "Query expression ($.path.to.field)"
+            },
+            "outputFolder": {
+              "type": "string",
+              "title": "Output Folder",
+              "description": "Save location"
+            },
+            "outputName": {
+              "type": "string",
+              "title": "Output Name",
+              "description": "File name"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "outputFile": {
+              "type": "string",
+              "description": "Query result"
+            },
+            "result": {
+              "type": "any",
+              "description": "Query result"
+            },
+            "found": {
+              "type": "boolean",
+              "description": "Whether the path exists"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "img_processor_FB7HJ",
+      "type": "img-processor",
+      "meta": {
+        "position": {
+          "x": 1428.960632557232,
+          "y": 482.06293362951146
+        }
+      },
+      "data": {
+        "title": "Image Processor_1",
+        "mode": "resize",
+        "inputs": {
+          "type": "object",
+          "required": [
+            "inputFile",
+            "inputFile",
+            "width",
+            "height",
+            "maintainAspectRatio",
+            "outputFolder",
+            "outputName"
+          ],
+          "properties": {
+            "inputFile": {
+              "type": "string",
+              "title": "Input Image",
+              "description": "Select image file"
+            },
+            "width": {
+              "type": "number",
+              "title": "Width",
+              "description": "Width (px) > 0",
+              "minimum": 1
+            },
+            "height": {
+              "type": "number",
+              "title": "Height",
+              "description": "Height (px) > 0",
+              "minimum": 1
+            },
+            "maintainAspectRatio": {
+              "type": "boolean",
+              "title": "Aspect Ratio",
+              "description": "Keep aspect ratio"
+            },
+            "outputFolder": {
+              "type": "string",
+              "title": "Output Folder",
+              "description": "Save location"
+            },
+            "outputName": {
+              "type": "string",
+              "title": "Output Name",
+              "description": "File name"
+            }
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "processedImage": {
+              "type": "string",
+              "title": "Image",
+              "description": "Output path"
+            },
+            "width": {
+              "type": "number",
+              "title": "Width",
+              "description": "Output width"
+            },
+            "height": {
+              "type": "number",
+              "title": "Height",
+              "description": "Output height"
+            },
+            "format": {
+              "type": "string",
+              "title": "Format",
+              "description": "Output format"
+            },
+            "size": {
+              "type": "number",
+              "title": "Size",
+              "description": "File size (bytes)"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "end_M8RoZ",
+      "type": "end",
+      "meta": {
+        "position": {
+          "x": 1541.4573085409309,
+          "y": 358.72320453895014
+        }
+      },
+      "data": {
+        "title": "End_1",
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "result": {
+              "type": "string",
+              "description": "工作流的最终结果"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "edges": []
+}
